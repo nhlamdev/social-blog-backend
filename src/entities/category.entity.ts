@@ -1,0 +1,18 @@
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { AbstractEntity } from './abstract.entity';
+import { ContentEntity } from '.';
+
+@Entity('category')
+export class CategoryEntity extends AbstractEntity {
+  @PrimaryGeneratedColumn('uuid')
+  _id: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: false })
+  title: string;
+
+  @Column({ type: 'varchar', length: 200, nullable: false })
+  summary: string;
+
+  @OneToMany(() => ContentEntity, (content) => content.category)
+  contents: ContentEntity[];
+}
