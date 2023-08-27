@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MemberEntity, SessionEntity } from '@/entities';
 import { Repository } from 'typeorm';
-import { client_data } from '@/interface';
+import { client_data } from '@/interface/common.interface';
 
 @Injectable()
 export class AuthService {

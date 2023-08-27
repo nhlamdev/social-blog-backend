@@ -123,14 +123,14 @@ export class AuthController {
 
   @Get('profile')
   @ApiTags('auth')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt-access'))
   async clientProfileById(@Req() req) {
     return req.user;
   }
 
   @Get('all-members')
   @ApiTags('auth')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt-access'))
   async allMembers() {
     return await this.authService.allMember();
   }

@@ -1,4 +1,4 @@
-import { client_data } from '@/interface';
+import { client_data } from '@/interface/common.interface';
 import { detectDevice } from '@/utils/global-func';
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
