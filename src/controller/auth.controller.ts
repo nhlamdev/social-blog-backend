@@ -121,10 +121,11 @@ export class AuthController {
     return {};
   }
 
-  @Get('client-profile/:id')
+  @Get('profile')
   @ApiTags('auth')
-  async clientProfileById() {
-    return {};
+  @UseGuards(AuthGuard('jwt'))
+  async clientProfileById(@Req() req) {
+    return req.user;
   }
 
   @Get('all-members')
