@@ -25,8 +25,8 @@ export class AuthController {
   ) {}
 
   @Get('google')
-  @UseGuards(AuthGuard('google'))
   @ApiTags('auth')
+  @UseGuards(AuthGuard('google'))
   async googleLogin() {}
 
   @Get('google/callback')
