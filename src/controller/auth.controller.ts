@@ -1,3 +1,4 @@
+import { AccessJwtPayload, RefreshJwtPayload } from '@/interface';
 import { OwnerLoginDto } from '@/model';
 import { AuthService } from '@/service';
 import {
@@ -8,6 +9,7 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -56,7 +58,7 @@ export class AuthController {
       });
 
       const refreshToken = await this.jwtService.sign(
-        { session_id: session._id },
+        { session_id: session._id, role: 'member' },
         {
           secret: process.env.REFRESH_TOKEN_SECRET,
         },
@@ -116,16 +118,29 @@ export class AuthController {
 
   @Get('client-profile-all')
   @ApiTags('auth')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt-access'))
   async clientProfile() {
-    return {};
+    return await this.authService.allMember();
   }
 
   @Get('profile')
   @ApiTags('auth')
   @UseGuards(AuthGuard('jwt-access'))
   async clientProfileById(@Req() req) {
-    return req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    if (jwtPayload.role === 'member') {
+      const member = await this.authService.memberById(jwtPayload._id);
+
+      if (Boolean(member)) {
+        return { ...member, role: 'member' };
+      } else {
+        throw new UnauthorizedException('Member not found.!');
+      }
+    } else {
+      const result = { name: 'quản trị viên', role: 'owner' };
+      return result;
+    }
   }
 
   @Get('all-members')
@@ -133,6 +148,59 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt-access'))
   async allMembers() {
     return await this.authService.allMember();
+  }
+
+  @Get('renew-token')
+  @ApiTags('auth')
+  @UseGuards(AuthGuard('jwt-refresh'))
+  async refreshToken(@Req() req, @Res() res) {
+    const jwtPayload: RefreshJwtPayload = req.user;
+
+    const session = await this.authService.sessionById(jwtPayload.session_id);
+
+    if (Boolean(session)) {
+      if (jwtPayload.role === 'member') {
+        if (session.member) {
+          const accessToken = await this.jwtService.sign(
+            {
+              _id: session.member._id,
+              provider_id: session.member.provider_id,
+              provider: session.member.provider,
+              role: 'member',
+            },
+            {
+              secret: process.env.ACCESS_TOKEN_SECRET,
+            },
+          );
+
+          res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
+            maxAge: 3600000,
+            httpOnly: true,
+          });
+
+          res.status(200).json({ message: 'renew success' });
+        } else {
+          throw new UnauthorizedException('Phiên đăng nhập quá hạn.');
+        }
+      } else {
+        const accessToken = await this.jwtService.sign(
+          {
+            role: 'owner',
+          },
+          {
+            secret: process.env.ACCESS_TOKEN_SECRET,
+          },
+        );
+
+        res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
+          maxAge: 3600000,
+          httpOnly: true,
+        });
+        res.status(200).json({ message: 'renew success' });
+      }
+    } else {
+      throw new UnauthorizedException('Phiên đăng nhập quá hạn.');
+    }
   }
 
   @Post('owner-login')
@@ -154,7 +222,7 @@ export class AuthController {
       });
 
       const refreshToken = await this.jwtService.sign(
-        { session_id: session._id },
+        { session_id: session._id, role: 'owner' },
         {
           secret: process.env.REFRESH_TOKEN_SECRET,
         },
@@ -179,7 +247,41 @@ export class AuthController {
 
   @Post('logout')
   @ApiTags('auth')
-  async clientLogout() {
-    return '';
+  @UseGuards(AuthGuard('jwt-refresh'))
+  async clientLogout(@Req() req, @Res() res) {
+    const jwtPayload: RefreshJwtPayload = req.user;
+
+    const { session_id } = jwtPayload;
+
+    this.authService.removeSession(session_id);
+
+    res.cookie(process.env.ACCESS_TOKEN_NAME, '', {
+      maxAge: 0,
+      httpOnly: true,
+    });
+
+    res.cookie(process.env.REFRESH_TOKEN_NAME, '', {
+      maxAge: 0,
+      httpOnly: true,
+    });
+
+    res.status(200).json({ message: 'logout success !.' });
+  }
+
+  @Post('logout-all')
+  @ApiTags('auth')
+  @UseGuards(AuthGuard('jwt-refresh'))
+  async clientLogoutAll(@Res() res) {
+    res.cookie(process.env.ACCESS_TOKEN_NAME, '', {
+      maxAge: 0,
+      httpOnly: true,
+    });
+
+    res.cookie(process.env.REFRESH_TOKEN_NAME, '', {
+      maxAge: 0,
+      httpOnly: true,
+    });
+
+    res.status(200).json({ message: 'logout success !.' });
   }
 }

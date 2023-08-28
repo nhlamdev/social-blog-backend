@@ -7,4 +7,5 @@ export interface AccessJwtPayload {
 
 export interface RefreshJwtPayload {
   session_id: string;
+  role: 'member' | 'owner';
 }

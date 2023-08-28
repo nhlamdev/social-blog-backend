@@ -17,6 +17,22 @@ export class AuthService {
     return this.memberRepository.find();
   }
 
+  async memberById(id: string) {
+    return this.memberRepository.findOne({ where: { _id: id } });
+  }
+
+  async sessionById(session_id: string) {
+    return this.sessionRepository.findOne({ where: { _id: session_id } });
+  }
+
+  async removeSession(id?: string) {
+    if (id) {
+      return this.sessionRepository.delete({ _id: id });
+    } else {
+      return this.sessionRepository.delete({});
+    }
+  }
+
   async socialVerifyExist(data: {
     provider: 'google' | 'github' | 'facebook' | 'discord';
     name: string;
