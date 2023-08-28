@@ -5,17 +5,17 @@ import { ApiTags } from '@nestjs/swagger';
 export class SeriesController {
   @Get()
   @ApiTags('series')
-  async categories() {}
+  async series() {}
 
   @Post()
   @ApiTags('series')
-  async createCategory() {}
+  async createSeries() {}
 
   @Put(':id')
   @ApiTags('series')
-  async updateCategory() {}
+  async updateSeries() {}
 
   @Delete(':id')
   @ApiTags('series')
-  async removeCategory() {}
+  async removeSeries() {}
 }

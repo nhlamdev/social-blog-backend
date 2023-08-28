@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Delete, Get, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 @Controller('contact')
@@ -7,7 +7,11 @@ export class ContactController {
   @ApiTags('contact')
   async contacts() {}
 
-  @Get()
+  @Post()
   @ApiTags('contact')
   async createContacts() {}
+
+  @Delete()
+  @ApiTags('contact')
+  async removeContact() {}
 }
