@@ -14,13 +14,14 @@ export class DiscordStrategy extends PassportStrategy(Strategy, 'discord') {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: any) {
-    // Here, you can save the user profile data to your database or perform any custom logic
-    // The 'profile' parameter contains user information retrieved from Discord
-    // You can access properties like profile.id, profile.username, profile.email, etc.
+    const user = {
+      provider: 'discord',
+      id: profile.id,
+      name: profile.global_name,
+      email: profile.email,
+      image: profile.avatar,
+    };
 
-    // Example: const user = await this.authService.findOrCreateUser(profile);
-    // Replace `findOrCreateUser` with your logic to manage user data
-
-    return profile;
+    return user;
   }
 }

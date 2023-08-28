@@ -100,8 +100,50 @@ export class AuthController {
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
   @ApiTags('auth')
-  async githubLoginCallback(@Req() req) {
-    return { statusCode: 200, message: req.user, client: req.client_data };
+  async githubLoginCallback(@Req() req, @Res() res) {
+    const { user } = req;
+
+    if (user) {
+      const member = await this.authService.socialVerifyExist(user);
+
+      const accessToken = await this.jwtService.sign(
+        {
+          _id: member._id,
+          provider_id: member.provider_id,
+          provider: member.provider,
+          role: 'member',
+        },
+        {
+          secret: process.env.ACCESS_TOKEN_SECRET,
+        },
+      );
+
+      const session = await this.authService.createSession({
+        client: req.client_data,
+        member,
+      });
+
+      const refreshToken = await this.jwtService.sign(
+        { session_id: session._id, role: 'member' },
+        {
+          secret: process.env.REFRESH_TOKEN_SECRET,
+        },
+      );
+
+      res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
+        maxAge: 3600000,
+        httpOnly: true,
+      });
+
+      res.cookie(process.env.REFRESH_TOKEN_NAME, refreshToken, {
+        maxAge: 3600000,
+        httpOnly: true,
+      });
+
+      res.redirect('/');
+    } else {
+      res.redirect('/');
+    }
   }
 
   @Get('discord')
@@ -112,8 +154,50 @@ export class AuthController {
   @Get('discord/callback')
   @UseGuards(AuthGuard('discord'))
   @ApiTags('auth')
-  async discordLoginCallback(@Req() req) {
-    return { statusCode: 200, message: req.user, client: req.client_data };
+  async discordLoginCallback(@Req() req, @Res() res) {
+    const { user } = req;
+
+    if (user) {
+      const member = await this.authService.socialVerifyExist(user);
+
+      const accessToken = await this.jwtService.sign(
+        {
+          _id: member._id,
+          provider_id: member.provider_id,
+          provider: member.provider,
+          role: 'member',
+        },
+        {
+          secret: process.env.ACCESS_TOKEN_SECRET,
+        },
+      );
+
+      const session = await this.authService.createSession({
+        client: req.client_data,
+        member,
+      });
+
+      const refreshToken = await this.jwtService.sign(
+        { session_id: session._id, role: 'member' },
+        {
+          secret: process.env.REFRESH_TOKEN_SECRET,
+        },
+      );
+
+      res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
+        maxAge: 3600000,
+        httpOnly: true,
+      });
+
+      res.cookie(process.env.REFRESH_TOKEN_NAME, refreshToken, {
+        maxAge: 3600000,
+        httpOnly: true,
+      });
+
+      res.redirect('/');
+    } else {
+      res.redirect('/');
+    }
   }
 
   @Get('client-profile-all')
