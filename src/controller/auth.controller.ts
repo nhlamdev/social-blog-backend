@@ -80,17 +80,17 @@ export class AuthController {
     }
   }
 
-  @Get('facebook')
-  @UseGuards(AuthGuard('facebook'))
-  @ApiTags('auth')
-  async facebookLogin() {}
+  // @Get('facebook')
+  // @UseGuards(AuthGuard('facebook'))
+  // @ApiTags('auth')
+  // async facebookLogin() {}
 
-  @Get('facebook/callback')
-  @UseGuards(AuthGuard('facebook'))
-  @ApiTags('auth')
-  async facebookLoginCallback(@Req() req) {
-    return req.user;
-  }
+  // @Get('facebook/callback')
+  // @UseGuards(AuthGuard('facebook'))
+  // @ApiTags('auth')
+  // async facebookLoginCallback(@Req() req) {
+  //   return req.user;
+  // }
 
   @Get('github')
   @UseGuards(AuthGuard('github'))
