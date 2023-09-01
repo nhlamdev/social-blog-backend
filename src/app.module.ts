@@ -1,14 +1,12 @@
 import * as controllers from '@/controller';
 import { DbConnectModule } from '@/database.module';
 import * as entities from '@/entities';
-import { ResponseInterceptor } from '@/interceptor';
 import * as middleware from '@/middleware';
 import * as services from '@/service';
 import * as strategy from '@/strategy';
 import { CacheModule } from '@nestjs/cache-manager';
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_INTERCEPTOR } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -34,10 +32,6 @@ import { join } from 'path';
   ],
   controllers: Object.entries(controllers).map((v) => v[1]),
   providers: [
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: ResponseInterceptor,
-    },
     ...Object.entries(services).map((v) => v[1]),
     ...Object.entries(strategy).map((v) => v[1]),
   ],
