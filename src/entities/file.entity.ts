@@ -1,4 +1,4 @@
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { AbstractEntity } from './abstract.entity';
 import { ContentEntity } from '.';
 
@@ -19,6 +19,6 @@ export class FileEntity extends AbstractEntity {
   @Column()
   size: number;
 
-  @OneToOne(() => ContentEntity, (content) => content.image)
+  @ManyToOne(() => ContentEntity, (content) => content.images)
   content: ContentEntity;
 }

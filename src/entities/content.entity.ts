@@ -5,17 +5,16 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { AbstractEntity } from './abstract.entity';
 import {
-  FileEntity,
   CategoryEntity,
-  SeriesEntity,
   CommentEntity,
+  FileEntity,
   MemberEntity,
+  SeriesEntity,
 } from '.';
+import { AbstractEntity } from './abstract.entity';
 
 @Entity('content')
 export class ContentEntity extends AbstractEntity {
@@ -29,17 +28,17 @@ export class ContentEntity extends AbstractEntity {
   body: string;
 
   @Column({ type: 'boolean', nullable: false })
+  draft: boolean;
+
+  @Column({ type: 'boolean', nullable: false })
   complete: boolean;
 
   @Column({ type: 'text', array: true })
   tags: string[];
 
-  @OneToOne(() => FileEntity, (file) => file.content)
+  @OneToMany(() => FileEntity, (file) => file.content, { cascade: true })
   @JoinColumn()
-  image: FileEntity;
-
-  // @OneToMany(() => NotifyEntity, (tag) => tag.content, { cascade: true })
-  // notifys: NotifyEntity[];
+  images: FileEntity[];
 
   @OneToMany(() => CommentEntity, (tag) => tag.content, { cascade: true })
   comments: CommentEntity[];
