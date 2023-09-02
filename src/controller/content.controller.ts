@@ -286,31 +286,6 @@ export class ContentController {
     );
   }
 
-  // @Patch('update-image/:id')
-  // @ApiTags('content')
-  // @UseGuards(AuthGuard('jwt-access'))
-  // @UseInterceptors(
-  //   FilesInterceptor('files', 20, {
-  //     storage: diskStorage({
-  //       destination: (req, file, next) => {
-  //         next(null, 'uploads');
-  //       },
-  //       filename: (req, file, next) => {
-  //         next(
-  //           null,
-  //           new Date().toISOString().replace(/:/g, '-') +
-  //             '-' +
-  //             file.originalname,
-  //         );
-  //       },
-  //     }),
-  //   }),
-  // )
-  // async updateImage(@Req() req, @Param('id') id: string) {
-  //   const image = req.files[0].filename;
-  //   return await this.contentService.changeImage(id, image);
-  // }
-
   @Patch('update-category/:content/:category')
   @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))
