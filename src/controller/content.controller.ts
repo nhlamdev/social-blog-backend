@@ -18,7 +18,6 @@ import {
   Post,
   Put,
   Query,
-  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -246,9 +245,8 @@ export class ContentController {
     return await this.contentService.create(body, filesData);
   }
 
-  @Patch('update-image/:id')
+  @Put(':id')
   @ApiTags('content')
-  @UseGuards(AuthGuard('jwt-access'))
   @UseInterceptors(
     FilesInterceptor('files', 20, {
       storage: diskStorage({
@@ -266,10 +264,52 @@ export class ContentController {
       }),
     }),
   )
-  async updateImage(@Req() req, @Param('id') id: string) {
-    const image = req.files[0].filename;
-    return await this.contentService.changeImage(id, image);
+  @UseGuards(AuthGuard('jwt-access'))
+  async updateBody(
+    @Body() payload: ContentDto,
+    @Param('id') id: string,
+    @UploadedFile('files') files: Express.Multer.File,
+  ) {
+    const { title, body, tags, category, complete } = payload;
+    const filesData = await this.commonService.saveFile(files);
+
+    return await this.contentService.updateContent(
+      id,
+      {
+        title,
+        body,
+        tags,
+        category,
+        complete,
+      },
+      filesData,
+    );
   }
+
+  // @Patch('update-image/:id')
+  // @ApiTags('content')
+  // @UseGuards(AuthGuard('jwt-access'))
+  // @UseInterceptors(
+  //   FilesInterceptor('files', 20, {
+  //     storage: diskStorage({
+  //       destination: (req, file, next) => {
+  //         next(null, 'uploads');
+  //       },
+  //       filename: (req, file, next) => {
+  //         next(
+  //           null,
+  //           new Date().toISOString().replace(/:/g, '-') +
+  //             '-' +
+  //             file.originalname,
+  //         );
+  //       },
+  //     }),
+  //   }),
+  // )
+  // async updateImage(@Req() req, @Param('id') id: string) {
+  //   const image = req.files[0].filename;
+  //   return await this.contentService.changeImage(id, image);
+  // }
 
   @Patch('update-category/:content/:category')
   @ApiTags('content')
@@ -313,21 +353,6 @@ export class ContentController {
     }
 
     return await this.contentService.changeSeries(_content, _series);
-  }
-
-  @Put('update-body/:id')
-  @ApiTags('content')
-  @UseGuards(AuthGuard('jwt-access'))
-  async updateBody(@Body() payload: ContentDto, @Param('id') id: string) {
-    const { title, body, tags, category, complete } = payload;
-
-    return await this.contentService.changeBody(id, {
-      title,
-      body,
-      tags,
-      category,
-      complete,
-    });
   }
 
   @Delete(':id')

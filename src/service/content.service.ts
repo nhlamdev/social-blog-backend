@@ -6,7 +6,7 @@ import {
 } from '@/entities';
 import { ContentDto } from '@/model';
 // import { CategoryService, SeriesService } from '@/service';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SeriesService, CategoryService } from '.';
@@ -45,7 +45,7 @@ export class ContentService {
   async getContentById(id: string) {
     return await this.contentRepository.findOne({
       where: { _id: id },
-      relations: { category: true, tags: true, series: true },
+      relations: { category: true, series: true, images: true },
     });
   }
 
@@ -60,7 +60,9 @@ export class ContentService {
       .createQueryBuilder('content')
       .skip(_skip)
       .take(_take)
+      .leftJoinAndSelect('content.images', 'images')
       .leftJoinAndSelect('content.category', 'category')
+      .leftJoinAndSelect('content.series', 'series')
       .where('LOWER(content.title) LIKE :search ', { search: _search })
       .andWhere(
         `category._id ${outside === 'true' ? '<>' : '='} :id ${
@@ -96,6 +98,8 @@ export class ContentService {
       .createQueryBuilder('content')
       .skip(_skip)
       .take(_take)
+      .leftJoinAndSelect('content.images', 'images')
+      .leftJoinAndSelect('content.category', 'category')
       .leftJoinAndSelect('content.series', 'series')
       .where('LOWER(content.title) LIKE :search ', { search: _search })
       .andWhere(
@@ -132,7 +136,7 @@ export class ContentService {
       .createQueryBuilder('content')
       .skip(_skip)
       .take(_take)
-      .leftJoinAndSelect('content.tags', 'tags')
+      .leftJoinAndSelect('content.images', 'images')
       .leftJoinAndSelect('content.category', 'category')
       .leftJoinAndSelect('content.series', 'series')
       .where('LOWER(content.title) LIKE :search', { search: _search });
@@ -190,12 +194,7 @@ export class ContentService {
     return this.contentRepository.save(content);
   }
 
-  async changeImage(_id: string, image: string) {
-    // await this.contentRepository.update(_id, { image: image });
-    // return image;
-  }
-
-  async changeBody(
+  async updateContent(
     _id: string,
     payload: {
       title: string;
@@ -204,21 +203,27 @@ export class ContentService {
       tags?: string[];
       complete?: boolean;
     },
+    files?: FileEntity[],
   ) {
-    // const content = await this.getContentById(_id);
-    // if (!Boolean(content)) {
-    //   throw new BadRequestException('Bài viết không tồn tại.');
-    // }
-    // const tags = await this.tagSerivce.createManyTag(payload.tags);
-    // const _category = payload.category
-    //   ? await this.categoryService.getCategoryById(payload.category)
-    //   : null;
-    // content.title = payload.title;
-    // content.body = payload.body;
-    // content.category = _category;
-    // content.complete = Boolean(payload.complete);
-    // content.tags = tags;
-    // return this.contentRepository.save(content);
+    const content = await this.getContentById(_id);
+    if (!Boolean(content)) {
+      throw new BadRequestException('Bài viết không tồn tại.');
+    }
+
+    const _category = payload.category
+      ? await this.categoryService.getCategoryById(payload.category)
+      : null;
+
+    content.title = payload.title;
+    content.body = payload.body;
+    content.category = _category;
+    content.complete = Boolean(payload.complete);
+    content.tags = payload.tags;
+    if (files && files.length !== 0) {
+      content.images = files;
+    }
+
+    return this.contentRepository.save(content);
   }
 
   async changeCategory(content: ContentEntity, category: CategoryEntity) {
