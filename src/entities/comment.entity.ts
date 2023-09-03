@@ -7,9 +7,10 @@ import {
 } from 'typeorm';
 
 import { ContentEntity, MemberEntity } from '.';
+import { AbstractEntity } from './abstract.entity';
 
 @Entity('comment')
-export class CommentEntity {
+export class CommentEntity extends AbstractEntity {
   @PrimaryGeneratedColumn('uuid')
   _id: string;
 
