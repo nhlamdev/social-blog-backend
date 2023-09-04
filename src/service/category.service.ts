@@ -32,6 +32,19 @@ export class CategoryService {
       .getOne();
   }
 
+  async getTopCategoryMoreContents() {
+    return await this.categoryRepository
+      .createQueryBuilder('category')
+      .leftJoinAndSelect('category.contents', 'contents')
+      .addSelect('COUNT(contents.id)', 'contentCount')
+      .select(
+        'category._id, category.title, COUNT(contents._id) as contentCount',
+      )
+      .groupBy('category._id')
+      .orderBy('contentCount', 'DESC')
+      .getRawMany();
+  }
+
   async create(payload: CategoryDto) {
     const category = new CategoryEntity();
 

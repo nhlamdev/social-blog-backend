@@ -40,6 +40,12 @@ export class CategoryController {
     return await this.categoryService.getAllCategory(_take, _skip, _search);
   }
 
+  @Get('more-contents')
+  @ApiTags('category')
+  async getTopCategoryMoreContents() {
+    return await this.categoryService.getTopCategoryMoreContents();
+  }
+
   @Post()
   @ApiTags('category')
   @UseGuards(AuthGuard('jwt-access'))
