@@ -13,8 +13,13 @@ export class AuthService {
     private memberRepository: Repository<MemberEntity>,
   ) {}
 
-  async allMember() {
-    return this.memberRepository.find();
+  async allMember(_take: number, _skip: number, _search: string) {
+    return this.memberRepository
+      .createQueryBuilder('member')
+      .skip(_skip)
+      .take(_take)
+      .where('LOWER(member.name) LIKE :search', { search: _search })
+      .getMany();
   }
 
   async memberById(id: string) {

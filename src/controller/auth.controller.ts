@@ -1,12 +1,14 @@
 import { AccessJwtPayload, RefreshJwtPayload } from '@/interface';
 import { OwnerLoginDto } from '@/model';
 import { AuthService } from '@/service';
+import { checkIsNumber } from '@/utils/global-func';
 import {
   BadRequestException,
   Body,
   Controller,
   Get,
   Post,
+  Query,
   Req,
   Res,
   UnauthorizedException,
@@ -200,13 +202,6 @@ export class AuthController {
     }
   }
 
-  @Get('client-profile-all')
-  @ApiTags('auth')
-  @UseGuards(AuthGuard('jwt-access'))
-  async clientProfile() {
-    return await this.authService.allMember();
-  }
-
   @Get('profile')
   @ApiTags('auth')
   @UseGuards(AuthGuard('jwt-access'))
@@ -230,8 +225,21 @@ export class AuthController {
   @Get('all-members')
   @ApiTags('auth')
   @UseGuards(AuthGuard('jwt-access'))
-  async allMembers() {
-    return await this.authService.allMember();
+  async allMembers(
+    @Query('skip') skip: string,
+    @Query('take') take: string,
+    @Query('search') search: string | undefined,
+  ) {
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    const _skip = checkIsNumber(skip) ? Number(skip) : null;
+    const _search = search
+      ? `%${search
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')}%`
+      : '%%';
+
+    return await this.authService.allMember(_take, _skip, _search);
   }
 
   @Get('renew-token')
