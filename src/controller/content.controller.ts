@@ -56,7 +56,7 @@ export class ContentController {
   async randomContent(@Query('take') take: string | undefined) {
     const _take = checkIsNumber(take) ? Number(take) : null;
 
-    return this.contentService.randonContents(_take);
+    return this.contentService.randomContents(_take);
   }
 
   @Get()

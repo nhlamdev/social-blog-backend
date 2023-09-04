@@ -16,6 +16,8 @@ export class ContentService {
   constructor(
     @InjectRepository(ContentEntity)
     private contentRepository: Repository<ContentEntity>,
+    @InjectRepository(FileEntity)
+    private fileRepository: Repository<FileEntity>,
     private readonly categoryService: CategoryService,
     private readonly seriesService: SeriesService,
   ) {}
@@ -32,14 +34,22 @@ export class ContentService {
     return await this.contentRepository.count();
   }
 
-  async randonContents(take: number | null) {
+  async randomContents(take: number | null) {
     const contents = await this.contentRepository
       .createQueryBuilder('content')
       .orderBy('RANDOM()')
       .take(take)
       .getMany();
 
-    return contents;
+    const resultAndRelation = contents.map(async (c) => {
+      const images = await this.fileRepository.find({
+        where: { content: { _id: c._id } },
+      });
+
+      return { ...c, images };
+    });
+
+    return Promise.all(resultAndRelation);
   }
 
   async getContentById(id: string) {
