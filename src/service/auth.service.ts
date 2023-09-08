@@ -64,7 +64,10 @@ export class AuthService {
       newMember.provider = data.provider;
       newMember.name = data.name;
       newMember.email = data.email;
-      newMember.image = data.image;
+
+      if (data.image) {
+        newMember.image = data.image;
+      }
 
       return await this.memberRepository.save(newMember);
     }

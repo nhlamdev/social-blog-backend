@@ -33,6 +33,9 @@ export class ContentEntity extends AbstractEntity {
   @Column({ type: 'boolean', nullable: false })
   complete: boolean;
 
+  @Column({ type: 'integer', nullable: false, default: 0 })
+  count_view: number;
+
   @Column({ type: 'text', array: true })
   tags: string[];
 
@@ -51,7 +54,4 @@ export class ContentEntity extends AbstractEntity {
 
   @ManyToMany(() => MemberEntity, (member) => member.favorites)
   favorites_by: MemberEntity[];
-
-  @ManyToMany(() => MemberEntity, (member) => member.notify_contents)
-  notify_for: MemberEntity[];
 }

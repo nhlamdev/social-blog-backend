@@ -47,8 +47,4 @@ export class MemberEntity extends AbstractEntity {
   @ManyToMany(() => ContentEntity, (role) => role.favorites_by)
   @JoinTable()
   favorites: ContentEntity[];
-
-  @ManyToMany(() => ContentEntity, (role) => role.favorites_by)
-  @JoinTable()
-  notify_contents: ContentEntity[];
 }
