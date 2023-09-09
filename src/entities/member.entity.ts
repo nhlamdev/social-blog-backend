@@ -1,13 +1,6 @@
-import {
-  Column,
-  Entity,
-  JoinTable,
-  ManyToMany,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-import { CommentEntity, ContactEntity, ContentEntity, SessionEntity } from '.';
+import { CommentEntity, SessionEntity } from '.';
 import { AbstractEntity } from './abstract.entity';
 
 @Entity('member')
@@ -38,13 +31,6 @@ export class MemberEntity extends AbstractEntity {
   @OneToMany(() => SessionEntity, (session) => session.member)
   session: SessionEntity[];
 
-  @OneToMany(() => ContactEntity, (contact) => contact.member)
-  contact: ContactEntity[];
-
   @OneToMany(() => CommentEntity, (comment) => comment.create_by)
   comments: CommentEntity[];
-
-  @ManyToMany(() => ContentEntity, (role) => role.favorites_by)
-  @JoinTable()
-  favorites: ContentEntity[];
 }

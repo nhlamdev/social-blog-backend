@@ -1,12 +1,6 @@
-import {
-  Column,
-  Entity,
-  ManyToMany,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-import { ContentEntity, MemberEntity } from '.';
+import { ContentEntity } from '.';
 import { AbstractEntity } from './abstract.entity';
 
 @Entity('series')
@@ -22,7 +16,4 @@ export class SeriesEntity extends AbstractEntity {
 
   @OneToMany(() => ContentEntity, (content) => content.series)
   contents: ContentEntity[];
-
-  @ManyToMany(() => MemberEntity, (member) => member.favorites)
-  favorites_by: MemberEntity[];
 }

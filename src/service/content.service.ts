@@ -29,6 +29,20 @@ export class ContentService {
 
     return Boolean(data);
   }
+  async upCountViewContent(content: ContentEntity) {
+    content.count_view = content.count_view + 1;
+
+    return this.contentRepository.save(content);
+  }
+
+  async topViewContent(take: number | null) {
+    return await this.contentRepository
+      .createQueryBuilder('content')
+      .orderBy('RANDOM()')
+      .take(take)
+      .orderBy('content.count_view', 'DESC')
+      .getMany();
+  }
 
   async countContent() {
     return await this.contentRepository.count();

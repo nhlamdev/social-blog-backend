@@ -1,6 +1,5 @@
 export * from './member.entity';
 export * from './session.entity';
-export * from './contact.entity';
 export * from './file.entity';
 export * from './content.entity';
 export * from './category.entity';

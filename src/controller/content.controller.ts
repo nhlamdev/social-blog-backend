@@ -59,6 +59,13 @@ export class ContentController {
     return this.contentService.randomContents(_take);
   }
 
+  @Get('top')
+  @ApiTags('content')
+  async contentsTopView(@Query('take') take: string | undefined) {
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    this.contentService.topViewContent(_take);
+  }
+
   @Get()
   @ApiTags('content')
   async getContents(
@@ -213,7 +220,15 @@ export class ContentController {
       throw new BadRequestException('Id bài viết sai định dạng.');
     }
 
-    return await this.contentService.getContentById(id);
+    const content = await this.contentService.getContentById(id);
+
+    if (!Boolean(content)) {
+      throw new BadRequestException('Không tìm thấy bài viết');
+    }
+
+    this.contentService.upCountViewContent(content);
+
+    return this.contentService.upCountViewContent(content);
   }
 
   @Post()

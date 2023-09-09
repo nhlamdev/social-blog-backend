@@ -2,18 +2,11 @@ import {
   Column,
   Entity,
   JoinColumn,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import {
-  CategoryEntity,
-  CommentEntity,
-  FileEntity,
-  MemberEntity,
-  SeriesEntity,
-} from '.';
+import { CategoryEntity, CommentEntity, FileEntity, SeriesEntity } from '.';
 import { AbstractEntity } from './abstract.entity';
 
 @Entity('content')
@@ -51,7 +44,4 @@ export class ContentEntity extends AbstractEntity {
 
   @ManyToOne(() => SeriesEntity, (content) => content.contents)
   series?: SeriesEntity;
-
-  @ManyToMany(() => MemberEntity, (member) => member.favorites)
-  favorites_by: MemberEntity[];
 }
