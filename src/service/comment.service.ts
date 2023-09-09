@@ -13,11 +13,24 @@ export class CommentService {
     return await this.commentRepository.findOne({ where: { _id: id } });
   }
 
-  async commentByContent(content: ContentEntity) {
-    return await this.commentRepository.find({
+  async commentByContent(content: ContentEntity, _take: number, _skip: number) {
+    const data = await this.commentRepository.find({
       where: { content: { _id: content._id } },
       relations: { create_by: true },
+      skip: _skip,
+      take: _take,
     });
+
+    const count = await this.commentRepository.count({
+      where: { content: { _id: content._id } },
+      relations: { create_by: true },
+      skip: _skip,
+      take: _take,
+    });
+
+    const result = { data: data, max: count };
+
+    return result;
   }
 
   async commentByParent(parent: CommentEntity) {

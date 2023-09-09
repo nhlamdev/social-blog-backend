@@ -1,6 +1,7 @@
 import { AccessJwtPayload } from '@/interface';
 import { CommentCreteDto } from '@/model';
 import { AuthService, CommentService, ContentService } from '@/service';
+import { checkIsNumber } from '@/utils/global-func';
 import {
   BadRequestException,
   ForbiddenException,
@@ -12,6 +13,7 @@ import {
   Post,
   Req,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
@@ -26,14 +28,20 @@ export class CommentController {
 
   @Get('by-content/:id')
   @ApiTags('comment')
-  async commentsByContent(@Param('id') id: string) {
+  async commentsByContent(
+    @Param('id') id: string,
+    @Query('skip') skip: string,
+    @Query('take') take: string,
+  ) {
     const content = await this.contentService.getContentById(id);
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    const _skip = checkIsNumber(skip) ? Number(skip) : null;
 
     if (!Boolean(content)) {
       throw new BadRequestException('Bài viết không tồn tại.');
     }
 
-    return await this.commentService.commentByContent(content);
+    return await this.commentService.commentByContent(content, _take, _skip);
   }
 
   @Get('by-parent/:id')
@@ -48,7 +56,7 @@ export class CommentController {
     return await this.commentService.commentByParent(parent);
   }
 
-  @Post('by-content:id')
+  @Post('by-content/:id')
   @UseGuards(AuthGuard('jwt-access'))
   @ApiTags('comment')
   async createComment(
