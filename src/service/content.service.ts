@@ -38,7 +38,8 @@ export class ContentService {
   async topViewContent(take: number | null) {
     return await this.contentRepository
       .createQueryBuilder('content')
-      .orderBy('RANDOM()')
+      .leftJoinAndSelect('content.category', 'category')
+      .leftJoinAndSelect('content.images', 'images')
       .take(take)
       .orderBy('content.count_view', 'DESC')
       .getMany();

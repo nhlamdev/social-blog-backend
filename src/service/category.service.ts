@@ -32,7 +32,7 @@ export class CategoryService {
       .getOne();
   }
 
-  async getTopCategoryMoreContents() {
+  async getTopCategoryMoreContents(take: number | null) {
     return await this.categoryRepository
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.contents', 'contents')
@@ -42,6 +42,7 @@ export class CategoryService {
       )
       .groupBy('category._id')
       .orderBy('contentCount', 'DESC')
+      .limit(take)
       .getRawMany();
   }
 

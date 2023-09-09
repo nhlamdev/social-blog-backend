@@ -42,8 +42,9 @@ export class CategoryController {
 
   @Get('more-contents')
   @ApiTags('category')
-  async getTopCategoryMoreContents() {
-    return await this.categoryService.getTopCategoryMoreContents();
+  async getTopCategoryMoreContents(@Query('take') take: string | undefined) {
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    return await this.categoryService.getTopCategoryMoreContents(_take);
   }
 
   @Post()

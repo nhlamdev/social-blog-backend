@@ -14,14 +14,14 @@ export class CommentEntity extends AbstractEntity {
   @PrimaryGeneratedColumn('uuid')
   _id: string;
 
-  @Column({ type: 'text', nullable: false })
+  @Column({ type: 'text', nullable: false, default: '' })
   text: string;
 
-  @OneToMany(() => CommentEntity, (comment) => comment.replys)
+  @OneToMany(() => CommentEntity, (comment) => comment.reply)
   comment_parent?: CommentEntity;
 
   @ManyToOne(() => CommentEntity, (comment) => comment.comment_parent)
-  replys: CommentEntity[];
+  reply: CommentEntity[];
 
   @ManyToOne(() => ContentEntity, (Content) => Content.comments)
   content?: ContentEntity;

@@ -63,7 +63,7 @@ export class ContentController {
   @ApiTags('content')
   async contentsTopView(@Query('take') take: string | undefined) {
     const _take = checkIsNumber(take) ? Number(take) : null;
-    this.contentService.topViewContent(_take);
+    return this.contentService.topViewContent(_take);
   }
 
   @Get()
