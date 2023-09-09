@@ -9,6 +9,10 @@ export class CommentService {
     private commentRepository: Repository<CommentEntity>,
   ) {}
 
+  async commentById(id: string) {
+    return await this.commentRepository.findOne({ where: { _id: id } });
+  }
+
   async commentByContent(content: ContentEntity) {
     return await this.commentRepository.find({
       where: { content: { _id: content._id } },
@@ -48,7 +52,7 @@ export class CommentService {
     return await this.commentRepository.save(newComment);
   }
 
-  async removeComment(id: string) {
-    return await this.commentRepository.delete(id);
+  async removeComment(comment: CommentEntity) {
+    return await this.commentRepository.remove(comment);
   }
 }
