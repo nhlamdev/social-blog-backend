@@ -2,6 +2,7 @@ import { CASE_SORT } from '@/constants';
 import { ContentDto } from '@/model';
 import {
   CategoryService,
+  CommentService,
   CommonService,
   ContentService,
   SeriesService,
@@ -32,6 +33,7 @@ export class ContentController {
   constructor(
     private readonly contentService: ContentService,
     private readonly categoryService: CategoryService,
+    private readonly commentService: CommentService,
     private readonly seriesService: SeriesService,
     private readonly commonService: CommonService,
   ) {}
@@ -226,9 +228,12 @@ export class ContentController {
       throw new BadRequestException('Không tìm thấy bài viết');
     }
 
-    this.contentService.upCountViewContent(content);
+    const result = {
+      ...content,
+      countComment: await this.commentService.countCommentByContent(content),
+    };
 
-    return this.contentService.upCountViewContent(content);
+    return result;
   }
 
   @Post()

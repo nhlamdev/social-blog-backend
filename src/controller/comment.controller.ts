@@ -46,14 +46,20 @@ export class CommentController {
 
   @Get('by-parent/:id')
   @ApiTags('comment')
-  async commentByParent(@Param('id') id: string) {
+  async commentByParent(
+    @Param('id') id: string,
+    @Query('skip') skip: string,
+    @Query('take') take: string,
+  ) {
     const parent = await this.commentService.commentById(id);
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    const _skip = checkIsNumber(skip) ? Number(skip) : null;
 
     if (!Boolean(parent)) {
       throw new BadRequestException('bình luận mà bạn trả lời không tồn tại.');
     }
 
-    return await this.commentService.commentByParent(parent);
+    return await this.commentService.commentByParent(parent, _take, _skip);
   }
 
   @Post('by-content/:id')

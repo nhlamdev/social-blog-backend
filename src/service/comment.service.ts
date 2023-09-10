@@ -13,31 +13,58 @@ export class CommentService {
     return await this.commentRepository.findOne({ where: { _id: id } });
   }
 
+  async countCommentByContent(content: ContentEntity) {
+    return await this.commentRepository.count({
+      where: { content: { _id: content._id } },
+    });
+  }
+
   async commentByContent(content: ContentEntity, _take: number, _skip: number) {
-    const data = await this.commentRepository.find({
+    const comments = await this.commentRepository.find({
       where: { content: { _id: content._id } },
       relations: { create_by: true },
       skip: _skip,
       take: _take,
+      order: { created_at: 'DESC' },
     });
 
-    const count = await this.commentRepository.count({
-      where: { content: { _id: content._id } },
-      relations: { create_by: true },
-      skip: _skip,
-      take: _take,
+    const commentsWidthCountReply = await comments.map(async (comment) => {
+      const count = this.commentRepository.count({
+        where: { comment_parent: { _id: comment._id } },
+      });
+
+      const commentWithCountReply = { ...comment, reply: await count };
+
+      return commentWithCountReply;
     });
 
-    const result = { data: data, max: count };
+    const result = {
+      data: await Promise.all(commentsWidthCountReply),
+      max: await this.countCommentByContent(content),
+    };
 
     return result;
   }
 
-  async commentByParent(parent: CommentEntity) {
-    return await this.commentRepository.find({
+  async commentByParent(parent: CommentEntity, _take: number, _skip: number) {
+    const data = await this.commentRepository.find({
       where: { comment_parent: { _id: parent._id } },
       relations: { create_by: true },
+      skip: _skip,
+      take: _take,
+      order: { created_at: 'DESC' },
     });
+
+    const count = await this.commentRepository.count({
+      where: { comment_parent: { _id: parent._id } },
+    });
+
+    const result = {
+      data: data,
+      max: count,
+    };
+
+    return result;
   }
 
   async createComment(payload: {
