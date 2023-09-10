@@ -6,6 +6,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Post,
   Query,
@@ -337,7 +338,7 @@ export class AuthController {
     return '';
   }
 
-  @Post('logout')
+  @Delete('logout')
   @ApiTags('auth')
   @UseGuards(AuthGuard('jwt-refresh'))
   async clientLogout(@Req() req, @Res() res) {
@@ -360,7 +361,7 @@ export class AuthController {
     res.status(200).json({ message: 'logout success !.' });
   }
 
-  @Post('logout-all')
+  @Delete('logout-all')
   @ApiTags('auth')
   @UseGuards(AuthGuard('jwt-refresh'))
   async clientLogoutAll(@Res() res) {

@@ -5,7 +5,10 @@ import { RefreshJwtPayload } from '@/interface';
 const { REFRESH_TOKEN_NAME, REFRESH_TOKEN_SECRET } = process.env;
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
+export class JwtRefreshStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-refresh',
+) {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([

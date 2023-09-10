@@ -6,7 +6,10 @@ import { AccessJwtPayload } from '@/interface';
 const { ACCESS_TOKEN_NAME, ACCESS_TOKEN_SECRET } = process.env;
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt-access') {
+export class JwtAccessStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-access',
+) {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
