@@ -14,4 +14,8 @@ export abstract class AbstractEntity extends BaseEntity {
 
   @UpdateDateColumn({ type: 'timestamp' })
   updated_at: Date;
+
+  // @Generated('increment')
+  // @Column({ type: 'integer', nullable: false, default: 0 })
+  // index: number;
 }
