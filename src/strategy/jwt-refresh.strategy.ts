@@ -1,6 +1,6 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { RefreshJwtPayload } from '@/interface';
 const { REFRESH_TOKEN_NAME, REFRESH_TOKEN_SECRET } = process.env;
 
@@ -22,6 +22,15 @@ export class JwtRefreshStrategy extends PassportStrategy(
   }
 
   async validate(payload: RefreshJwtPayload) {
+    const date = new Date();
+
+    if (
+      date.getTime() >
+      new Date(payload.create_at).getTime() + payload.expired
+    ) {
+      throw new UnauthorizedException('Phiên đăng nhập quá hạn.');
+    }
+
     return payload;
   }
 }

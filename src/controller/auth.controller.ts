@@ -17,9 +17,6 @@ import { ApiTags } from '@nestjs/swagger';
 
 @Controller()
 export class AuthController {
-  private readonly ownerAccount = process.env.OWNER_ACCOUNT;
-  private readonly ownerPassword = process.env.OWNER_PASSWORD;
-
   constructor(
     private authService: AuthService,
     private jwtService: JwtService,
@@ -223,18 +220,13 @@ export class AuthController {
   async clientProfileById(@Req() req) {
     const jwtPayload: AccessJwtPayload = req.user;
 
-    if (jwtPayload.role === 'member') {
-      const member = await this.authService.memberById(jwtPayload._id);
+    const member = await this.authService.memberById(jwtPayload._id);
 
-      if (Boolean(member)) {
-        return { ...member, role: 'member' };
-      } else {
-        throw new UnauthorizedException('Member not found.!');
-      }
-    } else {
-      const result = { name: 'quản trị viên', role: 'owner' };
-      return result;
+    if (!Boolean(member)) {
+      throw new UnauthorizedException('Thành viên không tồn tại!');
     }
+
+    return member;
   }
 
   @Get('all-members')
@@ -262,15 +254,6 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt-refresh'))
   async refreshToken(@Req() req, @Res() res) {
     const jwtPayload: RefreshJwtPayload = req.user;
-
-    const date = new Date();
-
-    if (
-      date.getTime() >
-      new Date(jwtPayload.create_at).getTime() + jwtPayload.expired
-    ) {
-      throw new UnauthorizedException('Phiên đăng nhập quá hạn.');
-    }
 
     const session = await this.authService.sessionById(jwtPayload.session_id);
 

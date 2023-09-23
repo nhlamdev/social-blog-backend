@@ -13,8 +13,8 @@ export class CommonController {
   // async status() {}
 
   @Post()
-  @ApiTags('common')
-  async test(@Body() body) {
+  @ApiTags('upload')
+  async upload(@Body() body) {
     return body;
   }
 }
