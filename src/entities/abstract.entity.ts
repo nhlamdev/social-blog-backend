@@ -18,6 +18,6 @@ export abstract class AbstractEntity extends BaseEntity {
   updated_at: Date;
 
   @Generated('increment')
-  @Column({ type: 'integer', nullable: false, default: 0 })
+  @Column({ type: 'integer', nullable: false })
   index: number;
 }
