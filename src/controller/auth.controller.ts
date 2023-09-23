@@ -56,6 +56,7 @@ export class AuthController {
         client: req.client_data,
         member,
         provider: user.provider,
+        provider_id: user.id,
       });
 
       res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
@@ -120,6 +121,7 @@ export class AuthController {
         client: req.client_data,
         member,
         provider: user.provider,
+        provider_id: user.id,
       });
 
       res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
@@ -184,6 +186,7 @@ export class AuthController {
         client: req.client_data,
         member,
         provider: user.provider,
+        provider_id: user.id,
       });
 
       res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
@@ -261,7 +264,7 @@ export class AuthController {
       throw new UnauthorizedException('Phiên đăng nhập không tồn tại.');
     }
 
-    if (session.member) {
+    if (!session.member) {
       throw new UnauthorizedException('Thành viên không tồn tại.');
     }
 

@@ -27,7 +27,10 @@ export class AuthService {
   }
 
   async sessionById(session_id: string) {
-    return this.sessionRepository.findOne({ where: { _id: session_id } });
+    return this.sessionRepository.findOne({
+      where: { _id: session_id },
+      relations: { member: true },
+    });
   }
 
   async removeSession(id?: string) {
@@ -79,6 +82,7 @@ export class AuthService {
     member?: MemberEntity;
     role?: 'member' | 'owner';
     provider: 'google' | 'github' | 'discord';
+    provider_id: string;
   }) {
     const newSession = new SessionEntity();
 
@@ -86,6 +90,7 @@ export class AuthService {
 
     newSession.member = payload.member;
     newSession.provider = payload.provider;
+    newSession.provider_id = payload.provider_id;
 
     if (client.device) {
       newSession.device = client.device;
