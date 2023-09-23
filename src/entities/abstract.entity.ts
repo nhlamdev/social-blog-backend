@@ -1,21 +1,23 @@
 import {
   BaseEntity,
+  Column,
   CreateDateColumn,
   DeleteDateColumn,
+  Generated,
   UpdateDateColumn,
 } from 'typeorm';
 
 export abstract class AbstractEntity extends BaseEntity {
-  @DeleteDateColumn({ type: 'timestamp' })
+  @DeleteDateColumn({ type: 'timestamp', nullable: false })
   delete_at: Date;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({ type: 'timestamp', nullable: false })
   created_at: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ type: 'timestamp', nullable: false })
   updated_at: Date;
 
-  // @Generated('increment')
-  // @Column({ type: 'integer', nullable: false, default: 0 })
-  // index: number;
+  @Generated('increment')
+  @Column({ type: 'integer', nullable: false, default: 0 })
+  index: number;
 }

@@ -10,7 +10,6 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 @Module({
@@ -21,10 +20,7 @@ import { join } from 'path';
       serveRoot: '/',
     }),
     CacheModule.register(),
-    ThrottlerModule.forRoot({
-      ttl: 60,
-      limit: 10,
-    }),
+
     TypeOrmModule.forFeature(Object.entries(entities).map((v) => v[1])),
     JwtModule.register({}),
     ScheduleModule.forRoot(),
