@@ -38,7 +38,7 @@ export class AuthService {
     }
   }
 
-  async socialVerifyExist(data: {
+  async socialVerifyExist(payload: {
     provider: 'google' | 'github' | 'facebook' | 'discord';
     name: string;
     email: string;
@@ -46,45 +46,46 @@ export class AuthService {
     id: string;
   }) {
     const member = await this.memberRepository.findOne({
-      where: { provider: data.provider, provider_id: data.id },
+      where: { email: payload.email },
     });
 
     if (member) {
-      this.memberRepository.update(member._id, {
-        name: data.name,
-        email: data.email,
-        image: data.image,
-      });
+      member.name = payload.name;
+      member.email = payload.email;
+
+      if (payload.image) {
+        member.image = payload.image;
+      }
+
+      this.memberRepository.save(member);
 
       return member;
     } else {
       const newMember = new MemberEntity();
 
-      newMember.provider_id = data.id;
-      newMember.provider = data.provider;
-      newMember.name = data.name;
-      newMember.email = data.email;
+      newMember.name = payload.name;
+      newMember.email = payload.email;
 
-      if (data.image) {
-        newMember.image = data.image;
+      if (payload.image) {
+        newMember.image = payload.image;
       }
 
       return await this.memberRepository.save(newMember);
     }
   }
 
-  async createSession(data: {
+  async createSession(payload: {
     client: client_data;
     member?: MemberEntity;
     role?: 'member' | 'owner';
+    provider: 'google' | 'github' | 'discord';
   }) {
-    const { client, member, role } = data;
-
     const newSession = new SessionEntity();
 
-    if (member) {
-      newSession.member = member;
-    }
+    const { client } = payload;
+
+    newSession.member = payload.member;
+    newSession.provider = payload.provider;
 
     if (client.device) {
       newSession.device = client.device;
@@ -100,10 +101,6 @@ export class AuthService {
 
     if (client.os && client.os.name && client.os.version) {
       newSession.os = `${client.os.name} ${client.os.version}`;
-    }
-
-    if (role) {
-      newSession.role = role;
     }
 
     return this.sessionRepository.save(newSession);

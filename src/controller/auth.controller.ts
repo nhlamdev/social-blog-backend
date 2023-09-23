@@ -1,14 +1,10 @@
 import { AccessJwtPayload, RefreshJwtPayload } from '@/interface';
-import { OwnerLoginDto } from '@/model';
 import { AuthService } from '@/service';
 import { checkIsNumber } from '@/utils/global-func';
 import {
-  BadRequestException,
-  Body,
   Controller,
   Delete,
   Get,
-  Post,
   Query,
   Req,
   Res,
@@ -43,37 +39,47 @@ export class AuthController {
     if (user) {
       const member = await this.authService.socialVerifyExist(user);
 
-      const accessToken = await this.jwtService.sign(
-        {
-          _id: member._id,
-          provider_id: member.provider_id,
-          provider: member.provider,
-          role: 'member',
-        },
-        {
-          secret: process.env.ACCESS_TOKEN_SECRET,
-        },
-      );
+      const accessAge = 1000 * 60 * 5;
+
+      const accessTokenData: AccessJwtPayload = {
+        _id: member._id,
+        name: member.name,
+        email: member.email,
+        image: member.image,
+        role: member.role,
+        expired: accessAge,
+        create_at: new Date().toString(),
+      };
+
+      const accessToken = await this.jwtService.sign(accessTokenData, {
+        secret: process.env.ACCESS_TOKEN_SECRET,
+      });
 
       const session = await this.authService.createSession({
         client: req.client_data,
         member,
+        provider: user.provider,
       });
 
-      const refreshToken = await this.jwtService.sign(
-        { session_id: session._id, role: 'member' },
-        {
-          secret: process.env.REFRESH_TOKEN_SECRET,
-        },
-      );
-
       res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
-        maxAge: 3600000,
+        maxAge: accessAge,
         httpOnly: true,
       });
 
+      const refreshAge = 1000 * 60 * 60 * 24 * 30 * 6;
+
+      const refreshTokenData: RefreshJwtPayload = {
+        session_id: session._id,
+        expired: refreshAge,
+        create_at: new Date().toString(),
+      };
+
+      const refreshToken = await this.jwtService.sign(refreshTokenData, {
+        secret: process.env.REFRESH_TOKEN_SECRET,
+      });
+
       res.cookie(process.env.REFRESH_TOKEN_NAME, refreshToken, {
-        maxAge: 3600000,
+        maxAge: refreshAge,
         httpOnly: true,
       });
 
@@ -97,37 +103,47 @@ export class AuthController {
     if (user) {
       const member = await this.authService.socialVerifyExist(user);
 
-      const accessToken = await this.jwtService.sign(
-        {
-          _id: member._id,
-          provider_id: member.provider_id,
-          provider: member.provider,
-          role: 'member',
-        },
-        {
-          secret: process.env.ACCESS_TOKEN_SECRET,
-        },
-      );
+      const accessAge = 1000 * 60 * 5;
+
+      const accessTokenData: AccessJwtPayload = {
+        _id: member._id,
+        name: member.name,
+        email: member.email,
+        image: member.image,
+        role: member.role,
+        expired: accessAge,
+        create_at: new Date().toString(),
+      };
+
+      const accessToken = await this.jwtService.sign(accessTokenData, {
+        secret: process.env.ACCESS_TOKEN_SECRET,
+      });
 
       const session = await this.authService.createSession({
         client: req.client_data,
         member,
+        provider: user.provider,
       });
 
-      const refreshToken = await this.jwtService.sign(
-        { session_id: session._id, role: 'member' },
-        {
-          secret: process.env.REFRESH_TOKEN_SECRET,
-        },
-      );
-
       res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
-        maxAge: 3600000,
+        maxAge: accessAge,
         httpOnly: true,
       });
 
+      const refreshAge = 1000 * 60 * 60 * 24 * 30 * 6;
+
+      const refreshTokenData: RefreshJwtPayload = {
+        session_id: session._id,
+        expired: refreshAge,
+        create_at: new Date().toString(),
+      };
+
+      const refreshToken = await this.jwtService.sign(refreshTokenData, {
+        secret: process.env.REFRESH_TOKEN_SECRET,
+      });
+
       res.cookie(process.env.REFRESH_TOKEN_NAME, refreshToken, {
-        maxAge: 3600000,
+        maxAge: refreshAge,
         httpOnly: true,
       });
 
@@ -151,37 +167,47 @@ export class AuthController {
     if (user) {
       const member = await this.authService.socialVerifyExist(user);
 
-      const accessToken = await this.jwtService.sign(
-        {
-          _id: member._id,
-          provider_id: member.provider_id,
-          provider: member.provider,
-          role: 'member',
-        },
-        {
-          secret: process.env.ACCESS_TOKEN_SECRET,
-        },
-      );
+      const accessAge = 1000 * 60 * 5;
+
+      const accessTokenData: AccessJwtPayload = {
+        _id: member._id,
+        name: member.name,
+        email: member.email,
+        image: member.image,
+        role: member.role,
+        expired: accessAge,
+        create_at: new Date().toString(),
+      };
+
+      const accessToken = await this.jwtService.sign(accessTokenData, {
+        secret: process.env.ACCESS_TOKEN_SECRET,
+      });
 
       const session = await this.authService.createSession({
         client: req.client_data,
         member,
+        provider: user.provider,
       });
 
-      const refreshToken = await this.jwtService.sign(
-        { session_id: session._id, role: 'member' },
-        {
-          secret: process.env.REFRESH_TOKEN_SECRET,
-        },
-      );
-
       res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
-        maxAge: 3600000,
+        maxAge: accessAge,
         httpOnly: true,
       });
 
+      const refreshAge = 1000 * 60 * 60 * 24 * 30 * 6;
+
+      const refreshTokenData: RefreshJwtPayload = {
+        session_id: session._id,
+        expired: refreshAge,
+        create_at: new Date().toString(),
+      };
+
+      const refreshToken = await this.jwtService.sign(refreshTokenData, {
+        secret: process.env.REFRESH_TOKEN_SECRET,
+      });
+
       res.cookie(process.env.REFRESH_TOKEN_NAME, refreshToken, {
-        maxAge: 3600000,
+        maxAge: refreshAge,
         httpOnly: true,
       });
 
@@ -237,93 +263,47 @@ export class AuthController {
   async refreshToken(@Req() req, @Res() res) {
     const jwtPayload: RefreshJwtPayload = req.user;
 
-    const session = await this.authService.sessionById(jwtPayload.session_id);
+    const date = new Date();
 
-    if (Boolean(session)) {
-      if (jwtPayload.role === 'member') {
-        if (session.member) {
-          const accessToken = await this.jwtService.sign(
-            {
-              _id: session.member._id,
-              provider_id: session.member.provider_id,
-              provider: session.member.provider,
-              role: 'member',
-            },
-            {
-              secret: process.env.ACCESS_TOKEN_SECRET,
-            },
-          );
-
-          res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
-            maxAge: 3600000,
-            httpOnly: true,
-          });
-
-          res.status(200).json({ message: 'renew success' });
-        } else {
-          throw new UnauthorizedException('Phiên đăng nhập quá hạn.');
-        }
-      } else {
-        const accessToken = await this.jwtService.sign(
-          {
-            role: 'owner',
-          },
-          {
-            secret: process.env.ACCESS_TOKEN_SECRET,
-          },
-        );
-
-        res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
-          maxAge: 3600000,
-          httpOnly: true,
-        });
-        res.status(200).json({ message: 'renew success' });
-      }
-    } else {
+    if (
+      date.getTime() >
+      new Date(jwtPayload.create_at).getTime() + jwtPayload.expired
+    ) {
       throw new UnauthorizedException('Phiên đăng nhập quá hạn.');
     }
-  }
 
-  @Post('owner-login')
-  @ApiTags('auth')
-  async ownerLogin(@Req() req, @Res() res, @Body() body: OwnerLoginDto) {
-    if (body.account && body.password) {
-      const accessToken = await this.jwtService.sign(
-        {
-          role: 'owner',
-        },
-        {
-          secret: process.env.ACCESS_TOKEN_SECRET,
-        },
-      );
+    const session = await this.authService.sessionById(jwtPayload.session_id);
 
-      const session = await this.authService.createSession({
-        client: req.client_data,
-        role: 'owner',
-      });
-
-      const refreshToken = await this.jwtService.sign(
-        { session_id: session._id, role: 'owner' },
-        {
-          secret: process.env.REFRESH_TOKEN_SECRET,
-        },
-      );
-
-      res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
-        maxAge: 3600000,
-        httpOnly: true,
-      });
-
-      res.cookie(process.env.REFRESH_TOKEN_NAME, refreshToken, {
-        maxAge: 3600000,
-        httpOnly: true,
-      });
-      res.status(200).json({ message: 'success' });
-    } else {
-      throw new BadRequestException('Mật khẩu hoặc tài khoản không ');
+    if (!Boolean(session)) {
+      throw new UnauthorizedException('Phiên đăng nhập không tồn tại.');
     }
 
-    return '';
+    if (session.member) {
+      throw new UnauthorizedException('Thành viên không tồn tại.');
+    }
+
+    const accessAge = 1000 * 60 * 5;
+
+    const accessTokenData: AccessJwtPayload = {
+      _id: session.member._id,
+      name: session.member.name,
+      email: session.member.email,
+      image: session.member.image,
+      role: session.member.role,
+      expired: accessAge,
+      create_at: new Date().toString(),
+    };
+
+    const accessToken = await this.jwtService.sign(accessTokenData, {
+      secret: process.env.ACCESS_TOKEN_SECRET,
+    });
+
+    res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
+      maxAge: 3600000,
+      httpOnly: true,
+    });
+
+    res.status(200).json({ message: 'renew success' });
   }
 
   @Delete('logout')

@@ -7,6 +7,12 @@ export class SessionEntity extends AbstractEntity {
   @PrimaryGeneratedColumn('uuid')
   _id: string;
 
+  @Column({ type: 'text', nullable: false })
+  provider_id: string;
+
+  @Column({ type: 'varchar', length: 10, nullable: false })
+  provider: 'google' | 'discord' | 'facebook' | 'github';
+
   @Column({ type: 'text', default: 'unknown', nullable: false })
   os: string;
 
@@ -18,9 +24,6 @@ export class SessionEntity extends AbstractEntity {
 
   @Column({ type: 'text', default: 'unknown', nullable: false })
   ip: string;
-
-  @Column({ type: 'text', default: 'member', nullable: false })
-  role: 'member' | 'owner';
 
   @ManyToOne(() => MemberEntity, (content) => content.session)
   member: MemberEntity;

@@ -1,11 +1,15 @@
 export interface AccessJwtPayload {
   _id: string;
-  provider_id: string;
-  provider: 'github' | 'google' | 'facebook' | 'discord';
-  role: 'member' | 'owner';
+  name: string;
+  email: string;
+  role: 'member' | 'writer' | 'developer' | 'owner';
+  image: string;
+  expired: number;
+  create_at: string;
 }
 
 export interface RefreshJwtPayload {
   session_id: string;
-  role: 'member' | 'owner';
+  expired: number;
+  create_at: string;
 }

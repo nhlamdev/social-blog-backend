@@ -8,11 +8,8 @@ export class MemberEntity extends AbstractEntity {
   @PrimaryGeneratedColumn('uuid')
   _id: string;
 
-  @Column({ type: 'text', nullable: false })
-  provider_id: string;
-
-  @Column({ type: 'varchar', length: 10, nullable: false })
-  provider: 'google' | 'discord' | 'facebook' | 'github';
+  @Column({ type: 'varchar', length: 10, nullable: false, default: 'member' })
+  role: 'member' | 'writer' | 'developer' | 'owner';
 
   @Column({ type: 'text', nullable: false })
   name: string;
@@ -26,7 +23,7 @@ export class MemberEntity extends AbstractEntity {
       'https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png',
     nullable: false,
   })
-  image?: string;
+  image: string;
 
   @OneToMany(() => SessionEntity, (session) => session.member)
   session: SessionEntity[];
