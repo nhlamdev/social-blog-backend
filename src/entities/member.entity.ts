@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-import { CommentEntity, SessionEntity } from '.';
+import { CommentEntity, ContentEntity, SeriesEntity, SessionEntity } from '.';
 import { AbstractEntity } from './abstract.entity';
 
 @Entity('member')
@@ -25,9 +25,19 @@ export class MemberEntity extends AbstractEntity {
   })
   image: string;
 
-  @OneToMany(() => SessionEntity, (session) => session.member)
+  @OneToMany(() => SessionEntity, (session) => session.member, {
+    onDelete: 'CASCADE',
+  })
   session: SessionEntity[];
 
-  @OneToMany(() => CommentEntity, (comment) => comment.create_by)
+  @OneToMany(() => ContentEntity, (content) => content.created_by)
+  contents: ContentEntity[];
+
+  @OneToMany(() => SeriesEntity, (series) => series.created_by)
+  series: SeriesEntity[];
+
+  @OneToMany(() => CommentEntity, (comment) => comment.created_by, {
+    onDelete: 'CASCADE',
+  })
   comments: CommentEntity[];
 }

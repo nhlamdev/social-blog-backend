@@ -17,17 +17,17 @@ export class CommentEntity extends AbstractEntity {
   @Column({ type: 'text', nullable: false, default: '' })
   text: string;
 
-  @ManyToOne(() => CommentEntity, (comment) => comment.replies, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => CommentEntity, (comment) => comment.replies)
   comment_parent: CommentEntity;
 
-  @OneToMany(() => CommentEntity, (comment) => comment.comment_parent)
+  @OneToMany(() => CommentEntity, (comment) => comment.comment_parent, {
+    onDelete: 'CASCADE',
+  })
   replies: CommentEntity[];
 
   @ManyToOne(() => ContentEntity, (Content) => Content.comments)
   content?: ContentEntity;
 
   @ManyToOne(() => MemberEntity, (member) => member.comments)
-  create_by?: MemberEntity;
+  created_by?: MemberEntity;
 }

@@ -50,27 +50,17 @@ export class ContentService {
   }
 
   async randomContents(take: number | null) {
-    const contents = await this.contentRepository
+    return await this.contentRepository
       .createQueryBuilder('content')
       .orderBy('RANDOM()')
       .take(take)
       .getMany();
-
-    const resultAndRelation = contents.map(async (c) => {
-      const images = await this.fileRepository.find({
-        where: { content: { _id: c._id } },
-      });
-
-      return { ...c, images };
-    });
-
-    return Promise.all(resultAndRelation);
   }
 
   async getContentById(id: string) {
     return await this.contentRepository.findOne({
       where: { _id: id },
-      relations: { category: true, series: true, images: true },
+      relations: { category: true, series: true, image: true },
     });
   }
 
@@ -214,7 +204,10 @@ export class ContentService {
     content.tags = body.tags;
     content.complete = body.complete;
     content.draft = body.draft;
-    content.images = files;
+
+    if (files.length !== 0) {
+      content.image = files[0];
+    }
 
     return this.contentRepository.save(content);
   }
@@ -245,7 +238,7 @@ export class ContentService {
     content.complete = Boolean(payload.complete);
     content.tags = payload.tags;
     if (files && files.length !== 0) {
-      content.images = files;
+      content.image = files[0];
     }
 
     return this.contentRepository.save(content);
