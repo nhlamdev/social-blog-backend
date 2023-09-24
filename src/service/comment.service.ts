@@ -22,7 +22,7 @@ export class CommentService {
   async commentByContent(content: ContentEntity, _take: number, _skip: number) {
     const comments = await this.commentRepository.find({
       where: { content: { _id: content._id } },
-      relations: { create_by: true },
+      relations: { created_by: true },
       skip: _skip,
       take: _take,
       order: { created_at: 'DESC' },
@@ -49,7 +49,7 @@ export class CommentService {
   async commentByParent(parent: CommentEntity, _take: number, _skip: number) {
     const data = await this.commentRepository.find({
       where: { comment_parent: { _id: parent._id } },
-      relations: { create_by: true },
+      relations: { created_by: true },
       skip: _skip,
       take: _take,
       order: { created_at: 'DESC' },
@@ -78,7 +78,7 @@ export class CommentService {
     newComment.text = payload.text;
 
     if (payload.member) {
-      newComment.create_by = payload.member;
+      newComment.created_by = payload.member;
     }
 
     if (payload.content) {

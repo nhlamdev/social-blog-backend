@@ -142,10 +142,10 @@ export class CommentController {
       throw new BadRequestException('Bình luận bạn muốn xoá không tồn tại.');
     }
 
-    if (comment.create_by) {
+    if (comment.created_by) {
       if (
         jwtPayload.role === 'member' &&
-        comment.create_by._id === jwtPayload._id
+        comment.created_by._id === jwtPayload._id
       ) {
         return this.commentService.removeComment(comment);
       }
