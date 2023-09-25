@@ -19,7 +19,7 @@ import {
   Post,
   Put,
   Query,
-  UploadedFile,
+  // UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -259,11 +259,11 @@ export class ContentController {
   )
   async createContents(
     @Body() body: ContentDto,
-    @UploadedFile('files') files: Express.Multer.File,
+    // @UploadedFile('files') files: Express.Multer.File,
   ) {
-    const filesData = await this.commonService.saveFile(files);
+    // const filesData = await this.commonService.saveFile(files);
 
-    return await this.contentService.create(body, filesData);
+    return await this.contentService.create(body);
   }
 
   @Put(':id')
@@ -289,10 +289,10 @@ export class ContentController {
   async updateBody(
     @Body() payload: ContentDto,
     @Param('id') id: string,
-    @UploadedFile('files') files: Express.Multer.File,
+    // @UploadedFile('files') files: Express.Multer.File,
   ) {
     const { title, body, tags, category, complete } = payload;
-    const filesData = await this.commonService.saveFile(files);
+    // const filesData = await this.commonService.saveFile(files);
 
     return await this.contentService.updateContent(
       id,
@@ -303,7 +303,7 @@ export class ContentController {
         category,
         complete,
       },
-      filesData,
+      // filesData,
     );
   }
 

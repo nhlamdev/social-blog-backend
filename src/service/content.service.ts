@@ -9,7 +9,7 @@ import { ContentDto } from '@/model';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { SeriesService, CategoryService } from '.';
+import { CategoryService, SeriesService } from '.';
 
 @Injectable()
 export class ContentService {
@@ -60,7 +60,7 @@ export class ContentService {
   async getContentById(id: string) {
     return await this.contentRepository.findOne({
       where: { _id: id },
-      relations: { category: true, series: true, image: true },
+      relations: { category: true, series: true },
     });
   }
 
@@ -190,7 +190,7 @@ export class ContentService {
     return result;
   }
 
-  async create(body: ContentDto, files?: FileEntity[]) {
+  async create(body: ContentDto) {
     const _category =
       body.category &&
       Boolean(await this.categoryService.getCategoryById(body.category))
@@ -205,9 +205,9 @@ export class ContentService {
     content.complete = body.complete;
     content.draft = body.draft;
 
-    if (files.length !== 0) {
-      content.image = files[0];
-    }
+    // if (files.length !== 0) {
+    //   content.image = files[0];
+    // }
 
     return this.contentRepository.save(content);
   }
@@ -221,7 +221,7 @@ export class ContentService {
       tags?: string[];
       complete?: boolean;
     },
-    files?: FileEntity[],
+    // files?: FileEntity[],
   ) {
     const content = await this.getContentById(_id);
     if (!Boolean(content)) {
@@ -237,9 +237,9 @@ export class ContentService {
     content.category = _category;
     content.complete = Boolean(payload.complete);
     content.tags = payload.tags;
-    if (files && files.length !== 0) {
-      content.image = files[0];
-    }
+    // if (files && files.length !== 0) {
+    //   content.image = files[0];
+    // }
 
     return this.contentRepository.save(content);
   }
