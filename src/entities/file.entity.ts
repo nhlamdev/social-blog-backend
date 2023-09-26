@@ -3,8 +3,8 @@ import { AbstractEntity } from './abstract.entity';
 
 @Entity('file')
 export class FileEntity extends AbstractEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  _id: string;
 
   @Column()
   originalName: string;

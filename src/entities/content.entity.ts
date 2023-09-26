@@ -1,11 +1,19 @@
 import {
   Column,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { CategoryEntity, CommentEntity, MemberEntity, SeriesEntity } from '.';
+import {
+  CategoryEntity,
+  CommentEntity,
+  FileEntity,
+  MemberEntity,
+  SeriesEntity,
+} from '.';
 import { AbstractEntity } from './abstract.entity';
 
 @Entity('content')
@@ -31,9 +39,9 @@ export class ContentEntity extends AbstractEntity {
   @Column({ type: 'text', array: true })
   tags: string[];
 
-  // @OneToOne(() => FileEntity, { nullable: true, onDelete: 'CASCADE' })
-  // @JoinColumn()
-  // image?: FileEntity;
+  @OneToOne(() => FileEntity, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn()
+  image?: FileEntity;
 
   @OneToMany(() => CommentEntity, (tag) => tag.content, {
     onDelete: 'CASCADE',

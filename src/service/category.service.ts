@@ -29,6 +29,7 @@ export class CategoryService {
     return await this.categoryRepository
       .createQueryBuilder('category')
       .where('category._id = :id', { id: id })
+      .leftJoinAndSelect('category.image', 'image')
       .getOne();
   }
 
@@ -86,8 +87,19 @@ export class CategoryService {
     return result;
   }
 
-  async update(id: string, body: CategoryDto) {
-    return await this.categoryRepository.update(id, body);
+  async update(
+    category: CategoryEntity,
+    body: CategoryDto,
+    filesData?: FileEntity,
+  ) {
+    category.title = body.title;
+    category.summary = body.summary;
+
+    if (filesData) {
+      category.image = filesData;
+    }
+
+    return await this.categoryRepository.save(category);
   }
 
   async delete(id: string) {

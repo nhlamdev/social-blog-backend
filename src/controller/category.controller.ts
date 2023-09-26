@@ -47,6 +47,18 @@ export class CategoryController {
     return await this.categoryService.getAllCategory(_take, _skip, _search);
   }
 
+  @Get(':id')
+  @ApiTags('category')
+  async getCategoryById(@Param('id') id: string) {
+    const category = await this.categoryService.getCategoryById(id);
+
+    if (!Boolean(category)) {
+      throw new BadRequestException('Thể loại không tồn tại!.');
+    }
+
+    return category;
+  }
+
   @Get('more-contents')
   @ApiTags('category')
   async getTopCategoryMoreContents(@Query('take') take: string | undefined) {
@@ -96,14 +108,45 @@ export class CategoryController {
   @Put(':id')
   @ApiTags('category')
   @UseGuards(AuthGuard('jwt-access'))
-  async updateCategory(@Body() body: CategoryDto, @Param('id') id: string) {
+  @UseInterceptors(
+    FilesInterceptor('files', 20, {
+      storage: diskStorage({
+        destination: (req, file, next) => {
+          next(null, 'uploads');
+        },
+        filename: (req, file, next) => {
+          next(
+            null,
+            new Date().toISOString().replace(/:/g, '-') +
+              '-' +
+              file.originalname,
+          );
+        },
+      }),
+    }),
+  )
+  async updateCategory(
+    @Body() body: CategoryDto,
+    @Param('id') id: string,
+    @UploadedFile('files') files: Express.Multer.File,
+  ) {
     const category = await this.categoryService.getCategoryById(id);
 
     if (!category) {
       throw new BadRequestException('Thể loại cần chỉnh sửa không tồn tại.!');
     }
 
-    return this.categoryService.update(category._id, body);
+    if (files) {
+      const filesData = await this.commonService.saveFile(files);
+
+      if (filesData.length !== 0) {
+        return this.categoryService.update(category, body, filesData[0]);
+      } else {
+        return this.categoryService.update(category, body);
+      }
+    } else {
+      return this.categoryService.update(category, body);
+    }
   }
 
   @Delete(':id')
