@@ -1,4 +1,4 @@
-import { CategoryEntity, ContentEntity } from '@/entities';
+import { CategoryEntity, ContentEntity, FileEntity } from '@/entities';
 import { CategoryDto } from '@/model';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -46,17 +46,19 @@ export class CategoryService {
       .getRawMany();
   }
 
-  async create(payload: CategoryDto) {
+  async create(payload: CategoryDto, filesData: FileEntity) {
     const category = new CategoryEntity();
 
     category.title = payload.title;
     category.summary = payload.summary;
+    category.image = filesData;
     return this.categoryRepository.save(category);
   }
 
   async getAllCategory(_take: number, _skip: number, _search: string) {
     const query = this.categoryRepository
       .createQueryBuilder('category')
+      .leftJoinAndSelect('category.image', 'image')
       .skip(_skip)
       .take(_take)
       .where('LOWER(category.title) LIKE :search ', { search: _search });

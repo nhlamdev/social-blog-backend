@@ -1,5 +1,5 @@
 import { CategoryDto } from '@/model';
-import { CategoryService } from '@/service';
+import { CategoryService, CommonService } from '@/service';
 import { checkIsNumber } from '@/utils/global-func';
 import {
   BadRequestException,
@@ -12,14 +12,21 @@ import {
   Post,
   Put,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
+import { diskStorage } from 'multer';
 
 @Controller('category')
 export class CategoryController {
-  constructor(private readonly categoryService: CategoryService) {}
+  constructor(
+    private readonly categoryService: CategoryService,
+    private readonly commonService: CommonService,
+  ) {}
   @Get()
   @ApiTags('category')
   async getCategory(
@@ -50,14 +57,40 @@ export class CategoryController {
   @Post()
   @ApiTags('category')
   @UseGuards(AuthGuard('jwt-access'))
-  async createCategory(@Body() body: CategoryDto) {
+  @UseInterceptors(
+    FilesInterceptor('files', 20, {
+      storage: diskStorage({
+        destination: (req, file, next) => {
+          next(null, 'uploads');
+        },
+        filename: (req, file, next) => {
+          next(
+            null,
+            new Date().toISOString().replace(/:/g, '-') +
+              '-' +
+              file.originalname,
+          );
+        },
+      }),
+    }),
+  )
+  async createCategory(
+    @Body() body: CategoryDto,
+    @UploadedFile('files') files: Express.Multer.File,
+  ) {
+    const filesData = await this.commonService.saveFile(files);
+
     const isExist = await this.categoryService.checkNameExist(body.title);
 
     if (isExist) {
       throw new NotFoundException('Thể loại đã tồn tại.');
     }
 
-    return this.categoryService.create(body);
+    if (filesData.length === 0) {
+      throw new BadRequestException('Bạn chưa chọn ảnh.');
+    }
+
+    return this.categoryService.create(body, filesData[0]);
   }
 
   @Put(':id')

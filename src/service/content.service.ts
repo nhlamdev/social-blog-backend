@@ -39,7 +39,6 @@ export class ContentService {
     return await this.contentRepository
       .createQueryBuilder('content')
       .leftJoinAndSelect('content.category', 'category')
-      .leftJoinAndSelect('content.image', 'image')
       .take(take)
       .orderBy('content.count_view', 'DESC')
       .getMany();
@@ -75,7 +74,6 @@ export class ContentService {
       .createQueryBuilder('content')
       .skip(_skip)
       .take(_take)
-      .leftJoinAndSelect('content.image', 'image')
       .leftJoinAndSelect('content.category', 'category')
       .leftJoinAndSelect('content.series', 'series')
       .where('LOWER(content.title) LIKE :search ', { search: _search })
@@ -113,7 +111,6 @@ export class ContentService {
       .createQueryBuilder('content')
       .skip(_skip)
       .take(_take)
-      .leftJoinAndSelect('content.image', 'image')
       .leftJoinAndSelect('content.category', 'category')
       .leftJoinAndSelect('content.series', 'series')
       .where('LOWER(content.title) LIKE :search ', { search: _search })
@@ -151,7 +148,6 @@ export class ContentService {
       .createQueryBuilder('content')
       .skip(_skip)
       .take(_take)
-      .leftJoinAndSelect('content.image', 'image')
       .leftJoinAndSelect('content.category', 'category')
       .leftJoinAndSelect('content.series', 'series')
       .where('LOWER(content.title) LIKE :search', { search: _search });
