@@ -322,6 +322,8 @@ export class ContentController {
       throw new BadRequestException('Bài viết cần chỉnh sửa không tồn tại.');
     }
 
+    console.log(jwtPayload);
+
     const member = await this.authService.memberById(jwtPayload._id);
 
     if (!Boolean(member)) {
@@ -343,10 +345,10 @@ export class ContentController {
     const filesData = await this.commonService.saveFile(files);
 
     if (filesData.length === 0) {
-      throw new BadRequestException('Bạn chưa chọn ảnh.');
+      return await this.contentService.updateContent(id, payload);
+    } else {
+      return await this.contentService.updateContent(id, payload, filesData[0]);
     }
-
-    return await this.contentService.updateContent(id, payload, filesData[0]);
   }
 
   @Patch('update-category/:content/:category')

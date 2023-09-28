@@ -81,7 +81,7 @@ export class SeriesController {
       throw new NotFoundException('Thể loại đã tồn tại.');
     }
 
-    return this.seriesService.create(body);
+    return this.seriesService.create(body, member);
   }
 
   @Put(':id')

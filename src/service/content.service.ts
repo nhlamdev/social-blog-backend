@@ -60,7 +60,12 @@ export class ContentService {
   async getContentById(id: string) {
     return await this.contentRepository.findOne({
       where: { _id: id },
-      relations: { category: true, series: true, image: true },
+      relations: {
+        category: true,
+        series: true,
+        image: true,
+        created_by: true,
+      },
     });
   }
 
@@ -207,7 +212,7 @@ export class ContentService {
     return this.contentRepository.save(content);
   }
 
-  async updateContent(_id: string, body: ContentDto, filesData: FileEntity) {
+  async updateContent(_id: string, body: ContentDto, filesData?: FileEntity) {
     const content = await this.getContentById(_id);
     if (!Boolean(content)) {
       throw new BadRequestException('Bài viết không tồn tại.');
@@ -222,7 +227,10 @@ export class ContentService {
     content.category = _category;
     content.complete = Boolean(body.complete);
     content.tags = body.tags;
-    content.image = filesData;
+
+    if (filesData) {
+      content.image = filesData;
+    }
 
     return this.contentRepository.save(content);
   }

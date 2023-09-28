@@ -1,4 +1,4 @@
-import { ContentEntity } from '@/entities';
+import { ContentEntity, MemberEntity } from '@/entities';
 import { SeriesDto } from '@/model/series.dto';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -29,21 +29,24 @@ export class SeriesService {
   async getSeriesById(id: string) {
     return await this.seriesRepository
       .createQueryBuilder('series')
+      .leftJoinAndSelect('series.created_by', 'created_by')
       .where('series._id = :id', { id: id })
       .getOne();
   }
 
-  async create(payload: SeriesDto) {
+  async create(payload: SeriesDto, member: MemberEntity) {
     const series = new SeriesEntity();
 
     series.title = payload.title;
     series.summary = payload.summary;
+    series.created_by = member;
     return this.seriesRepository.save(series);
   }
 
   async getAllSeries(_take: number, _skip: number, _search: string) {
     const query = this.seriesRepository
       .createQueryBuilder('series')
+      .leftJoinAndSelect('series.created_by', 'created_by')
       .skip(_skip)
       .take(_take)
       .where('LOWER(series.title) LIKE :search ', { search: _search });
