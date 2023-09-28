@@ -2,6 +2,7 @@ import {
   CategoryEntity,
   ContentEntity,
   FileEntity,
+  MemberEntity,
   SeriesEntity,
 } from '@/entities';
 import { ContentDto } from '@/model';
@@ -59,7 +60,7 @@ export class ContentService {
   async getContentById(id: string) {
     return await this.contentRepository.findOne({
       where: { _id: id },
-      relations: { category: true, series: true },
+      relations: { category: true, series: true, image: true },
     });
   }
 
@@ -186,13 +187,13 @@ export class ContentService {
     return result;
   }
 
-  async create(body: ContentDto) {
+  async create(body: ContentDto, member: MemberEntity, filesData: FileEntity) {
     const _category =
       body.category &&
       Boolean(await this.categoryService.getCategoryById(body.category))
         ? await this.categoryService.getCategoryById(body.category)
         : undefined;
-    // const tags = await this.tagSerivce.createManyTag(body.tags);
+
     const content = new ContentEntity();
     content.title = body.title;
     content.body = body.body;
@@ -200,42 +201,28 @@ export class ContentService {
     content.tags = body.tags;
     content.complete = body.complete;
     content.draft = body.draft;
-
-    // if (files.length !== 0) {
-    //   content.image = files[0];
-    // }
+    content.created_by = member;
+    content.image = filesData;
 
     return this.contentRepository.save(content);
   }
 
-  async updateContent(
-    _id: string,
-    payload: {
-      title: string;
-      body: string;
-      category?: string;
-      tags?: string[];
-      complete?: boolean;
-    },
-    // files?: FileEntity[],
-  ) {
+  async updateContent(_id: string, body: ContentDto, filesData: FileEntity) {
     const content = await this.getContentById(_id);
     if (!Boolean(content)) {
       throw new BadRequestException('Bài viết không tồn tại.');
     }
 
-    const _category = payload.category
-      ? await this.categoryService.getCategoryById(payload.category)
+    const _category = body.category
+      ? await this.categoryService.getCategoryById(body.category)
       : null;
 
-    content.title = payload.title;
-    content.body = payload.body;
+    content.title = body.title;
+    content.body = body.body;
     content.category = _category;
-    content.complete = Boolean(payload.complete);
-    content.tags = payload.tags;
-    // if (files && files.length !== 0) {
-    //   content.image = files[0];
-    // }
+    content.complete = Boolean(body.complete);
+    content.tags = body.tags;
+    content.image = filesData;
 
     return this.contentRepository.save(content);
   }

@@ -72,28 +72,23 @@ export class CommentController {
   ) {
     const jwtPayload: AccessJwtPayload = req.user;
 
+    const member = await this.authService.memberById(jwtPayload._id);
+
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành viên không tồn tại!.');
+    }
+
     const content = await this.contentService.getContentById(id);
 
     if (!Boolean(content)) {
       throw new BadRequestException('Bài viết không tồn tại.');
     }
 
-    if (jwtPayload.role === 'member') {
-      const member = await this.authService.memberById(jwtPayload._id);
-
-      this.commentService.createComment({
-        text: body.text,
-        member: member,
-        content: content,
-      });
-    }
-
-    if (jwtPayload.role === 'owner') {
-      this.commentService.createComment({
-        text: body.text,
-        content: content,
-      });
-    }
+    return await this.commentService.createComment({
+      text: body.text,
+      member: member,
+      content: content,
+    });
   }
 
   @Post('by-parent/:id')
@@ -106,28 +101,23 @@ export class CommentController {
   ) {
     const jwtPayload: AccessJwtPayload = req.user;
 
+    const member = await this.authService.memberById(jwtPayload._id);
+
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành viên không tồn tại!.');
+    }
+
     const parent = await this.commentService.commentById(id);
 
     if (!Boolean(parent)) {
       throw new BadRequestException('bình luận mà bạn trả lời không tồn tại.');
     }
 
-    if (jwtPayload.role === 'member') {
-      const member = await this.authService.memberById(jwtPayload._id);
-
-      this.commentService.createComment({
-        text: body.text,
-        member: member,
-        parent: parent,
-      });
-    }
-
-    if (jwtPayload.role === 'owner') {
-      this.commentService.createComment({
-        text: body.text,
-        parent: parent,
-      });
-    }
+    return await this.commentService.createComment({
+      text: body.text,
+      member: member,
+      parent: parent,
+    });
   }
 
   @Delete(':id')
@@ -142,19 +132,16 @@ export class CommentController {
       throw new BadRequestException('Bình luận bạn muốn xoá không tồn tại.');
     }
 
-    if (comment.created_by) {
-      if (
-        jwtPayload.role === 'member' &&
-        comment.created_by._id === jwtPayload._id
-      ) {
-        return this.commentService.removeComment(comment);
-      }
+    const member = await this.authService.memberById(jwtPayload._id);
+
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành viên không tồn tại!.');
     }
 
-    if (jwtPayload.role === 'owner') {
-      return this.commentService.removeComment(comment);
+    if (comment.created_by._id !== member._id || member.role !== 'owner') {
+      throw new ForbiddenException('Bạn không có quyền xoá bình luận này!');
     }
 
-    throw new ForbiddenException('Bạn không có quyền xoá bình luận này.');
+    return await this.commentService.removeComment(comment);
   }
 }

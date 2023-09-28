@@ -1,17 +1,20 @@
+import { AccessJwtPayload } from '@/interface';
 import { CategoryDto } from '@/model';
-import { CategoryService, CommonService } from '@/service';
+import { AuthService, CategoryService, CommonService } from '@/service';
 import { checkIsNumber } from '@/utils/global-func';
 import {
   BadRequestException,
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   NotFoundException,
   Param,
   Post,
   Put,
   Query,
+  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -26,6 +29,7 @@ export class CategoryController {
   constructor(
     private readonly categoryService: CategoryService,
     private readonly commonService: CommonService,
+    private readonly authService: AuthService,
   ) {}
   @Get()
   @ApiTags('category')
@@ -88,8 +92,23 @@ export class CategoryController {
   )
   async createCategory(
     @Body() body: CategoryDto,
+    @Req() req,
     @UploadedFile('files') files: Express.Multer.File,
   ) {
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const member = await this.authService.memberById(jwtPayload._id);
+
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành viên không tồn tại.!');
+    }
+
+    if (member.role !== 'owner') {
+      throw new ForbiddenException(
+        'Bạn không có quyền thao tác với thể loại!.',
+      );
+    }
+
     const filesData = await this.commonService.saveFile(files);
 
     const isExist = await this.categoryService.checkNameExist(body.title);
@@ -102,7 +121,7 @@ export class CategoryController {
       throw new BadRequestException('Bạn chưa chọn ảnh.');
     }
 
-    return this.categoryService.create(body, filesData[0]);
+    return await this.categoryService.create(body, filesData[0]);
   }
 
   @Put(':id')
@@ -128,8 +147,23 @@ export class CategoryController {
   async updateCategory(
     @Body() body: CategoryDto,
     @Param('id') id: string,
+    @Req() req,
     @UploadedFile('files') files: Express.Multer.File,
   ) {
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const member = await this.authService.memberById(jwtPayload._id);
+
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành viên không tồn tại.!');
+    }
+
+    if (member.role !== 'owner') {
+      throw new ForbiddenException(
+        'Bạn không có quyền thao tác với thể loại!.',
+      );
+    }
+
     const category = await this.categoryService.getCategoryById(id);
 
     if (!category) {
@@ -152,7 +186,21 @@ export class CategoryController {
   @Delete(':id')
   @ApiTags('category')
   @UseGuards(AuthGuard('jwt-access'))
-  async deleteCategory(@Param('id') id: string) {
+  async deleteCategory(@Param('id') id: string, @Req() req) {
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const member = await this.authService.memberById(jwtPayload._id);
+
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành viên không tồn tại.!');
+    }
+
+    if (member.role !== 'owner') {
+      throw new ForbiddenException(
+        'Bạn không có quyền thao tác với thể loại!.',
+      );
+    }
+
     const category = await this.categoryService.getCategoryById(id);
 
     if (!category) {

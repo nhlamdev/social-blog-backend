@@ -1,6 +1,8 @@
 import { CASE_SORT } from '@/constants';
+import { AccessJwtPayload } from '@/interface';
 import { ContentDto } from '@/model';
 import {
+  AuthService,
   CategoryService,
   CommentService,
   CommonService,
@@ -13,12 +15,15 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Patch,
   Post,
   Put,
   Query,
+  Req,
+  UploadedFile,
   // UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -37,6 +42,7 @@ export class ContentController {
     private readonly commentService: CommentService,
     private readonly seriesService: SeriesService,
     private readonly commonService: CommonService,
+    private readonly authService: AuthService,
   ) {}
 
   @Get('count-content')
@@ -259,11 +265,27 @@ export class ContentController {
   )
   async createContents(
     @Body() body: ContentDto,
-    // @UploadedFile('files') files: Express.Multer.File,
+    @Req() req,
+    @UploadedFile('files') files: Express.Multer.File,
   ) {
-    // const filesData = await this.commonService.saveFile(files);
+    const jwtPayload: AccessJwtPayload = req.user;
 
-    return await this.contentService.create(body);
+    const member = await this.authService.memberById(jwtPayload._id);
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành  viên không tồn tại.');
+    }
+
+    if (member.role === 'member') {
+      throw new ForbiddenException('Bạn không có quyền thêm mới bài viết!.');
+    }
+
+    const filesData = await this.commonService.saveFile(files);
+
+    if (filesData.length === 0) {
+      throw new BadRequestException('Bạn chưa chọn ảnh.');
+    }
+
+    return await this.contentService.create(body, member, filesData[0]);
   }
 
   @Put(':id')
@@ -286,25 +308,45 @@ export class ContentController {
     }),
   )
   @UseGuards(AuthGuard('jwt-access'))
-  async updateBody(
+  async update(
     @Body() payload: ContentDto,
     @Param('id') id: string,
-    // @UploadedFile('files') files: Express.Multer.File,
+    @Req() req,
+    @UploadedFile('files') files: Express.Multer.File,
   ) {
-    const { title, body, tags, category, complete } = payload;
-    // const filesData = await this.commonService.saveFile(files);
+    const jwtPayload: AccessJwtPayload = req.user;
 
-    return await this.contentService.updateContent(
-      id,
-      {
-        title,
-        body,
-        tags,
-        category,
-        complete,
-      },
-      // filesData,
-    );
+    const content = await this.contentService.getContentById(id);
+
+    if (!Boolean(content)) {
+      throw new BadRequestException('Bài viết cần chỉnh sửa không tồn tại.');
+    }
+
+    const member = await this.authService.memberById(jwtPayload._id);
+
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành viện không tồn tại');
+    }
+
+    if (member.role === 'member') {
+      throw new ForbiddenException(
+        'Bạn không có quyền thao tác với bài viết!.',
+      );
+    }
+
+    if (content.created_by._id !== member._id) {
+      throw new ForbiddenException(
+        'Bạn không phải là người tạo ra bài viết này.',
+      );
+    }
+
+    const filesData = await this.commonService.saveFile(files);
+
+    if (filesData.length === 0) {
+      throw new BadRequestException('Bạn chưa chọn ảnh.');
+    }
+
+    return await this.contentService.updateContent(id, payload, filesData[0]);
   }
 
   @Patch('update-category/:content/:category')
@@ -313,7 +355,16 @@ export class ContentController {
   async updateCategory(
     @Param('content') content: string,
     @Param('category') category: string,
+    @Req() req,
   ) {
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const member = await this.authService.memberById(jwtPayload._id);
+
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành  viên không tồn tại.');
+    }
+
     const _content = await this.contentService.getContentById(content);
 
     if (!_content) {
@@ -326,6 +377,10 @@ export class ContentController {
       throw new BadRequestException('thể loại không tồn tại.');
     }
 
+    if (_content._id !== member._id || _category._id !== member._id) {
+      throw new ForbiddenException('Bạn không có quyền thao tác');
+    }
+
     return await this.contentService.changeCategory(_content, _category);
   }
 
@@ -335,7 +390,16 @@ export class ContentController {
   async updateSeries(
     @Param('content') content: string,
     @Param('series') series: string,
+    @Req() req,
   ) {
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const member = await this.authService.memberById(jwtPayload._id);
+
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành  viên không tồn tại.');
+    }
+
     const _content = await this.contentService.getContentById(content);
 
     if (!_content) {
@@ -348,13 +412,35 @@ export class ContentController {
       throw new BadRequestException('chuỗi bài viết không tồn tại.');
     }
 
+    if (_content._id !== member._id || _series._id !== member._id) {
+      throw new ForbiddenException('Bạn không có quyền thao tác');
+    }
+
     return await this.contentService.changeSeries(_content, _series);
   }
 
   @Delete(':id')
   @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))
-  async deleteContent(@Param('id') id: string) {
+  async deleteContent(@Param('id') id: string, @Req() req) {
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const member = await this.authService.memberById(jwtPayload._id);
+
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành  viên không tồn tại.');
+    }
+
+    const _content = await this.contentService.getContentById(id);
+
+    if (!Boolean(_content)) {
+      throw new BadRequestException('bài viết không tồn tại.');
+    }
+
+    if (_content.created_by._id !== member._id) {
+      throw new ForbiddenException('Bạn không có quyền xoá bài viết này');
+    }
+
     return await this.contentService.delete(id);
   }
 }

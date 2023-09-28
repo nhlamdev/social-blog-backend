@@ -29,5 +29,5 @@ export class CommentEntity extends AbstractEntity {
   content?: ContentEntity;
 
   @ManyToOne(() => MemberEntity, (member) => member.comments)
-  created_by?: MemberEntity;
+  created_by: MemberEntity;
 }
