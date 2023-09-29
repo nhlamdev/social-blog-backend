@@ -9,6 +9,7 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  ForbiddenException,
   UseGuards,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -239,7 +240,15 @@ export class AuthController {
     @Query('skip') skip: string,
     @Query('take') take: string,
     @Query('search') search: string | undefined,
+    @Req() req,
   ) {
+    const jwtPayload: AccessJwtPayload = req.user;
+    const member = await this.authService.memberById(jwtPayload._id);
+
+    if (member.role !== 'owner') {
+      throw new ForbiddenException('Bạn không có quyền hạn!.');
+    }
+
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
     const _search = search
