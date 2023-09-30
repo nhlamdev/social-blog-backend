@@ -81,6 +81,7 @@ export class ContentService {
       .skip(_skip)
       .take(_take)
       .leftJoinAndSelect('content.category', 'category')
+      .leftJoinAndSelect('content.image', 'image')
       .leftJoinAndSelect('content.series', 'series')
       .where('LOWER(content.title) LIKE :search ', { search: _search })
       .andWhere(
@@ -97,6 +98,8 @@ export class ContentService {
       .getMany();
 
     const max = await query.getCount();
+
+    // console.log('categories : ', categories);
 
     const result = {
       data: categories,

@@ -163,9 +163,9 @@ export class ContentController {
     @Query('outside') outside: string | undefined,
     @Param('id') id: string,
   ) {
-    const category = this.categoryService.getCategoryById(id);
+    const category = await this.categoryService.getCategoryById(id);
 
-    if (!category) {
+    if (!Boolean(category)) {
       throw new BadRequestException('Thể loại không tồn tại.');
     }
 
@@ -414,7 +414,10 @@ export class ContentController {
       throw new BadRequestException('chuỗi bài viết không tồn tại.');
     }
 
-    if (_content._id !== member._id || _series._id !== member._id) {
+    if (
+      _content.created_by._id !== member._id ||
+      _series.created_by._id !== member._id
+    ) {
       throw new ForbiddenException('Bạn không có quyền thao tác');
     }
 
