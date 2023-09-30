@@ -40,6 +40,7 @@ export class ContentService {
     return await this.contentRepository
       .createQueryBuilder('content')
       .leftJoinAndSelect('content.category', 'category')
+      .leftJoinAndSelect('content.image', 'image')
       .take(take)
       .orderBy('content.count_view', 'DESC')
       .getMany();
@@ -50,15 +51,18 @@ export class ContentService {
   }
 
   async randomContents(take: number | null) {
-    return await this.contentRepository
+    const contents = await this.contentRepository
       .createQueryBuilder('content')
+      .leftJoinAndSelect('content.image', 'image')
       .orderBy('RANDOM()')
-      .take(take)
-      .getMany();
+      .limit(take)
+      .getRawMany();
+
+    return contents;
   }
 
   async getContentById(id: string) {
-    return await this.contentRepository.findOne({
+    const content = await this.contentRepository.findOne({
       where: { _id: id },
       relations: {
         category: true,
@@ -67,6 +71,8 @@ export class ContentService {
         created_by: true,
       },
     });
+
+    return content;
   }
 
   async getContentByCategory(
@@ -157,6 +163,7 @@ export class ContentService {
       .createQueryBuilder('content')
       .skip(_skip)
       .take(_take)
+      .leftJoinAndSelect('content.image', 'image')
       .leftJoinAndSelect('content.category', 'category')
       .leftJoinAndSelect('content.series', 'series')
       .where('LOWER(content.title) LIKE :search', { search: _search });

@@ -51,7 +51,7 @@ export class CategoryController {
     return await this.categoryService.getAllCategory(_take, _skip, _search);
   }
 
-  @Get(':id')
+  @Get('by-id/:id')
   @ApiTags('category')
   async getCategoryById(@Param('id') id: string) {
     const category = await this.categoryService.getCategoryById(id);

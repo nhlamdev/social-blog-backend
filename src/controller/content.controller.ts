@@ -222,7 +222,7 @@ export class ContentController {
     );
   }
 
-  @Get(':id')
+  @Get('by-id/:id')
   @ApiTags('content')
   async getContentById(@Param('id') id: string) {
     if (!validateUUID(id)) {
