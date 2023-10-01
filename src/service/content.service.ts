@@ -50,6 +50,30 @@ export class ContentService {
     return await this.contentRepository.count();
   }
 
+  async contentsMoreComments(take: number | null) {
+    return this.contentRepository
+      .createQueryBuilder('content')
+      .leftJoinAndSelect('content.comments', 'comments')
+      .addSelect('COUNT(comments.id)', 'commentsCount')
+      .select(
+        'content._id, content.title, COUNT(comments._id) as commentsCount',
+      )
+      .groupBy('content._id')
+      .orderBy('commentsCount', 'DESC')
+      .limit(take)
+      .getRawMany();
+  }
+
+  async getContentByMember(member: MemberEntity) {
+    return this.contentRepository.find({
+      where: {
+        created_by: {
+          _id: member._id,
+        },
+      },
+    });
+  }
+
   async randomContents(take: number | null) {
     const contents = await this.contentRepository
       .createQueryBuilder('content')

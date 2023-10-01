@@ -30,7 +30,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { validate as validateUUID } from 'uuid';
 
@@ -44,36 +44,6 @@ export class ContentController {
     private readonly commonService: CommonService,
     private readonly authService: AuthService,
   ) {}
-
-  @Get('count-content')
-  @UseGuards(AuthGuard('jwt-access'))
-  @ApiTags('content')
-  async countContents() {
-    const countContent = await this.contentService.countContent();
-    const seriesContent = await this.seriesService.countSeries();
-    const categoryCount = await this.categoryService.countCategory();
-    const result = await {
-      content: countContent,
-      series: seriesContent,
-      category: categoryCount,
-    };
-    return result;
-  }
-
-  @Get('random')
-  @ApiTags('content')
-  async randomContent(@Query('take') take: string | undefined) {
-    const _take = checkIsNumber(take) ? Number(take) : null;
-
-    return this.contentService.randomContents(_take);
-  }
-
-  @Get('top')
-  @ApiTags('content')
-  async contentsTopView(@Query('take') take: string | undefined) {
-    const _take = checkIsNumber(take) ? Number(take) : null;
-    return this.contentService.topViewContent(_take);
-  }
 
   @Get()
   @ApiTags('content')
@@ -112,6 +82,69 @@ export class ContentController {
       _caseSort,
       true,
     );
+  }
+
+  @Get('count-content')
+  @UseGuards(AuthGuard('jwt-access'))
+  @ApiTags('content')
+  async countContents() {
+    const countContent = await this.contentService.countContent();
+    const seriesContent = await this.seriesService.countSeries();
+    const categoryCount = await this.categoryService.countCategory();
+    const result = await {
+      content: countContent,
+      series: seriesContent,
+      category: categoryCount,
+    };
+    return result;
+  }
+
+  @Get('random')
+  @ApiTags('content')
+  @ApiOperation({
+    summary: 'Lấy bài viết ngẫu nhiên.',
+    description: 'Lấy bài viết ngẫu nhiên.',
+  })
+  async randomContent(@Query('take') take: string | undefined) {
+    const _take = checkIsNumber(take) ? Number(take) : null;
+
+    return this.contentService.randomContents(_take);
+  }
+
+  @Get('by-member/:id')
+  @ApiTags('content')
+  @UseGuards(AuthGuard('jwt-access'))
+  async getContentByMember(@Param('id') id: string, @Req() req) {
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const member = await this.authService.memberById(id);
+
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành viên không tồn tại.');
+    }
+
+    if (jwtPayload.role === 'owner' || jwtPayload._id === member._id) {
+      throw new ForbiddenException('Bạn không có quyền hạn.');
+    }
+
+    return await this.contentService.getContentByMember(member);
+  }
+
+  @Get('more-view')
+  @ApiTags('content')
+  async contentsTopView(@Query('take') take: string | undefined) {
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    return this.contentService.topViewContent(_take);
+  }
+
+  @Get('more-comments')
+  @ApiTags('content')
+  @ApiOperation({
+    summary: 'Lấy các bài viết có nhiều bình luận nhất.',
+  })
+  async getTopContentsMoreComments(@Query('take') take: string | undefined) {
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    return this.contentService.contentsMoreComments(_take);
   }
 
   @Get('owner')

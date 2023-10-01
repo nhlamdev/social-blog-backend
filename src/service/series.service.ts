@@ -34,6 +34,21 @@ export class SeriesService {
       .getOne();
   }
 
+  async getContentMoreAvgViewContent(take: number | null) {
+    return await this.seriesRepository
+      .createQueryBuilder('series')
+      .leftJoinAndSelect('series.contents', 'contents')
+      // .addSelect('AVG(contents.count_view) as contentCountView')
+      .select(
+        'series._id, series.title, ROUND (COUNT(contents.count_view) / COUNT(contents._id)) as contentCountView',
+      )
+      .groupBy('series._id')
+      .having('COUNT(contents._id) > 0')
+      .orderBy('contentCountView', 'DESC')
+      .limit(take)
+      .getRawMany();
+  }
+
   async create(payload: SeriesDto, member: MemberEntity) {
     const series = new SeriesEntity();
 

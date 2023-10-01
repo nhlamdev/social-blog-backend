@@ -18,7 +18,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @Controller('series')
 export class SeriesController {
@@ -47,7 +47,7 @@ export class SeriesController {
     return await this.seriesService.getAllSeries(_take, _skip, _search);
   }
 
-  @Get(':id')
+  @Get('by-id/:id')
   @ApiTags('content-series')
   async getSerieById(@Param('id') id: string) {
     try {
@@ -55,6 +55,16 @@ export class SeriesController {
     } catch (error) {
       throw new NotFoundException('Chuỗi bài viết không tồn tại.');
     }
+  }
+
+  @Get('more-avg-views-content')
+  @ApiTags('content-series')
+  @ApiOperation({
+    summary: 'Lấy thông tin chuỗi bài viết có trung bình lượt xem cao nhất.',
+  })
+  async getSeriesMoreAvgViewContent(@Query('take') take: string | undefined) {
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    return this.seriesService.getContentMoreAvgViewContent(_take);
   }
 
   @Post()
