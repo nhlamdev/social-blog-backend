@@ -49,12 +49,18 @@ export class SeriesController {
 
   @Get('by-id/:id')
   @ApiTags('content-series')
-  async getSerieById(@Param('id') id: string) {
+  async getSeriesById(@Param('id') id: string) {
     try {
       return this.seriesService.getSeriesById(id);
     } catch (error) {
       throw new NotFoundException('Chuỗi bài viết không tồn tại.');
     }
+  }
+
+  @Get('by-member')
+  @ApiTags('content-series')
+  async getSeriesByMember() {
+    return '';
   }
 
   @Get('more-avg-views-content')

@@ -26,6 +26,10 @@ export class SeriesService {
     return await this.seriesRepository.count();
   }
 
+  async getSeriesByMember(member: MemberEntity,last:number,take) {
+    return this.seriesRepository.find({where:{}});
+  }
+
   async getSeriesById(id: string) {
     return await this.seriesRepository
       .createQueryBuilder('series')
