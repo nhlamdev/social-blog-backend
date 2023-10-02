@@ -294,21 +294,38 @@ export class ContentController {
 
   @Get('more-view')
   @ApiTags('content')
+  @ApiOperation({
+    summary: 'All posts sorted by views!',
+  })
+  async contentsTopView(@Query('take') take: string | undefined) {
+    const _take = checkIsNumber(take) ? Number(take) : null;
+
+    return await this.contentService.topViewContent({
+      _take,
+      status: 'view',
+    });
+  }
+
+  @Get('more-view/owner')
+  @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))
   @ApiOperation({
     summary: 'All posts sorted by views!',
   })
-  async contentsTopView(@Query('take') take: string | undefined, @Req() req) {
+  async contentsTopViewOwner(
+    @Query('take') take: string | undefined,
+    @Req() req,
+  ) {
     const jwtPayload: AccessJwtPayload = req.user;
     const _take = checkIsNumber(take) ? Number(take) : null;
 
     const member = await this.authService.memberById(jwtPayload._id);
 
-    if (Boolean(member)) {
-      return await this.contentService.topViewContent(_take, 'owner');
-    } else {
-      return await this.contentService.topViewContent(_take, 'view');
-    }
+    return await this.contentService.topViewContent({
+      _take,
+      status: 'owner',
+      member,
+    });
   }
 
   @Get('more-comments')

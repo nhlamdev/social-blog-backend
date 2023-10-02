@@ -36,26 +36,29 @@ export class ContentService {
     return this.contentRepository.save(content);
   }
 
-  async topViewContent(take: number | null, status: 'owner' | 'view') {
-    if (status === 'owner') {
-      return await this.contentRepository
-        .createQueryBuilder('content')
-        .leftJoinAndSelect('content.category', 'category')
-        .leftJoinAndSelect('content.image', 'image')
-        .take(take)
-        .orderBy('content.count_view', 'DESC')
+  async topViewContent(payload: {
+    _take: number | null;
+    status: 'owner' | 'view';
+    member?: MemberEntity;
+  }) {
+    const query = this.contentRepository
+      .createQueryBuilder('content')
+      .leftJoinAndSelect('content.category', 'category')
+      .leftJoinAndSelect('content.image', 'image')
+      .leftJoinAndSelect('content.created_by', 'created_by')
+      .take(payload._take)
+      .orderBy('content.count_view', 'DESC');
+
+    if (payload.status === 'owner' && payload.member) {
+      return await query
+        .where('created_by._id = :member', { member: payload.member._id })
         .getMany();
     } else {
-      return await this.contentRepository
-        .createQueryBuilder('content')
-        .leftJoinAndSelect('content.category', 'category')
-        .leftJoinAndSelect('content.image', 'image')
+      return await query
         .where('content.complete = :isComplete AND content.draft = :isDraft', {
           isComplete: true,
           isDraft: false,
         })
-        .take(take)
-        .orderBy('content.count_view', 'DESC')
         .getMany();
     }
   }
