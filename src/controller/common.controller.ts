@@ -1,18 +1,24 @@
 import { CommonService } from '@/service';
 import { Controller, Get, Put } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @Controller('common')
 export class CommonController {
   constructor(private readonly commonService: CommonService) {}
 
-  @Get('statistical')
+  @Get('personal-statistical')
   @ApiTags('common')
+  @ApiOperation({
+    summary: 'personal statistical',
+  })
   async statistical() {
     return 'test';
   }
 
-  @Get('global')
+  @Get('global-statistical')
+  @ApiOperation({
+    summary: 'global statistical (owner)',
+  })
   @ApiTags('common')
   async global() {
     return 'test';

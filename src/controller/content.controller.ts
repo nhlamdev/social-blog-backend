@@ -47,6 +47,9 @@ export class ContentController {
 
   @Get()
   @ApiTags('content')
+  @ApiOperation({
+    summary: 'Lấy thông tin tất cả bài viết.',
+  })
   async getContents(
     @Query('skip') skip: string,
     @Query('take') take: string,
@@ -73,122 +76,21 @@ export class ContentController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    return await this.contentService.getAllContent(
+    return await this.contentService.getAllContent({
       _take,
       _skip,
       _search,
       _category,
       _series,
       _caseSort,
-      true,
-    );
-  }
-
-  @Get('count-content')
-  @UseGuards(AuthGuard('jwt-access'))
-  @ApiTags('content')
-  async countContents() {
-    const countContent = await this.contentService.countContent();
-    const seriesContent = await this.seriesService.countSeries();
-    const categoryCount = await this.categoryService.countCategory();
-    const result = await {
-      content: countContent,
-      series: seriesContent,
-      category: categoryCount,
-    };
-    return result;
-  }
-
-  @Get('random')
-  @ApiTags('content')
-  @ApiOperation({
-    summary: 'Lấy bài viết ngẫu nhiên.',
-    description: 'Lấy bài viết ngẫu nhiên.',
-  })
-  async randomContent(@Query('take') take: string | undefined) {
-    const _take = checkIsNumber(take) ? Number(take) : null;
-
-    return this.contentService.randomContents(_take);
-  }
-
-  @Get('by-member/:id')
-  @ApiTags('content')
-  @UseGuards(AuthGuard('jwt-access'))
-  async getContentByMember(@Param('id') id: string, @Req() req) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành viên không tồn tại.');
-    }
-
-    if (jwtPayload.role === 'owner' || jwtPayload._id === member._id) {
-      throw new ForbiddenException('Bạn không có quyền hạn.');
-    }
-
-    return await this.contentService.getContentByMember(member);
-  }
-
-  @Get('more-view')
-  @ApiTags('content')
-  async contentsTopView(@Query('take') take: string | undefined) {
-    const _take = checkIsNumber(take) ? Number(take) : null;
-    return this.contentService.topViewContent(_take);
-  }
-
-  @Get('more-comments')
-  @ApiTags('content')
-  @ApiOperation({
-    summary: 'Lấy các bài viết có nhiều bình luận nhất.',
-  })
-  async getTopContentsMoreComments(@Query('take') take: string | undefined) {
-    const _take = checkIsNumber(take) ? Number(take) : null;
-    return this.contentService.contentsMoreComments(_take);
-  }
-
-  @Get('owner')
-  @ApiTags('content')
-  @UseGuards(AuthGuard('jwt-access'))
-  async getContentsAdmin(
-    @Query('skip') skip: string,
-    @Query('take') take: string,
-    @Query('search') search: string | undefined,
-    @Query('category') category: string | undefined,
-    @Query('series') series: string | undefined,
-    @Query('sortCase') caseSort: string | undefined,
-  ) {
-    const _take = checkIsNumber(take) ? Number(take) : null;
-    const _skip = checkIsNumber(skip) ? Number(skip) : null;
-    const _caseSort = CASE_SORT.includes(caseSort) ? caseSort : CASE_SORT[0];
-
-    const category_query = await this.categoryService.getCategoryById(category);
-    const series_query = await this.seriesService.getSeriesById(series);
-
-    const _category = Boolean(category_query) ? category_query : null;
-
-    const _series = Boolean(series_query) ? series_query : null;
-
-    const _search = search
-      ? `%${search
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')}%`
-      : '%%';
-
-    return await this.contentService.getAllContent(
-      _take,
-      _skip,
-      _search,
-      _category,
-      _series,
-      _caseSort,
-      false,
-    );
+    });
   }
 
   @Get('by-category/:id')
   @ApiTags('content')
+  @ApiOperation({
+    summary: 'Lấy thông tin tất cả bài viết theo thể loại.',
+  })
   async getContentByCategory(
     @Query('skip') skip: string,
     @Query('take') take: string,
@@ -223,6 +125,9 @@ export class ContentController {
 
   @Get('by-series/:id')
   @ApiTags('content')
+  @ApiOperation({
+    summary: 'Lấy thông tin tất cả bài viết theo chuỗi bài viết.',
+  })
   async getContentBySeries(
     @Query('skip') skip: string,
     @Query('take') take: string,
@@ -255,14 +160,70 @@ export class ContentController {
     );
   }
 
+  @Get('count-content')
+  @UseGuards(AuthGuard('jwt-access'))
+  @ApiTags('content')
+  @ApiOperation({
+    summary: 'Số lượng bài viết tổng.',
+  })
+  async countContents() {
+    const countContent = await this.contentService.countContent();
+    const seriesContent = await this.seriesService.countSeries();
+    const categoryCount = await this.categoryService.countCategory();
+    const result = await {
+      content: countContent,
+      series: seriesContent,
+      category: categoryCount,
+    };
+    return result;
+  }
+
+  @Get('random')
+  @ApiTags('content')
+  @ApiOperation({
+    summary: 'Bài viết ngẫu nhiên',
+  })
+  async randomContent(@Query('take') take: string | undefined) {
+    const _take = checkIsNumber(take) ? Number(take) : null;
+
+    return this.contentService.randomContents(_take);
+  }
+
+  @Get('by-member/:id')
+  @ApiTags('content')
+  @UseGuards(AuthGuard('jwt-access'))
+  @ApiOperation({
+    summary: 'Bài viết ngẫu nhiên',
+  })
+  async getContentByMember(@Param('id') id: string, @Req() req) {
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const member = await this.authService.memberById(id);
+
+    if (Boolean(member) && jwtPayload._id === member._id) {
+      return await this.contentService.getContentByMember(member, 'owner');
+    } else {
+      return await this.contentService.getContentByMember(member, 'view');
+    }
+  }
+
   @Get('by-id/:id')
   @ApiTags('content')
-  async getContentById(@Param('id') id: string) {
+  @UseGuards(AuthGuard('jwt-access'))
+  @ApiOperation({
+    summary: 'Lấy thông tin bài viết được chỉ định.',
+  })
+  async getContentById(@Param('id') id: string, @Req() req) {
     if (!validateUUID(id)) {
       throw new BadRequestException('Id bài viết sai định dạng.');
     }
+    const jwtPayload: AccessJwtPayload = req.user;
 
-    const content = await this.contentService.getContentById(id);
+    const member = await this.authService.memberById(jwtPayload._id);
+
+    const content = Boolean(member)
+      ? await this.contentService.getContentById(id, 'owner')
+      : await this.contentService.getContentById(id, 'view');
 
     if (!Boolean(content)) {
       throw new BadRequestException('Không tìm thấy bài viết');
@@ -275,6 +236,88 @@ export class ContentController {
 
     return result;
   }
+
+  @Get('more-view')
+  @ApiTags('content')
+  @UseGuards(AuthGuard('jwt-access'))
+  @ApiOperation({
+    summary: 'All posts sorted by views!',
+  })
+  async contentsTopView(@Query('take') take: string | undefined, @Req() req) {
+    const jwtPayload: AccessJwtPayload = req.user;
+    const _take = checkIsNumber(take) ? Number(take) : null;
+
+    const member = await this.authService.memberById(jwtPayload._id);
+
+    if (Boolean(member)) {
+      return await this.contentService.topViewContent(_take, 'owner');
+    } else {
+      return await this.contentService.topViewContent(_take, 'view');
+    }
+  }
+
+  @Get('more-comments')
+  @ApiTags('content')
+  @ApiOperation({
+    summary: 'All posts sorted by comment count!',
+  })
+  async getTopContentsMoreComments(
+    @Query('take') take: string | undefined,
+    @Req() req,
+  ) {
+    const jwtPayload: AccessJwtPayload = req.user;
+    const _take = checkIsNumber(take) ? Number(take) : null;
+
+    const member = await this.authService.memberById(jwtPayload._id);
+
+    if (Boolean(member)) {
+      return await this.contentService.contentsMoreComments(_take, 'owner');
+    } else {
+      return await this.contentService.contentsMoreComments(_take, 'view');
+    }
+  }
+
+  // @Get('owner')
+  // @ApiTags('content')
+  // @UseGuards(AuthGuard('jwt-access'))
+  // async getContentsAdmin(
+  //   @Query('skip') skip: string,
+  //   @Query('take') take: string,
+  //   @Query('search') search: string | undefined,
+  //   @Query('category') category: string | undefined,
+  //   @Query('series') series: string | undefined,
+  //   @Query('sortCase') caseSort: string | undefined,
+  //   @Query('complete') complete: string | undefined,
+  //   @Query('draft') draft: string | undefined,
+  // ) {
+  //   const _take = checkIsNumber(take) ? Number(take) : null;
+  //   const _skip = checkIsNumber(skip) ? Number(skip) : null;
+  //   const _caseSort = CASE_SORT.includes(caseSort) ? caseSort : CASE_SORT[0];
+
+  //   const category_query = await this.categoryService.getCategoryById(category);
+  //   const series_query = await this.seriesService.getSeriesById(series);
+
+  //   const _category = Boolean(category_query) ? category_query : null;
+
+  //   const _series = Boolean(series_query) ? series_query : null;
+
+  //   const _search = search
+  //     ? `%${search
+  //         .toLowerCase()
+  //         .normalize('NFD')
+  //         .replace(/[\u0300-\u036f]/g, '')}%`
+  //     : '%%';
+
+  //   return await this.contentService.getAllContent(
+  //     _take,
+  //     _skip,
+  //     _search,
+  //     _category,
+  //     _series,
+  //     _caseSort,
+  //     false,
+  //   );
+  // }
 
   @Post()
   @ApiTags('content')
@@ -349,7 +392,7 @@ export class ContentController {
   ) {
     const jwtPayload: AccessJwtPayload = req.user;
 
-    const content = await this.contentService.getContentById(id);
+    const content = await this.contentService.getContentById(id, 'owner');
 
     if (!Boolean(content)) {
       throw new BadRequestException('Bài viết cần chỉnh sửa không tồn tại.');
@@ -400,7 +443,7 @@ export class ContentController {
       throw new BadRequestException('Thành  viên không tồn tại.');
     }
 
-    const _content = await this.contentService.getContentById(content);
+    const _content = await this.contentService.getContentById(content, 'owner');
 
     if (!_content) {
       throw new BadRequestException('bài viết không tồn tại.');
@@ -435,7 +478,7 @@ export class ContentController {
       throw new BadRequestException('Thành  viên không tồn tại.');
     }
 
-    const _content = await this.contentService.getContentById(content);
+    const _content = await this.contentService.getContentById(content, 'owner');
 
     if (!_content) {
       throw new BadRequestException('bài viết không tồn tại.');
@@ -469,7 +512,7 @@ export class ContentController {
       throw new BadRequestException('Thành  viên không tồn tại.');
     }
 
-    const _content = await this.contentService.getContentById(id);
+    const _content = await this.contentService.getContentById(id, 'owner');
 
     if (!Boolean(_content)) {
       throw new BadRequestException('bài viết không tồn tại.');

@@ -14,6 +14,11 @@ export class SeriesService {
     private contentRepository: Repository<ContentEntity>,
   ) {}
 
+  /**
+   * Kiểm tra xem tiêu đề của chuỗi bài viết đã tồn tại hay chưa
+   * @param {string} title - tiêu đề cần check
+   * @returns {boolean} - Hàm trả về true nếu tồn tại, ngược lại trả về false.
+   */
   async checkNameExist(title: string) {
     const data = await this.seriesRepository.findOne({
       where: { title: title },
@@ -24,10 +29,6 @@ export class SeriesService {
 
   async countSeries() {
     return await this.seriesRepository.count();
-  }
-
-  async getSeriesByMember(member: MemberEntity,last:number,take) {
-    return this.seriesRepository.find({where:{}});
   }
 
   async getSeriesById(id: string) {
@@ -42,7 +43,6 @@ export class SeriesService {
     return await this.seriesRepository
       .createQueryBuilder('series')
       .leftJoinAndSelect('series.contents', 'contents')
-      // .addSelect('AVG(contents.count_view) as contentCountView')
       .select(
         'series._id, series.title, ROUND (COUNT(contents.count_view) / COUNT(contents._id)) as contentCountView',
       )
@@ -62,19 +62,27 @@ export class SeriesService {
     return this.seriesRepository.save(series);
   }
 
-  async getAllSeries(_take: number, _skip: number, _search: string) {
+  async getAllSeries(payload: {
+    member?: MemberEntity;
+    _take: number;
+    _skip: number;
+    _search: string;
+  }) {
     const query = this.seriesRepository
       .createQueryBuilder('series')
       .leftJoinAndSelect('series.created_by', 'created_by')
-      .skip(_skip)
-      .take(_take)
-      .where('LOWER(series.title) LIKE :search ', { search: _search });
+      .skip(payload._skip)
+      .take(payload._take)
+      .where(
+        `LOWER(series.title) LIKE :search ${
+          payload.member ? `AND created_by._id = :member` : ''
+        }`,
+        { search: payload._search, member: payload.member._id },
+      );
 
-    const categories = await query
-      .orderBy('series.created_at', 'DESC')
-      .getMany();
+    const series = await query.orderBy('series.created_at', 'DESC').getMany();
 
-    const categoriesWithCountContent = categories.map(async (series) => {
+    const seriesWithCountContent = series.map(async (series) => {
       const countContent = await this.contentRepository
         .createQueryBuilder('content')
         .where('content.series = :series', { series: series._id })
@@ -86,7 +94,7 @@ export class SeriesService {
     const max = await query.getCount();
 
     const result = {
-      data: await Promise.all(categoriesWithCountContent),
+      data: await Promise.all(seriesWithCountContent),
       max: max,
     };
 

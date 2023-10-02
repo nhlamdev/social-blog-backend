@@ -11,10 +11,12 @@ import {
   UnauthorizedException,
   ForbiddenException,
   UseGuards,
+  Param,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @Controller()
 export class AuthController {
@@ -24,13 +26,19 @@ export class AuthController {
   ) {}
 
   @Get('google')
-  @ApiTags('auth')
+  @ApiTags('social-auth')
   @UseGuards(AuthGuard('google'))
+  @ApiOperation({
+    summary: 'Đăng nhập bằng google.',
+  })
   async googleLogin() {}
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  @ApiTags('auth')
+  @ApiTags('social-auth')
+  @ApiOperation({
+    summary: 'Nơi google trả về data sao đăng nhập.',
+  })
   async googleLoginCallback(@Req() req, @Res() res) {
     const { user } = req;
 
@@ -90,12 +98,18 @@ export class AuthController {
 
   @Get('github')
   @UseGuards(AuthGuard('github'))
-  @ApiTags('auth')
+  @ApiTags('social-auth')
+  @ApiOperation({
+    summary: 'Đăng nhập bằng github.',
+  })
   async githubLogin() {}
 
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
-  @ApiTags('auth')
+  @ApiTags('social-auth')
+  @ApiOperation({
+    summary: 'Nơi github trả về data sao đăng nhập.',
+  })
   async githubLoginCallback(@Req() req, @Res() res) {
     const { user } = req;
 
@@ -155,12 +169,18 @@ export class AuthController {
 
   @Get('discord')
   @UseGuards(AuthGuard('discord'))
-  @ApiTags('auth')
+  @ApiTags('social-auth')
+  @ApiOperation({
+    summary: 'Đăng nhập bằng discord.',
+  })
   async discordLogin() {}
 
   @Get('discord/callback')
   @UseGuards(AuthGuard('discord'))
-  @ApiTags('auth')
+  @ApiTags('social-auth')
+  @ApiOperation({
+    summary: 'Nơi discord trả về data sao đăng nhập.',
+  })
   async discordLoginCallback(@Req() req, @Res() res) {
     const { user } = req;
 
@@ -218,9 +238,14 @@ export class AuthController {
     }
   }
 
+  // ---------------------------------------------
+
   @Get('profile')
-  @ApiTags('auth')
+  @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-access'))
+  @ApiOperation({
+    summary: 'Lấy thông tin cá nhân.',
+  })
   async clientProfileById(@Req() req) {
     const jwtPayload: AccessJwtPayload = req.user;
 
@@ -234,8 +259,11 @@ export class AuthController {
   }
 
   @Get('all-members')
-  @ApiTags('auth')
+  @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-access'))
+  @ApiOperation({
+    summary: 'Lấy thông tin tất cả thành viên (owner).',
+  })
   async allMembers(
     @Query('skip') skip: string,
     @Query('take') take: string,
@@ -262,8 +290,11 @@ export class AuthController {
   }
 
   @Get('renew-token')
-  @ApiTags('auth')
+  @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-refresh'))
+  @ApiOperation({
+    summary: 'Làm mới access token.',
+  })
   async refreshToken(@Req() req, @Res() res) {
     const jwtPayload: RefreshJwtPayload = req.user;
 
@@ -302,8 +333,11 @@ export class AuthController {
   }
 
   @Delete('logout')
-  @ApiTags('auth')
+  @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-refresh'))
+  @ApiOperation({
+    summary: 'Đăng xuất phiên hiện tại.',
+  })
   async clientLogout(@Req() req, @Res() res) {
     const jwtPayload: RefreshJwtPayload = req.user;
 
@@ -324,8 +358,43 @@ export class AuthController {
     res.status(200).json({ message: 'logout success !.' });
   }
 
+  @Delete('logout-target/:id')
+  @ApiTags('member-auth')
+  @UseGuards(AuthGuard('jwt-access'))
+  @ApiOperation({
+    summary: 'Đăng xuất phiên theo chỉ định.',
+  })
+  async clientTargetLogout(@Req() req, @Param('id') id: string) {
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const sessionTarget = await this.authService.sessionById(id);
+
+    const member = await this.authService.memberById(jwtPayload._id);
+
+    if (!Boolean(member)) {
+      throw new ForbiddenException(
+        'Bạn không có quyền thực hiện thao tác này.',
+      );
+    }
+
+    if (!Boolean(sessionTarget)) {
+      throw new BadRequestException('Phiên đăng nhập không tồn tại.');
+    }
+
+    if (sessionTarget.member._id === member._id || member.role === 'owner') {
+      return await this.authService.removeSession(sessionTarget._id);
+    } else {
+      throw new ForbiddenException(
+        'Bạn không có quyền thực hiện thao tác này.',
+      );
+    }
+  }
+
   @Delete('logout-all')
-  @ApiTags('auth')
+  @ApiTags('member-auth')
+  @ApiOperation({
+    summary: 'Đăng xuất tất cả các phiên của người dùng.',
+  })
   @UseGuards(AuthGuard('jwt-refresh'))
   async clientLogoutAll(@Res() res) {
     res.cookie(process.env.ACCESS_TOKEN_NAME, '', {

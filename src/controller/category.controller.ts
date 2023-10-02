@@ -21,7 +21,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 
 @Controller('category')
@@ -33,6 +33,9 @@ export class CategoryController {
   ) {}
   @Get()
   @ApiTags('category')
+  @ApiOperation({
+    summary: 'Lấy thông tin tất cả thể loại.',
+  })
   async getCategory(
     @Query('skip') skip: string,
     @Query('take') take: string,
@@ -53,6 +56,9 @@ export class CategoryController {
 
   @Get('by-id/:id')
   @ApiTags('category')
+  @ApiOperation({
+    summary: 'Lấy thông tin thể loại theo id.',
+  })
   async getCategoryById(@Param('id') id: string) {
     const category = await this.categoryService.getCategoryById(id);
 
@@ -65,6 +71,9 @@ export class CategoryController {
 
   @Get('more-contents')
   @ApiTags('category')
+  @ApiOperation({
+    summary: 'Lấy thông tin tất cả thể loại sắp xếp theo số lượng bài viết.',
+  })
   async getTopCategoryMoreContents(@Query('take') take: string | undefined) {
     const _take = checkIsNumber(take) ? Number(take) : null;
     return await this.categoryService.getTopCategoryMoreContents(_take);
@@ -90,6 +99,9 @@ export class CategoryController {
       }),
     }),
   )
+  @ApiOperation({
+    summary: 'Tạo mới một thể loại.',
+  })
   async createCategory(
     @Body() body: CategoryDto,
     @Req() req,
@@ -144,6 +156,9 @@ export class CategoryController {
       }),
     }),
   )
+  @ApiOperation({
+    summary: 'Chỉnh sửa bài viết được chỉ định.',
+  })
   async updateCategory(
     @Body() body: CategoryDto,
     @Param('id') id: string,
@@ -186,6 +201,9 @@ export class CategoryController {
   @Delete(':id')
   @ApiTags('category')
   @UseGuards(AuthGuard('jwt-access'))
+  @ApiOperation({
+    summary: 'Xóa bài viết được chỉ định.',
+  })
   async deleteCategory(@Param('id') id: string, @Req() req) {
     const jwtPayload: AccessJwtPayload = req.user;
 

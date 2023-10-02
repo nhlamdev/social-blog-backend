@@ -36,48 +36,94 @@ export class ContentService {
     return this.contentRepository.save(content);
   }
 
-  async topViewContent(take: number | null) {
-    return await this.contentRepository
-      .createQueryBuilder('content')
-      .leftJoinAndSelect('content.category', 'category')
-      .leftJoinAndSelect('content.image', 'image')
-      .take(take)
-      .orderBy('content.count_view', 'DESC')
-      .getMany();
+  async topViewContent(take: number | null, status: 'owner' | 'view') {
+    if (status === 'owner') {
+      return await this.contentRepository
+        .createQueryBuilder('content')
+        .leftJoinAndSelect('content.category', 'category')
+        .leftJoinAndSelect('content.image', 'image')
+        .take(take)
+        .orderBy('content.count_view', 'DESC')
+        .getMany();
+    } else {
+      return await this.contentRepository
+        .createQueryBuilder('content')
+        .leftJoinAndSelect('content.category', 'category')
+        .leftJoinAndSelect('content.image', 'image')
+        .where('content.complete = :isComplete AND content.draft = :isDraft', {
+          isComplete: true,
+          isDraft: false,
+        })
+        .take(take)
+        .orderBy('content.count_view', 'DESC')
+        .getMany();
+    }
   }
 
   async countContent() {
     return await this.contentRepository.count();
   }
 
-  async contentsMoreComments(take: number | null) {
-    return this.contentRepository
-      .createQueryBuilder('content')
-      .leftJoinAndSelect('content.comments', 'comments')
-      .addSelect('COUNT(comments.id)', 'commentsCount')
-      .select(
-        'content._id, content.title, COUNT(comments._id) as commentsCount',
-      )
-      .groupBy('content._id')
-      .orderBy('commentsCount', 'DESC')
-      .limit(take)
-      .getRawMany();
+  async contentsMoreComments(take: number | null, status: 'owner' | 'view') {
+    if (status === 'owner') {
+      return this.contentRepository
+        .createQueryBuilder('content')
+        .leftJoinAndSelect('content.comments', 'comments')
+        .select(
+          'content._id, content.title, COUNT(comments._id) as commentsCount',
+        )
+        .groupBy('content._id')
+        .orderBy('commentsCount', 'DESC')
+        .limit(take)
+        .getRawMany();
+    } else {
+      return this.contentRepository
+        .createQueryBuilder('content')
+        .leftJoinAndSelect('content.comments', 'comments')
+        .where('content.complete = :isComplete AND content.draft = :isDraft', {
+          isComplete: true,
+          isDraft: false,
+        })
+        .select(
+          'content._id, content.title, COUNT(comments._id) as commentsCount',
+        )
+        .groupBy('content._id')
+        .orderBy('commentsCount', 'DESC')
+        .limit(take)
+        .getRawMany();
+    }
   }
 
-  async getContentByMember(member: MemberEntity) {
-    return this.contentRepository.find({
-      where: {
-        created_by: {
-          _id: member._id,
+  async getContentByMember(member: MemberEntity, status: 'view' | 'owner') {
+    if (status === 'owner') {
+      return this.contentRepository.find({
+        where: {
+          created_by: {
+            _id: member._id,
+          },
         },
-      },
-    });
+      });
+    } else {
+      return this.contentRepository.find({
+        where: {
+          draft: false,
+          complete: true,
+          created_by: {
+            _id: member._id,
+          },
+        },
+      });
+    }
   }
 
   async randomContents(take: number | null) {
     const contents = await this.contentRepository
       .createQueryBuilder('content')
       .leftJoinAndSelect('content.image', 'image')
+      .where('content.complete = :isComplete AND content.draft = :isDraft', {
+        isComplete: true,
+        isDraft: false,
+      })
       .orderBy('RANDOM()')
       .limit(take)
       .getRawMany();
@@ -85,18 +131,28 @@ export class ContentService {
     return contents;
   }
 
-  async getContentById(id: string) {
-    const content = await this.contentRepository.findOne({
-      where: { _id: id },
-      relations: {
-        category: true,
-        series: true,
-        image: true,
-        created_by: true,
-      },
-    });
-
-    return content;
+  async getContentById(id: string, status: 'view' | 'owner') {
+    if (status === 'owner') {
+      return await this.contentRepository.findOne({
+        where: { _id: id },
+        relations: {
+          category: true,
+          series: true,
+          image: true,
+          created_by: true,
+        },
+      });
+    } else {
+      return await this.contentRepository.findOne({
+        where: { _id: id, draft: false, complete: true },
+        relations: {
+          category: true,
+          series: true,
+          image: true,
+          created_by: true,
+        },
+      });
+    }
   }
 
   async getContentByCategory(
@@ -174,41 +230,51 @@ export class ContentService {
     return result;
   }
 
-  async getAllContent(
-    _take: number,
-    _skip: number,
-    _search: string,
-    _category: CategoryEntity | null,
-    _series: SeriesEntity | null,
-    _caseSort: string,
-    _status: boolean,
-  ) {
+  async getAllContent(payload: {
+    _take: number;
+    _skip: number;
+    _search: string;
+    _category: CategoryEntity | null;
+    _series: SeriesEntity | null;
+    _caseSort: string;
+    // _status?: { isDraft: boolean; isComplete: boolean };
+  }) {
     const query = this.contentRepository
       .createQueryBuilder('content')
-      .skip(_skip)
-      .take(_take)
+      .skip(payload._skip)
+      .take(payload._take)
       .leftJoinAndSelect('content.image', 'image')
       .leftJoinAndSelect('content.category', 'category')
       .leftJoinAndSelect('content.series', 'series')
-      .where('LOWER(content.title) LIKE :search', { search: _search });
+      .where('LOWER(content.title) LIKE :search', { search: payload._search })
+      .andWhere('content.complete = :isComplete AND content.draft = :isDraft', {
+        isComplete: true,
+        isDraft: false,
+      });
 
-    const checkQuery = _status
-      ? query.andWhere('content.complete = :status', { status: _status })
+    // const checkQuery = payload._status
+    //   ? query.andWhere(
+    //       'content.complete = :isComplete AND content.draft = :isDraft',
+    //       {
+    //         isComplete: payload._status.isComplete,
+    //         isDraft: payload._status.isDraft,
+    //       },
+    //     )
+    //   : query;
+
+    const filterCategory = payload._category
+      ? query.andWhere('category._id = :category ', {
+          category: payload._category._id,
+        })
       : query;
 
-    const filterCategory = _category
-      ? checkQuery.andWhere('category._id = :category ', {
-          category: _category._id,
-        })
-      : checkQuery;
-
-    const filterSeries = _series
+    const filterSeries = payload._series
       ? filterCategory.andWhere('series._id = :series ', {
-          series: _series._id,
+          series: payload._series._id,
         })
       : filterCategory;
 
-    const [value, order] = _caseSort.split('_');
+    const [value, order] = payload._caseSort.split('_');
     const contents = await filterSeries
       .orderBy(
         `content.${value === 'NAME' ? 'title' : 'created_at'}`,
@@ -247,7 +313,7 @@ export class ContentService {
   }
 
   async updateContent(_id: string, body: ContentDto, filesData?: FileEntity) {
-    const content = await this.getContentById(_id);
+    const content = await this.getContentById(_id, 'owner');
     if (!Boolean(content)) {
       throw new BadRequestException('Bài viết không tồn tại.');
     }

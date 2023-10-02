@@ -29,6 +29,9 @@ export class SeriesController {
 
   @Get()
   @ApiTags('content-series')
+  @ApiOperation({
+    summary: 'Lấy thông tin tất cả chuỗi bài viết.',
+  })
   async getSeries(
     @Query('skip') skip: string,
     @Query('take') take: string,
@@ -44,11 +47,14 @@ export class SeriesController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    return await this.seriesService.getAllSeries(_take, _skip, _search);
+    return await this.seriesService.getAllSeries({ _take, _skip, _search });
   }
 
   @Get('by-id/:id')
   @ApiTags('content-series')
+  @ApiOperation({
+    summary: 'Lấy thông tin chuỗi bài viết được chỉ định.',
+  })
   async getSeriesById(@Param('id') id: string) {
     try {
       return this.seriesService.getSeriesById(id);
@@ -57,10 +63,39 @@ export class SeriesController {
     }
   }
 
-  @Get('by-member')
+  @Get('by-member/:id')
   @ApiTags('content-series')
-  async getSeriesByMember() {
-    return '';
+  @ApiOperation({
+    summary: 'Lấy thông tin chuỗi bài viết theo người tạo.',
+  })
+  async getSeriesByMember(
+    @Param('id') id: string,
+    @Query('skip') skip: string,
+    @Query('take') take: string,
+    @Query('search') search: string | undefined,
+  ) {
+    const member = await this.authService.memberById(id);
+
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành viên không tồn tại.!');
+    }
+
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    const _skip = checkIsNumber(skip) ? Number(skip) : null;
+
+    const _search = search
+      ? `%${search
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')}%`
+      : '%%';
+
+    return await this.seriesService.getAllSeries({
+      _take,
+      _skip,
+      _search,
+      member,
+    });
   }
 
   @Get('more-avg-views-content')
@@ -76,6 +111,9 @@ export class SeriesController {
   @Post()
   @ApiTags('content-series')
   @UseGuards(AuthGuard('jwt-access'))
+  @ApiOperation({
+    summary: 'Tạo mới một chuỗi bài viết.',
+  })
   async createSeries(@Body() body: SeriesDto, @Req() req) {
     const jwtPayload: AccessJwtPayload = req.user;
 
@@ -103,6 +141,9 @@ export class SeriesController {
   @Put(':id')
   @ApiTags('content-series')
   @UseGuards(AuthGuard('jwt-access'))
+  @ApiOperation({
+    summary: 'Chỉnh sửa chuỗi bài viết chỉ định.',
+  })
   async updateSeries(
     @Body() body: SeriesDto,
     @Param('id') id: string,
@@ -140,6 +181,9 @@ export class SeriesController {
   @Delete(':id')
   @ApiTags('content-series')
   @UseGuards(AuthGuard('jwt-access'))
+  @ApiOperation({
+    summary: 'Xóa chuỗi bài viết chỉ định.',
+  })
   async deleteSeries(@Param('id') id: string, @Req() req) {
     const jwtPayload: AccessJwtPayload = req.user;
 

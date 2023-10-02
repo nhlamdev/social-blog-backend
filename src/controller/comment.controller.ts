@@ -33,7 +33,7 @@ export class CommentController {
     @Query('skip') skip: string,
     @Query('take') take: string,
   ) {
-    const content = await this.contentService.getContentById(id);
+    const content = await this.contentService.getContentById(id, 'view');
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
 
@@ -78,7 +78,7 @@ export class CommentController {
       throw new BadRequestException('Thành viên không tồn tại!.');
     }
 
-    const content = await this.contentService.getContentById(id);
+    const content = await this.contentService.getContentById(id, 'owner');
 
     if (!Boolean(content)) {
       throw new BadRequestException('Bài viết không tồn tại.');
