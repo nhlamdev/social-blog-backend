@@ -67,6 +67,7 @@ export class SeriesService {
     _take: number;
     _skip: number;
     _search: string;
+    status: 'owner' | 'member';
   }) {
     const query = this.seriesRepository
       .createQueryBuilder('series')

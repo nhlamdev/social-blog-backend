@@ -47,7 +47,12 @@ export class SeriesController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    return await this.seriesService.getAllSeries({ _take, _skip, _search });
+    return await this.seriesService.getAllSeries({
+      _take,
+      _skip,
+      _search,
+      status: 'member',
+    });
   }
 
   @Get('by-id/:id')
@@ -95,6 +100,46 @@ export class SeriesController {
       _skip,
       _search,
       member,
+      status: 'member',
+    });
+  }
+
+  @Get('owner')
+  @ApiTags('content-series')
+  @ApiOperation({
+    summary: 'Lấy thông tin chuỗi bài viết theo người tạo có chỉnh sửa.',
+  })
+  @UseGuards(AuthGuard('jwt-access'))
+  async getSeriesByMemberOwner(
+    @Query('skip') skip: string,
+    @Query('take') take: string,
+    @Query('search') search: string | undefined,
+    @Req() req,
+  ) {
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const member = await this.authService.memberById(jwtPayload._id);
+
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành viên không tồn tại.!');
+    }
+
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    const _skip = checkIsNumber(skip) ? Number(skip) : null;
+
+    const _search = search
+      ? `%${search
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')}%`
+      : '%%';
+
+    return await this.seriesService.getAllSeries({
+      _take,
+      _skip,
+      _search,
+      member,
+      status: 'owner',
     });
   }
 
