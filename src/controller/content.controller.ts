@@ -191,20 +191,75 @@ export class ContentController {
 
   @Get('by-member/:id')
   @ApiTags('content')
+  @ApiOperation({
+    summary: 'Bài viết ngẫu nhiên',
+  })
+  async getContentByMember(
+    @Param('id') id: string,
+    @Query('skip') skip: string,
+    @Query('take') take: string,
+    @Query('search') search: string | undefined,
+  ) {
+    const member = await this.authService.memberById(id);
+
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành viên không tồn tại.');
+    }
+
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    const _skip = checkIsNumber(skip) ? Number(skip) : null;
+    const _search = search
+      ? `%${search
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')}%`
+      : '%%';
+
+    return await this.contentService.getContentByMember({
+      member,
+      status: 'view',
+      _take,
+      _skip,
+      _search,
+    });
+  }
+
+  @Get('owner')
+  @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))
   @ApiOperation({
     summary: 'Bài viết ngẫu nhiên',
   })
-  async getContentByMember(@Param('id') id: string, @Req() req) {
+  async getContentByCreateOwner(
+    @Req() req,
+    @Query('skip') skip: string,
+    @Query('take') take: string,
+    @Query('search') search: string | undefined,
+  ) {
     const jwtPayload: AccessJwtPayload = req.user;
 
-    const member = await this.authService.memberById(id);
+    const member = await this.authService.memberById(jwtPayload._id);
 
-    if (Boolean(member) && jwtPayload._id === member._id) {
-      return await this.contentService.getContentByMember(member, 'owner');
-    } else {
-      return await this.contentService.getContentByMember(member, 'view');
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành viên không tồn tại.');
     }
+
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    const _skip = checkIsNumber(skip) ? Number(skip) : null;
+    const _search = search
+      ? `%${search
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')}%`
+      : '%%';
+
+    return await this.contentService.getContentByMember({
+      member,
+      status: 'owner',
+      _take,
+      _skip,
+      _search,
+    });
   }
 
   @Get('by-id/:id')

@@ -94,25 +94,31 @@ export class ContentService {
     }
   }
 
-  async getContentByMember(member: MemberEntity, status: 'view' | 'owner') {
-    if (status === 'owner') {
-      return this.contentRepository.find({
-        where: {
-          created_by: {
-            _id: member._id,
-          },
-        },
-      });
+  async getContentByMember(payload: {
+    _take: number;
+    _skip: number;
+    _search: string;
+    member: MemberEntity;
+    status: 'view' | 'owner';
+  }) {
+    const query = this.contentRepository
+      .createQueryBuilder('content')
+      .skip(payload._skip)
+      .take(payload._take)
+      .leftJoinAndSelect('content.category', 'category')
+      .leftJoinAndSelect('content.image', 'image')
+      .leftJoinAndSelect('content.series', 'series')
+      .where('LOWER(content.title) LIKE :search ', { search: payload._search });
+
+    if (payload.status === 'owner') {
+      return query.getManyAndCount();
     } else {
-      return this.contentRepository.find({
-        where: {
+      return query
+        .andWhere('draft = :draft AND complete = :complete', {
           draft: false,
           complete: true,
-          created_by: {
-            _id: member._id,
-          },
-        },
-      });
+        })
+        .getManyAndCount();
     }
   }
 
