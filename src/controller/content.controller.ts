@@ -262,13 +262,13 @@ export class ContentController {
     });
   }
 
-  @Get('by-id/:id')
+  @Get('by-id/:id/owner')
   @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))
   @ApiOperation({
     summary: 'Lấy thông tin bài viết được chỉ định.',
   })
-  async getContentById(@Param('id') id: string, @Req() req) {
+  async getContentByIdOwner(@Param('id') id: string, @Req() req) {
     if (!validateUUID(id)) {
       throw new BadRequestException('Id bài viết sai định dạng.');
     }
@@ -276,9 +276,39 @@ export class ContentController {
 
     const member = await this.authService.memberById(jwtPayload._id);
 
-    const content = Boolean(member)
-      ? await this.contentService.getContentById(id, 'owner')
-      : await this.contentService.getContentById(id, 'view');
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành viên không tồn tại!.');
+    }
+
+    const content = await this.contentService.getContentById(id, 'owner');
+
+    if (!Boolean(content)) {
+      throw new BadRequestException('Không tìm thấy bài viết');
+    }
+
+    if (content.created_by._id !== member._id) {
+      throw new ForbiddenException('Bạn không phải chủ nhân bài viết!.');
+    }
+
+    const result = {
+      ...content,
+      countComment: await this.commentService.countCommentByContent(content),
+    };
+
+    return result;
+  }
+
+  @Get('by-id/:id')
+  @ApiTags('content')
+  @ApiOperation({
+    summary: 'Lấy thông tin bài viết được chỉ định.',
+  })
+  async getContentByIdClient(@Param('id') id: string) {
+    if (!validateUUID(id)) {
+      throw new BadRequestException('Id bài viết sai định dạng.');
+    }
+
+    const content = await this.contentService.getContentById(id, 'view');
 
     if (!Boolean(content)) {
       throw new BadRequestException('Không tìm thấy bài viết');

@@ -74,14 +74,16 @@ export class SeriesService {
       .leftJoinAndSelect('series.created_by', 'created_by')
       .skip(payload._skip)
       .take(payload._take)
-      .where(
-        `LOWER(series.title) LIKE :search ${
-          payload.member ? `AND created_by._id = :member` : ''
-        }`,
-        { search: payload._search, member: payload.member._id },
-      );
+      .where(`LOWER(series.title) LIKE :search`, {
+        search: payload._search,
+      });
 
-    const series = await query.orderBy('series.created_at', 'DESC').getMany();
+    const series = payload.member
+      ? await query
+          .andWhere('created_by._id = :member', { member: payload.member._id })
+          .orderBy('series.created_at', 'DESC')
+          .getMany()
+      : await query.orderBy('series.created_at', 'DESC').getMany();
 
     const seriesWithCountContent = series.map(async (series) => {
       const countContent = await this.contentRepository
