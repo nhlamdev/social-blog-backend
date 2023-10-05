@@ -358,6 +358,35 @@ export class ContentController {
     });
   }
 
+  @Get('all-author')
+  @ApiTags('content')
+  @ApiOperation({
+    summary: 'All authors!',
+  })
+  async allAuththor(
+    @Query('skip') skip: string,
+    @Query('take') take: string,
+    @Query('search') search: string | undefined,
+  ) {
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    const _skip = checkIsNumber(skip) ? Number(skip) : null;
+    const _search = search
+      ? `%${search
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')}%`
+      : '%%';
+    const members = await this.authService.allMember(_take, _skip, _search);
+
+    const membersWidthContents = await members.map(async (member) => {
+      const count = await this.contentService.getCountContentByMember(member);
+
+      const memberWithCountContent = { ...member, countContent: count };
+      return memberWithCountContent;
+    });
+    return await Promise.all(membersWidthContents);
+  }
+
   @Get('more-comments')
   @ApiTags('content')
   @ApiOperation({

@@ -30,6 +30,13 @@ export class ContentService {
 
     return Boolean(data);
   }
+
+  async getCountContentByMember(member: MemberEntity) {
+    return await this.contentRepository.count({
+      where: { created_by: { _id: member._id }, draft: false, complete: true },
+    });
+  }
+
   async upCountViewContent(content: ContentEntity) {
     content.count_view = content.count_view + 1;
 

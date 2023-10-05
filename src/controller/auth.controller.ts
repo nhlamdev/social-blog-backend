@@ -289,6 +289,21 @@ export class AuthController {
     return await this.authService.allMember(_take, _skip, _search);
   }
 
+  @Get('author/:id')
+  @ApiTags('member-auth')
+  @ApiOperation({
+    summary: 'Lấy thông tin tất cả thành viên (owner).',
+  })
+  async authorById(@Param('id') id: string) {
+    const member = await this.authService.memberById(id);
+
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành viên không tồn tại.');
+    }
+
+    return member;
+  }
+
   @Get('renew-token')
   @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-refresh'))
