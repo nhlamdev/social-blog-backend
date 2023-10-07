@@ -314,6 +314,8 @@ export class ContentController {
       throw new BadRequestException('Không tìm thấy bài viết');
     }
 
+    await this.contentService.upCountViewContent(content);
+
     const result = {
       ...content,
       countComment: await this.commentService.countCommentByContent(content),

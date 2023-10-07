@@ -262,6 +262,7 @@ export class ContentService {
       .leftJoinAndSelect('content.image', 'image')
       .leftJoinAndSelect('content.category', 'category')
       .leftJoinAndSelect('content.series', 'series')
+      .leftJoinAndSelect('content.created_by', 'created_by')
       .where('LOWER(content.title) LIKE :search', { search: payload._search })
       .andWhere('content.complete = :isComplete AND content.draft = :isDraft', {
         isComplete: true,
