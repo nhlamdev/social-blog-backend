@@ -302,7 +302,13 @@ export class ContentService {
     const max = await query.getCount();
 
     const result = {
-      data: contents,
+      data: contents.map((content) => {
+        const c = { ...content };
+
+        delete c.body;
+
+        return c;
+      }),
       max: max,
     };
 
