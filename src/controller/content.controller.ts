@@ -376,7 +376,11 @@ export class ContentController {
           .normalize('NFD')
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
-    const members = await this.authService.allMember(_take, _skip, _search);
+    const [members, total] = await this.authService.allMember(
+      _take,
+      _skip,
+      _search,
+    );
 
     const membersWidthContents = await members.map(async (member) => {
       const count = await this.contentService.getCountContentByMember(member);
@@ -384,7 +388,7 @@ export class ContentController {
       const memberWithCountContent = { ...member, countContent: count };
       return memberWithCountContent;
     });
-    return await Promise.all(membersWidthContents);
+    return [await Promise.all(membersWidthContents), total];
   }
 
   @Get('more-comments')

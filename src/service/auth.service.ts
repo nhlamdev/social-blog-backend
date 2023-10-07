@@ -19,7 +19,7 @@ export class AuthService {
       .skip(_skip)
       .take(_take)
       .where('LOWER(member.name) LIKE :search', { search: _search })
-      .getMany();
+      .getManyAndCount();
   }
 
   async memberById(id: string) {
