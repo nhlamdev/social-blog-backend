@@ -10,7 +10,10 @@ export class CommentService {
   ) {}
 
   async commentById(id: string) {
-    return await this.commentRepository.findOne({ where: { _id: id } });
+    return await this.commentRepository.findOne({
+      where: { _id: id },
+      relations: { created_by: true },
+    });
   }
 
   async countCommentByContent(content: ContentEntity) {

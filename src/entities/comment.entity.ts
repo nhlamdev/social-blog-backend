@@ -17,7 +17,9 @@ export class CommentEntity extends AbstractEntity {
   @Column({ type: 'text', nullable: false, default: '' })
   text: string;
 
-  @ManyToOne(() => CommentEntity, (comment) => comment.replies)
+  @ManyToOne(() => CommentEntity, (comment) => comment.replies, {
+    onDelete: 'CASCADE',
+  })
   comment_parent: CommentEntity;
 
   @OneToMany(() => CommentEntity, (comment) => comment.comment_parent, {
