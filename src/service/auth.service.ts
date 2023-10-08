@@ -18,11 +18,11 @@ export class AuthService {
       .createQueryBuilder('member')
       .leftJoinAndSelect('member.contents', 'contents')
       .select(
-        `member.name,member.email,member.image,member.role,member.created_at,
+        `member._id,member.name,member.email,member.image,member.role,member.created_at,
         COUNT(contents._id) as content_count`,
       )
       .groupBy(
-        'member.name,member.email,member.image,member.role,member.created_at',
+        'member._id,member.name,member.email,member.image,member.role,member.created_at',
       )
       .skip(_skip)
       .take(_take)
@@ -89,6 +89,14 @@ export class AuthService {
 
       return await this.memberRepository.save(newMember);
     }
+  }
+
+  async updateRole(
+    member: MemberEntity,
+    role: 'member' | 'writer' | 'developer',
+  ) {
+    member.role = role;
+    await this.memberRepository.save(member);
   }
 
   async createSession(payload: {

@@ -13,6 +13,7 @@ import {
   UseGuards,
   Param,
   BadRequestException,
+  Patch,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
@@ -345,6 +346,30 @@ export class AuthController {
     });
 
     res.status(200).json({ message: 'renew success' });
+  }
+
+  @Patch('change-role/:memberId/:role')
+  @ApiTags('member-auth')
+  @UseGuards(AuthGuard('jwt-refresh'))
+  async updateRoleMember(
+    @Param('role') role: 'member' | 'writer' | 'developer',
+    @Param('memberId') id: string,
+  ) {
+    const member = await this.authService.memberById(id);
+
+    if (!Boolean(member)) {
+      throw new BadRequestException('Thành viên không tồn tại!.');
+    }
+
+    if (member.role === 'owner') {
+      throw new BadRequestException('Bạn không có quyền chỉnh sửa.');
+    }
+
+    if (!['member', 'writer', 'developer'].includes(role)) {
+      throw new BadRequestException('Quyền không hợp lệ.');
+    }
+
+    return await this.authService.updateRole(member, role);
   }
 
   @Delete('logout')
