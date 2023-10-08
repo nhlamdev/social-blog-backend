@@ -14,12 +14,26 @@ export class AuthService {
   ) {}
 
   async allMember(_take: number, _skip: number, _search: string) {
-    return this.memberRepository
+    const data = await this.memberRepository
       .createQueryBuilder('member')
+      .leftJoinAndSelect('member.contents', 'contents')
+      .select(
+        `member.name,member.email,member.image,member.role,member.created_at,
+        COUNT(contents._id) as content_count`,
+      )
+      .groupBy(
+        'member.name,member.email,member.image,member.role,member.created_at',
+      )
       .skip(_skip)
       .take(_take)
       .where('LOWER(member.name) LIKE :search', { search: _search })
-      .getManyAndCount();
+      .getRawMany();
+
+    const count = await this.memberRepository.count();
+
+    const result = { data, count };
+
+    return result;
   }
 
   async memberById(id: string) {

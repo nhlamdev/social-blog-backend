@@ -378,7 +378,7 @@ export class ContentController {
           .normalize('NFD')
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
-    const [members, total] = await this.authService.allMember(
+    const { data: members, count: total } = await this.authService.allMember(
       _take,
       _skip,
       _search,
