@@ -5,3 +5,4 @@ export * from './content.entity';
 export * from './category.entity';
 export * from './series.entity';
 export * from './comment.entity';
+export * from './role.entity';

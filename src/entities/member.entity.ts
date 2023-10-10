@@ -1,15 +1,24 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
-import { CommentEntity, ContentEntity, SeriesEntity, SessionEntity } from '.';
+import {
+  CommentEntity,
+  ContentEntity,
+  RoleEntity,
+  SeriesEntity,
+  SessionEntity,
+} from '.';
 import { AbstractEntity } from './abstract.entity';
 
 @Entity('member')
 export class MemberEntity extends AbstractEntity {
   @PrimaryGeneratedColumn('uuid')
   _id: string;
-
-  @Column({ type: 'varchar', length: 10, nullable: false, default: 'member' })
-  role: 'member' | 'writer' | 'developer' | 'owner';
 
   @Column({ type: 'text', nullable: false })
   name: string;
@@ -24,6 +33,11 @@ export class MemberEntity extends AbstractEntity {
     nullable: false,
   })
   image: string;
+
+  @OneToOne(() => RoleEntity, {
+    onDelete: 'CASCADE',
+  })
+  role: RoleEntity;
 
   @OneToMany(() => SessionEntity, (session) => session.member, {
     onDelete: 'CASCADE',
