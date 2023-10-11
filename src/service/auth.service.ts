@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MemberEntity, SessionEntity } from '@/entities';
+import { MemberEntity, RoleEntity, SessionEntity } from '@/entities';
 import { Repository } from 'typeorm';
 import { client_data } from '@/interface/common.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
+    @InjectRepository(RoleEntity)
+    private roleRepository: Repository<RoleEntity>,
     @InjectRepository(SessionEntity)
     private sessionRepository: Repository<SessionEntity>,
     @InjectRepository(MemberEntity)
@@ -34,6 +36,12 @@ export class AuthService {
     const result = { data, count };
 
     return result;
+  }
+
+  async roleByMemberId(member: MemberEntity) {
+    return await this.roleRepository.findOne({
+      where: { member: { _id: member._id } },
+    });
   }
 
   async memberById(id: string) {
@@ -80,8 +88,11 @@ export class AuthService {
     } else {
       const newMember = new MemberEntity();
 
+      const member_role = new RoleEntity();
+
       newMember.name = payload.name;
       newMember.email = payload.email;
+      newMember.role = member_role;
 
       if (payload.image) {
         newMember.image = payload.image;
@@ -91,10 +102,7 @@ export class AuthService {
     }
   }
 
-  async updateRole(
-    member: MemberEntity,
-    role: 'member' | 'writer' | 'developer',
-  ) {
+  async updateRole(member: MemberEntity, role: RoleEntity) {
     member.role = role;
     await this.memberRepository.save(member);
   }
@@ -102,7 +110,6 @@ export class AuthService {
   async createSession(payload: {
     client: client_data;
     member?: MemberEntity;
-    role?: 'member' | 'owner';
     provider: 'google' | 'github' | 'discord';
     provider_id: string;
   }) {

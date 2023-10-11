@@ -47,12 +47,11 @@ export class CategoryService {
       .getRawMany();
   }
 
-  async create(payload: CategoryDto, filesData: FileEntity) {
+  async create(payload: CategoryDto) {
     const category = new CategoryEntity();
 
     category.title = payload.title;
     category.summary = payload.summary;
-    category.image = filesData;
     return this.categoryRepository.save(category);
   }
 
@@ -87,17 +86,9 @@ export class CategoryService {
     return result;
   }
 
-  async update(
-    category: CategoryEntity,
-    body: CategoryDto,
-    filesData?: FileEntity,
-  ) {
+  async update(category: CategoryEntity, body: CategoryDto) {
     category.title = body.title;
     category.summary = body.summary;
-
-    if (filesData) {
-      category.image = filesData;
-    }
 
     return await this.categoryRepository.save(category);
   }

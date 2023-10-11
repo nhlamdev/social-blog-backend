@@ -34,7 +34,7 @@ export class MemberEntity extends AbstractEntity {
   })
   image: string;
 
-  @OneToOne(() => RoleEntity, {
+  @OneToOne(() => RoleEntity, (role) => role.member, {
     onDelete: 'CASCADE',
   })
   role: RoleEntity;

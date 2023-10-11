@@ -488,7 +488,7 @@ export class ContentController {
       throw new BadRequestException('Thành  viên không tồn tại.');
     }
 
-    if (member.role === 'member') {
+    if (!member.role.author && !member.role.owner) {
       throw new ForbiddenException('Bạn không có quyền thêm mới bài viết!.');
     }
 
@@ -543,7 +543,7 @@ export class ContentController {
       throw new BadRequestException('Thành viện không tồn tại');
     }
 
-    if (member.role === 'member') {
+    if (!member.role.author && !member.role.owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với bài viết!.',
       );

@@ -82,31 +82,10 @@ export class CategoryController {
   @Post()
   @ApiTags('category')
   @UseGuards(AuthGuard('jwt-access'))
-  @UseInterceptors(
-    FilesInterceptor('files', 20, {
-      storage: diskStorage({
-        destination: (req, file, next) => {
-          next(null, 'uploads');
-        },
-        filename: (req, file, next) => {
-          next(
-            null,
-            new Date().toISOString().replace(/:/g, '-') +
-              '-' +
-              file.originalname,
-          );
-        },
-      }),
-    }),
-  )
   @ApiOperation({
     summary: 'Tạo mới một thể loại.',
   })
-  async createCategory(
-    @Body() body: CategoryDto,
-    @Req() req,
-    @UploadedFile('files') files: Express.Multer.File,
-  ) {
+  async createCategory(@Body() body: CategoryDto, @Req() req) {
     const jwtPayload: AccessJwtPayload = req.user;
 
     const member = await this.authService.memberById(jwtPayload._id);
@@ -115,13 +94,11 @@ export class CategoryController {
       throw new BadRequestException('Thành viên không tồn tại.!');
     }
 
-    if (member.role !== 'owner') {
+    if (!member.role.owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với thể loại!.',
       );
     }
-
-    const filesData = await this.commonService.saveFile(files);
 
     const isExist = await this.categoryService.checkNameExist(body.title);
 
@@ -129,11 +106,7 @@ export class CategoryController {
       throw new NotFoundException('Thể loại đã tồn tại.');
     }
 
-    if (filesData.length === 0) {
-      throw new BadRequestException('Bạn chưa chọn ảnh.');
-    }
-
-    return await this.categoryService.create(body, filesData[0]);
+    return await this.categoryService.create(body);
   }
 
   @Put(':id')
@@ -173,7 +146,7 @@ export class CategoryController {
       throw new BadRequestException('Thành viên không tồn tại.!');
     }
 
-    if (member.role !== 'owner') {
+    if (!member.role.owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với thể loại!.',
       );
@@ -189,7 +162,7 @@ export class CategoryController {
       const filesData = await this.commonService.saveFile(files);
 
       if (filesData.length !== 0) {
-        return this.categoryService.update(category, body, filesData[0]);
+        return this.categoryService.update(category, body);
       } else {
         return this.categoryService.update(category, body);
       }
@@ -213,7 +186,7 @@ export class CategoryController {
       throw new BadRequestException('Thành viên không tồn tại.!');
     }
 
-    if (member.role !== 'owner') {
+    if (!member.role.owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với thể loại!.',
       );

@@ -168,7 +168,7 @@ export class SeriesController {
       throw new BadRequestException('Thành viên không tồn tại!.');
     }
 
-    if (member.role === 'member') {
+    if (!member.role.author && !member.role.owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với chuỗi bài viết!.',
       );
@@ -202,7 +202,7 @@ export class SeriesController {
       throw new BadRequestException('Thành viên không tồn tại!.');
     }
 
-    if (member.role === 'member') {
+    if (!member.role.owner && !member.role.author) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với chuỗi bài viết!',
       );
@@ -238,7 +238,7 @@ export class SeriesController {
       throw new BadRequestException('Thành viên không tồn tại!.');
     }
 
-    if (member.role === 'member') {
+    if (!member.role.author && !member.role.owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với chuỗi bài viết!.',
       );

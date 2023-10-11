@@ -2,22 +2,23 @@ import { AccessJwtPayload, RefreshJwtPayload } from '@/interface';
 import { AuthService } from '@/service';
 import { checkIsNumber } from '@/utils/global-func';
 import {
+  BadRequestException,
+  Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
+  Param,
+  Patch,
   Query,
   Req,
   Res,
   UnauthorizedException,
-  ForbiddenException,
   UseGuards,
-  Param,
-  BadRequestException,
-  Patch,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @Controller()
 export class AuthController {
@@ -53,7 +54,6 @@ export class AuthController {
         name: member.name,
         email: member.email,
         image: member.image,
-        role: member.role,
         expired: accessAge,
         create_at: new Date().toString(),
       };
@@ -124,7 +124,6 @@ export class AuthController {
         name: member.name,
         email: member.email,
         image: member.image,
-        role: member.role,
         expired: accessAge,
         create_at: new Date().toString(),
       };
@@ -195,7 +194,6 @@ export class AuthController {
         name: member.name,
         email: member.email,
         image: member.image,
-        role: member.role,
         expired: accessAge,
         create_at: new Date().toString(),
       };
@@ -244,6 +242,11 @@ export class AuthController {
   @Get('profile')
   @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-access'))
+  @ApiResponse({
+    status: 200,
+    description: 'Successful response',
+    type: { test: [String] },
+  })
   @ApiOperation({
     summary: 'Lấy thông tin cá nhân.',
   })
@@ -274,7 +277,7 @@ export class AuthController {
     const jwtPayload: AccessJwtPayload = req.user;
     const member = await this.authService.memberById(jwtPayload._id);
 
-    if (member.role !== 'owner') {
+    if (!member.role.owner) {
       throw new ForbiddenException('Bạn không có quyền hạn!.');
     }
 
@@ -331,7 +334,6 @@ export class AuthController {
       name: session.member.name,
       email: session.member.email,
       image: session.member.image,
-      role: session.member.role,
       expired: accessAge,
       create_at: new Date().toString(),
     };
@@ -348,26 +350,31 @@ export class AuthController {
     res.status(200).json({ message: 'renew success' });
   }
 
-  @Patch('change-role/:memberId/:role')
+  @Patch('change-role/:memberId')
   @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-refresh'))
   async updateRoleMember(
-    @Param('role') role: 'member' | 'writer' | 'developer',
-    @Param('memberId') id: string,
+    @Param('roleId') memberId: string,
+    @Body() payload: { author: boolean; comment: boolean },
   ) {
-    const member = await this.authService.memberById(id);
+    const member = await this.authService.memberById(memberId);
 
     if (!Boolean(member)) {
       throw new BadRequestException('Thành viên không tồn tại!.');
     }
 
-    if (member.role === 'owner') {
+    const role = await this.authService.roleByMemberId(member);
+
+    if (!member.role.owner) {
       throw new BadRequestException('Bạn không có quyền chỉnh sửa.');
     }
 
-    if (!['member', 'writer', 'developer'].includes(role)) {
+    if (!role.owner) {
       throw new BadRequestException('Quyền không hợp lệ.');
     }
+
+    role.author = payload.author;
+    role.comment = payload.comment;
 
     return await this.authService.updateRole(member, role);
   }
@@ -421,7 +428,7 @@ export class AuthController {
       throw new BadRequestException('Phiên đăng nhập không tồn tại.');
     }
 
-    if (sessionTarget.member._id === member._id || member.role === 'owner') {
+    if (sessionTarget.member._id === member._id || member.role.owner) {
       return await this.authService.removeSession(sessionTarget._id);
     } else {
       throw new ForbiddenException(
