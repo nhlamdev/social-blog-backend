@@ -1,6 +1,8 @@
 import {
   Column,
   Entity,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -9,6 +11,7 @@ import {
 import {
   CommentEntity,
   ContentEntity,
+  NotifyEntity,
   RoleEntity,
   SeriesEntity,
   SessionEntity,
@@ -34,9 +37,10 @@ export class MemberEntity extends AbstractEntity {
   })
   image: string;
 
-  @OneToOne(() => RoleEntity, (role) => role.member, {
+  @OneToOne(() => RoleEntity, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn()
   role: RoleEntity;
 
   @OneToMany(() => SessionEntity, (session) => session.member, {
@@ -50,8 +54,22 @@ export class MemberEntity extends AbstractEntity {
   @OneToMany(() => SeriesEntity, (series) => series.created_by)
   series: SeriesEntity[];
 
+  @OneToMany(() => NotifyEntity, (notify) => notify.member)
+  notifies: NotifyEntity[];
+
   @OneToMany(() => CommentEntity, (comment) => comment.created_by, {
     onDelete: 'CASCADE',
   })
   comments: CommentEntity[];
+
+  @OneToMany(() => MemberEntity, (member) => member.follow, {
+    onDelete: 'CASCADE',
+  })
+  followed_by: MemberEntity[];
+
+  @ManyToOne(() => MemberEntity, (comment) => comment.followed_by, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  follow?: MemberEntity | null;
 }

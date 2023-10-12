@@ -1,7 +1,9 @@
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { MemberEntity } from '@/entities';
 import { AccessJwtPayload } from '@/interface';
+import { AuthService } from '@/service';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 
 const { ACCESS_TOKEN_NAME, ACCESS_TOKEN_SECRET } = process.env;
 
@@ -10,7 +12,7 @@ export class JwtAccessStrategy extends PassportStrategy(
   Strategy,
   'jwt-access',
 ) {
-  constructor() {
+  constructor(private readonly authService: AuthService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request) => {
@@ -22,7 +24,7 @@ export class JwtAccessStrategy extends PassportStrategy(
     });
   }
 
-  async validate(payload: AccessJwtPayload) {
+  async validate(payload: AccessJwtPayload): Promise<MemberEntity> {
     const date = new Date();
 
     if (
@@ -32,6 +34,12 @@ export class JwtAccessStrategy extends PassportStrategy(
       throw new UnauthorizedException('Phiên đăng nhập quá hạn.');
     }
 
-    return payload;
+    const member = await this.authService.memberByIdWidthRole(payload._id);
+
+    if (!Boolean(member)) {
+      throw new UnauthorizedException('Thành viên không tồn tại.');
+    }
+
+    return member;
   }
 }

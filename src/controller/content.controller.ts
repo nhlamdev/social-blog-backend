@@ -378,11 +378,8 @@ export class ContentController {
           .normalize('NFD')
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
-    const { data: members, count: total } = await this.authService.allMember(
-      _take,
-      _skip,
-      _search,
-    );
+    const { data: members, count: total } =
+      await this.authService.allMemberWidthCountContent(_take, _skip, _search);
 
     const membersWidthContents = await members.map(async (member) => {
       const count = await this.contentService.getCountContentByMember(member);

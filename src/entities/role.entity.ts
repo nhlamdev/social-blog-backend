@@ -1,6 +1,5 @@
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { AbstractEntity } from './abstract.entity';
-import { MemberEntity } from './member.entity';
 
 @Entity('role')
 export class RoleEntity extends AbstractEntity {
@@ -15,7 +14,4 @@ export class RoleEntity extends AbstractEntity {
 
   @Column({ type: 'boolean', default: false })
   owner: boolean;
-
-  @OneToOne(() => MemberEntity, (member) => member.role)
-  member: MemberEntity;
 }

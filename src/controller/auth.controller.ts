@@ -18,7 +18,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @Controller()
 export class AuthController {
@@ -242,11 +242,6 @@ export class AuthController {
   @Get('profile')
   @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-access'))
-  @ApiResponse({
-    status: 200,
-    description: 'Successful response',
-    type: { test: [String] },
-  })
   @ApiOperation({
     summary: 'Lấy thông tin cá nhân.',
   })
@@ -264,7 +259,7 @@ export class AuthController {
 
   @Get('all-members')
   @ApiTags('member-auth')
-  @UseGuards(AuthGuard('jwt-access'))
+  // @UseGuards(AuthGuard('jwt-access'))
   @ApiOperation({
     summary: 'Lấy thông tin tất cả thành viên (owner).',
   })
@@ -272,15 +267,7 @@ export class AuthController {
     @Query('skip') skip: string,
     @Query('take') take: string,
     @Query('search') search: string | undefined,
-    @Req() req,
   ) {
-    const jwtPayload: AccessJwtPayload = req.user;
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!member.role.owner) {
-      throw new ForbiddenException('Bạn không có quyền hạn!.');
-    }
-
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
     const _search = search
@@ -290,7 +277,23 @@ export class AuthController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    return await this.authService.allMember(_take, _skip, _search);
+    const { data, count } = await this.authService.allMemberWidthCountContent(
+      _take,
+      _skip,
+      _search,
+    );
+
+    const membersWitdthRole = data.map(async (m) => {
+      const member = { ...m };
+      const role = await this.authService.roleByMemberId();
+      member.role = role;
+
+      return member;
+    });
+
+    const result = { data: await Promise.all(membersWitdthRole), count };
+
+    return result;
   }
 
   @Get('author/:id')
@@ -356,27 +359,22 @@ export class AuthController {
   async updateRoleMember(
     @Param('roleId') memberId: string,
     @Body() payload: { author: boolean; comment: boolean },
+    @Req() req,
   ) {
-    const member = await this.authService.memberById(memberId);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành viên không tồn tại!.');
-    }
-
-    const role = await this.authService.roleByMemberId(member);
+    const member = req.user;
 
     if (!member.role.owner) {
       throw new BadRequestException('Bạn không có quyền chỉnh sửa.');
     }
 
-    if (!role.owner) {
+    if (!member.role.owner) {
       throw new BadRequestException('Quyền không hợp lệ.');
     }
 
-    role.author = payload.author;
-    role.comment = payload.comment;
+    member.role.author = payload.author;
+    member.role.comment = payload.comment;
 
-    return await this.authService.updateRole(member, role);
+    return await this.authService.updateRole(member);
   }
 
   @Delete('logout')

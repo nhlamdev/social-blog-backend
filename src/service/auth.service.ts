@@ -15,16 +15,20 @@ export class AuthService {
     private memberRepository: Repository<MemberEntity>,
   ) {}
 
-  async allMember(_take: number, _skip: number, _search: string) {
+  async allMemberWidthCountContent(
+    _take: number,
+    _skip: number,
+    _search: string,
+  ) {
     const data = await this.memberRepository
       .createQueryBuilder('member')
       .leftJoinAndSelect('member.contents', 'contents')
       .select(
-        `member._id,member.name,member.email,member.image,member.role,member.created_at,
+        `member._id,member.name,member.email,member.image, member.created_at,
         COUNT(contents._id) as content_count`,
       )
       .groupBy(
-        'member._id,member.name,member.email,member.image,member.role,member.created_at',
+        'member._id,member.name,member.email,member.image,member.created_at',
       )
       .skip(_skip)
       .take(_take)
@@ -38,14 +42,22 @@ export class AuthService {
     return result;
   }
 
-  async roleByMemberId(member: MemberEntity) {
-    return await this.roleRepository.findOne({
-      where: { member: { _id: member._id } },
-    });
+  async roleByMemberId() {
+    return await this.roleRepository.find();
   }
 
   async memberById(id: string) {
-    return this.memberRepository.findOne({ where: { _id: id } });
+    return this.memberRepository.findOne({
+      where: { _id: id },
+      relations: { role: true },
+    });
+  }
+
+  async memberByIdWidthRole(_id: string) {
+    return this.memberRepository.findOne({
+      where: { _id },
+      relations: { role: true },
+    });
   }
 
   async sessionById(session_id: string) {
@@ -87,12 +99,12 @@ export class AuthService {
       return member;
     } else {
       const newMember = new MemberEntity();
-
-      const member_role = new RoleEntity();
+      const role = new RoleEntity();
+      await this.roleRepository.save(role);
 
       newMember.name = payload.name;
       newMember.email = payload.email;
-      newMember.role = member_role;
+      newMember.role = role;
 
       if (payload.image) {
         newMember.image = payload.image;
@@ -102,8 +114,7 @@ export class AuthService {
     }
   }
 
-  async updateRole(member: MemberEntity, role: RoleEntity) {
-    member.role = role;
+  async updateRole(member: MemberEntity) {
     await this.memberRepository.save(member);
   }
 

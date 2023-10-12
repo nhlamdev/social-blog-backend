@@ -1,4 +1,4 @@
-import { CategoryEntity, ContentEntity, FileEntity } from '@/entities';
+import { CategoryEntity, ContentEntity } from '@/entities';
 import { CategoryDto } from '@/model';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -29,7 +29,6 @@ export class CategoryService {
     return await this.categoryRepository
       .createQueryBuilder('category')
       .where('category._id = :id', { id: id })
-      .leftJoinAndSelect('category.image', 'image')
       .getOne();
   }
 

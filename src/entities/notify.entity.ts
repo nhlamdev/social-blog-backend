@@ -3,7 +3,7 @@ import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { MemberEntity } from '.';
 import { AbstractEntity } from './abstract.entity';
 
-@Entity('member')
+@Entity('notify')
 export class NotifyEntity extends AbstractEntity {
   @PrimaryGeneratedColumn('uuid')
   _id: string;
@@ -11,6 +11,6 @@ export class NotifyEntity extends AbstractEntity {
   @Column({ type: 'text', nullable: false })
   title: string;
 
-  @ManyToOne(() => MemberEntity)
-  member: string;
+  @ManyToOne(() => MemberEntity, (member) => member.notifies)
+  member: MemberEntity;
 }
