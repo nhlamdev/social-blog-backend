@@ -1,4 +1,5 @@
 import { CASE_SORT } from '@/constants';
+import { MemberEntity } from '@/entities';
 import { AccessJwtPayload } from '@/interface';
 import { ContentDto } from '@/model';
 import {
@@ -236,13 +237,7 @@ export class ContentController {
     @Query('take') take: string,
     @Query('search') search: string | undefined,
   ) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành viên không tồn tại.');
-    }
+    const member: MemberEntity = req.user;
 
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
@@ -272,13 +267,7 @@ export class ContentController {
     if (!validateUUID(id)) {
       throw new BadRequestException('Id bài viết sai định dạng.');
     }
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành viên không tồn tại!.');
-    }
+    const member: MemberEntity = req.user;
 
     const content = await this.contentService.getContentById(id, 'owner');
 
@@ -348,10 +337,8 @@ export class ContentController {
     @Query('take') take: string | undefined,
     @Req() req,
   ) {
-    const jwtPayload: AccessJwtPayload = req.user;
+    const member: MemberEntity = req.user;
     const _take = checkIsNumber(take) ? Number(take) : null;
-
-    const member = await this.authService.memberById(jwtPayload._id);
 
     return await this.contentService.topViewContent({
       _take,
@@ -478,12 +465,7 @@ export class ContentController {
     @Req() req,
     @UploadedFile('files') files: Express.Multer.File,
   ) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(jwtPayload._id);
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành  viên không tồn tại.');
-    }
+    const member: MemberEntity = req.user;
 
     if (!member.role.author && !member.role.owner) {
       throw new ForbiddenException('Bạn không có quyền thêm mới bài viết!.');
@@ -524,20 +506,12 @@ export class ContentController {
     @Req() req,
     @UploadedFile('files') files: Express.Multer.File,
   ) {
-    const jwtPayload: AccessJwtPayload = req.user;
+    const member: MemberEntity = req.user;
 
     const content = await this.contentService.getContentById(id, 'owner');
 
     if (!Boolean(content)) {
       throw new BadRequestException('Bài viết cần chỉnh sửa không tồn tại.');
-    }
-
-    console.log(jwtPayload);
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành viện không tồn tại');
     }
 
     if (!member.role.author && !member.role.owner) {
@@ -569,13 +543,7 @@ export class ContentController {
     @Param('category') category: string,
     @Req() req,
   ) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành  viên không tồn tại.');
-    }
+    const member: MemberEntity = req.user;
 
     const _content = await this.contentService.getContentById(content, 'owner');
 
@@ -604,13 +572,7 @@ export class ContentController {
     @Param('series') series: string,
     @Req() req,
   ) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành  viên không tồn tại.');
-    }
+    const member: MemberEntity = req.user;
 
     const _content = await this.contentService.getContentById(content, 'owner');
 
@@ -638,13 +600,7 @@ export class ContentController {
   @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))
   async deleteContent(@Param('id') id: string, @Req() req) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành  viên không tồn tại.');
-    }
+    const member: MemberEntity = req.user;
 
     const _content = await this.contentService.getContentById(id, 'owner');
 

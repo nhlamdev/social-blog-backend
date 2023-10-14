@@ -25,12 +25,6 @@ export class CommonController {
   }
 
   @Get('member-action')
-  // @ApiOkResponse({
-  //   description: 'test',
-  //   schema: {
-  //     allOf:{},
-  //   },
-  // })
   @ApiTags('common')
   memberAction(): string {
     return 'test';

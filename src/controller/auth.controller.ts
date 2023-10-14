@@ -1,3 +1,4 @@
+import { MemberEntity } from '@/entities';
 import { AccessJwtPayload, RefreshJwtPayload } from '@/interface';
 import { AuthService } from '@/service';
 import { checkIsNumber } from '@/utils/global-func';
@@ -246,9 +247,7 @@ export class AuthController {
     summary: 'Lấy thông tin cá nhân.',
   })
   async clientProfileById(@Req() req) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(jwtPayload._id);
+    const member: MemberEntity = req.user;
 
     if (!Boolean(member)) {
       throw new UnauthorizedException('Thành viên không tồn tại!');
@@ -259,7 +258,7 @@ export class AuthController {
 
   @Get('all-members')
   @ApiTags('member-auth')
-  // @UseGuards(AuthGuard('jwt-access'))
+  @UseGuards(AuthGuard('jwt-access'))
   @ApiOperation({
     summary: 'Lấy thông tin tất cả thành viên (owner).',
   })
@@ -267,7 +266,14 @@ export class AuthController {
     @Query('skip') skip: string,
     @Query('take') take: string,
     @Query('search') search: string | undefined,
+    @Req() req,
   ) {
+    const member: MemberEntity = req.user;
+
+    if (!member.role.owner) {
+      throw new ForbiddenException('Bạn không có quyền thực hiện thao tác này');
+    }
+
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
     const _search = search
@@ -410,17 +416,9 @@ export class AuthController {
     summary: 'Đăng xuất phiên theo chỉ định.',
   })
   async clientTargetLogout(@Req() req, @Param('id') id: string) {
-    const jwtPayload: AccessJwtPayload = req.user;
+    const member: MemberEntity = req.user;
 
     const sessionTarget = await this.authService.sessionById(id);
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new ForbiddenException(
-        'Bạn không có quyền thực hiện thao tác này.',
-      );
-    }
 
     if (!Boolean(sessionTarget)) {
       throw new BadRequestException('Phiên đăng nhập không tồn tại.');

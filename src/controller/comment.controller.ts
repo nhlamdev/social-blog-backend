@@ -1,19 +1,19 @@
-import { AccessJwtPayload } from '@/interface';
+import { MemberEntity } from '@/entities';
 import { CommentCreteDto } from '@/model';
 import { AuthService, CommentService, ContentService } from '@/service';
 import { checkIsNumber } from '@/utils/global-func';
 import {
   BadRequestException,
-  ForbiddenException,
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Post,
+  Query,
   Req,
   UseGuards,
-  Query,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
@@ -70,13 +70,7 @@ export class CommentController {
     @Body() body: CommentCreteDto,
     @Param('id') id: string,
   ) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành viên không tồn tại!.');
-    }
+    const member: MemberEntity = req.user;
 
     const content = await this.contentService.getContentById(id, 'owner');
 
@@ -99,13 +93,7 @@ export class CommentController {
     @Body() body: CommentCreteDto,
     @Param('id') id: string,
   ) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành viên không tồn tại!.');
-    }
+    const member: MemberEntity = req.user;
 
     const parent = await this.commentService.commentById(id);
 
@@ -124,18 +112,12 @@ export class CommentController {
   @ApiTags('comment')
   @UseGuards(AuthGuard('jwt-access'))
   async deleteComment(@Param('id') id: string, @Req() req) {
-    const jwtPayload: AccessJwtPayload = req.user;
+    const member: MemberEntity = req.user;
 
     const comment = await this.commentService.commentById(id);
 
     if (!Boolean(comment)) {
       throw new BadRequestException('Bình luận bạn muốn xoá không tồn tại.');
-    }
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành viên không tồn tại!.');
     }
 
     if (comment.created_by._id !== member._id || !member.role.owner) {

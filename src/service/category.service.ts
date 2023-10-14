@@ -57,7 +57,6 @@ export class CategoryService {
   async getAllCategory(_take: number, _skip: number, _search: string) {
     const query = this.categoryRepository
       .createQueryBuilder('category')
-      .leftJoinAndSelect('category.image', 'image')
       .skip(_skip)
       .take(_take)
       .where('LOWER(category.title) LIKE :search ', { search: _search });

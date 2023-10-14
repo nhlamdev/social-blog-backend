@@ -1,4 +1,4 @@
-import { AccessJwtPayload } from '@/interface';
+import { MemberEntity } from '@/entities';
 import { CategoryDto } from '@/model';
 import { AuthService, CategoryService, CommonService } from '@/service';
 import { checkIsNumber } from '@/utils/global-func';
@@ -15,14 +15,10 @@ import {
   Put,
   Query,
   Req,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { diskStorage } from 'multer';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @Controller('category')
 export class CategoryController {
@@ -86,13 +82,7 @@ export class CategoryController {
     summary: 'Tạo mới một thể loại.',
   })
   async createCategory(@Body() body: CategoryDto, @Req() req) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành viên không tồn tại.!');
-    }
+    const member: MemberEntity = req.user;
 
     if (!member.role.owner) {
       throw new ForbiddenException(
@@ -112,23 +102,6 @@ export class CategoryController {
   @Put(':id')
   @ApiTags('category')
   @UseGuards(AuthGuard('jwt-access'))
-  @UseInterceptors(
-    FilesInterceptor('files', 20, {
-      storage: diskStorage({
-        destination: (req, file, next) => {
-          next(null, 'uploads');
-        },
-        filename: (req, file, next) => {
-          next(
-            null,
-            new Date().toISOString().replace(/:/g, '-') +
-              '-' +
-              file.originalname,
-          );
-        },
-      }),
-    }),
-  )
   @ApiOperation({
     summary: 'Chỉnh sửa bài viết được chỉ định.',
   })
@@ -136,15 +109,8 @@ export class CategoryController {
     @Body() body: CategoryDto,
     @Param('id') id: string,
     @Req() req,
-    @UploadedFile('files') files: Express.Multer.File,
   ) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành viên không tồn tại.!');
-    }
+    const member: MemberEntity = req.user;
 
     if (!member.role.owner) {
       throw new ForbiddenException(
@@ -158,17 +124,7 @@ export class CategoryController {
       throw new BadRequestException('Thể loại cần chỉnh sửa không tồn tại.!');
     }
 
-    if (files) {
-      const filesData = await this.commonService.saveFile(files);
-
-      if (filesData.length !== 0) {
-        return this.categoryService.update(category, body);
-      } else {
-        return this.categoryService.update(category, body);
-      }
-    } else {
-      return this.categoryService.update(category, body);
-    }
+    return this.categoryService.update(category, body);
   }
 
   @Delete(':id')
@@ -178,13 +134,7 @@ export class CategoryController {
     summary: 'Xóa bài viết được chỉ định.',
   })
   async deleteCategory(@Param('id') id: string, @Req() req) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành viên không tồn tại.!');
-    }
+    const member: MemberEntity = req.user;
 
     if (!member.role.owner) {
       throw new ForbiddenException(

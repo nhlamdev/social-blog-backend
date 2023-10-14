@@ -5,6 +5,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as bodyParser from 'body-parser';
 import * as cookieParser from 'cookie-parser';
 import * as dotenv from 'dotenv';
+import * as compression from 'compression';
+
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 // import { ConfigService } from './service';
@@ -18,8 +20,11 @@ async function bootstrap() {
   app.enableCors();
   app.use(cookieParser());
   app.use(helmet());
+  app.use(compression());
+
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
   app.useGlobalPipes(new ValidationPipe());
 
   dotenv.config();

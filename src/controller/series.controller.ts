@@ -1,6 +1,6 @@
-import { AccessJwtPayload } from '@/interface';
+import { MemberEntity } from '@/entities';
 import { SeriesDto } from '@/model';
-import { SeriesService, AuthService } from '@/service';
+import { AuthService, SeriesService } from '@/service';
 import { checkIsNumber } from '@/utils/global-func';
 import {
   BadRequestException,
@@ -116,13 +116,7 @@ export class SeriesController {
     @Query('search') search: string | undefined,
     @Req() req,
   ) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành viên không tồn tại.!');
-    }
+    const member: MemberEntity = req.user;
 
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
@@ -160,13 +154,7 @@ export class SeriesController {
     summary: 'Tạo mới một chuỗi bài viết.',
   })
   async createSeries(@Body() body: SeriesDto, @Req() req) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành viên không tồn tại!.');
-    }
+    const member: MemberEntity = req.user;
 
     if (!member.role.author && !member.role.owner) {
       throw new ForbiddenException(
@@ -194,13 +182,7 @@ export class SeriesController {
     @Param('id') id: string,
     @Req() req,
   ) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành viên không tồn tại!.');
-    }
+    const member: MemberEntity = req.user;
 
     if (!member.role.owner && !member.role.author) {
       throw new ForbiddenException(
@@ -230,13 +212,7 @@ export class SeriesController {
     summary: 'Xóa chuỗi bài viết chỉ định.',
   })
   async deleteSeries(@Param('id') id: string, @Req() req) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const member = await this.authService.memberById(jwtPayload._id);
-
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành viên không tồn tại!.');
-    }
+    const member: MemberEntity = req.user;
 
     if (!member.role.author && !member.role.owner) {
       throw new ForbiddenException(
