@@ -217,6 +217,7 @@ export class ContentService {
     _search: string,
     id: string,
     outside: string | undefined,
+    member: MemberEntity,
   ) {
     const query = this.contentRepository
       .createQueryBuilder('content')
@@ -224,7 +225,11 @@ export class ContentService {
       .take(_take)
       .leftJoinAndSelect('content.category', 'category')
       .leftJoinAndSelect('content.series', 'series')
-      .where('LOWER(content.title) LIKE :search ', { search: _search })
+      .leftJoinAndSelect('content.created_by', 'member')
+      .where('LOWER(content.title) LIKE :search AND member._id = member ', {
+        search: _search,
+        member: member._id,
+      })
       .andWhere(
         `series._id ${outside === 'true' ? '<>' : '='} :id ${
           outside === 'true' ? 'OR series._id IS NULL' : ''
@@ -253,7 +258,6 @@ export class ContentService {
     _category: CategoryEntity | null;
     _series: SeriesEntity | null;
     _caseSort: string;
-    // _status?: { isDraft: boolean; isComplete: boolean };
   }) {
     const query = this.contentRepository
       .createQueryBuilder('content')

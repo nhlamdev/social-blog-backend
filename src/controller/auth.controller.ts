@@ -283,19 +283,8 @@ export class AuthController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    const { data, count } = await this.authService.allMemberWidthCountContent(
-      _take,
-      _skip,
-      _search,
-    );
-
-    const membersWitdthRole = data.map(async (m) => {
-      const member = { ...m };
-      const role = await this.authService.roleByMemberId();
-      member.role = role;
-
-      return member;
-    });
+    const { data: membersWitdthRole, count } =
+      await this.authService.allMemberWidthCountContent(_take, _skip, _search);
 
     const result = { data: await Promise.all(membersWitdthRole), count };
 
@@ -361,10 +350,10 @@ export class AuthController {
 
   @Patch('change-role/:memberId')
   @ApiTags('member-auth')
-  @UseGuards(AuthGuard('jwt-refresh'))
+  @UseGuards(AuthGuard('jwt-access'))
   async updateRoleMember(
     @Param('roleId') memberId: string,
-    @Body() payload: { author: boolean; comment: boolean },
+    @Body() payload: { key: string; value: boolean },
     @Req() req,
   ) {
     const member = req.user;
@@ -372,13 +361,19 @@ export class AuthController {
     if (!member.role.owner) {
       throw new BadRequestException('Bạn không có quyền chỉnh sửa.');
     }
-
     if (!member.role.owner) {
       throw new BadRequestException('Quyền không hợp lệ.');
     }
+    if (!['comment', 'author', 'owner'].includes(payload.key)) {
+      throw new BadRequestException('Quyền không hợp lệ');
+    }
+    if (typeof payload.value !== 'boolean') {
+      throw new BadRequestException('Loại không hợp lệ');
+    }
 
-    member.role.author = payload.author;
-    member.role.comment = payload.comment;
+    const memberUpdate = await this.authService.memberById(memberId);
+
+    memberUpdate.role[payload.key] = payload.value;
 
     return await this.authService.updateRole(member);
   }

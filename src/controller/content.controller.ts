@@ -89,6 +89,7 @@ export class ContentController {
 
   @Get('by-category/:id')
   @ApiTags('content')
+  @UseGuards(AuthGuard('jwt-access'))
   @ApiOperation({
     summary: 'Lấy thông tin tất cả bài viết theo thể loại.',
   })
@@ -98,7 +99,14 @@ export class ContentController {
     @Query('search') search: string | undefined,
     @Query('outside') outside: string | undefined,
     @Param('id') id: string,
+    @Req() req,
   ) {
+    const member: MemberEntity = req.user;
+
+    if (!member.role.owner) {
+      throw new ForbiddenException('Bạn không có quyền hạn thao tác.');
+    }
+
     const category = await this.categoryService.getCategoryById(id);
 
     if (!Boolean(category)) {
@@ -126,6 +134,7 @@ export class ContentController {
 
   @Get('by-series/:id')
   @ApiTags('content')
+  @UseGuards(AuthGuard('jwt-access'))
   @ApiOperation({
     summary: 'Lấy thông tin tất cả bài viết theo chuỗi bài viết.',
   })
@@ -135,7 +144,14 @@ export class ContentController {
     @Query('search') search: string | undefined,
     @Query('outside') outside: string | undefined,
     @Param('id') id: string,
+    @Req() req,
   ) {
+    const member: MemberEntity = req.user;
+
+    if (!member.role.owner && !member.role.author) {
+      throw new ForbiddenException('Bạn không có quyền hạn thao tác.');
+    }
+
     const series = this.seriesService.getSeriesById(id);
 
     if (!series) {
@@ -158,6 +174,7 @@ export class ContentController {
       _search,
       id,
       outside,
+      member,
     );
   }
 

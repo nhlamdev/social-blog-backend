@@ -23,12 +23,13 @@ export class AuthService {
     const data = await this.memberRepository
       .createQueryBuilder('member')
       .leftJoinAndSelect('member.contents', 'contents')
+      .leftJoinAndSelect('member.role', 'role')
       .select(
-        `member._id,member.name,member.email,member.image, member.created_at,
+        `member._id,member.name,member.email,member.image,role.comment,role.owner,role.author,member.created_at,
         COUNT(contents._id) as content_count`,
       )
       .groupBy(
-        'member._id,member.name,member.email,member.image,member.created_at',
+        'member._id,member.name,member.email,member.image,member.created_at,role.comment,role.owner,role.author',
       )
       .skip(_skip)
       .take(_take)
@@ -40,10 +41,6 @@ export class AuthService {
     const result = { data, count };
 
     return result;
-  }
-
-  async roleByMemberId() {
-    return await this.roleRepository.find();
   }
 
   async memberById(id: string) {
