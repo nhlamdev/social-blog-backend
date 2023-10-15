@@ -185,6 +185,7 @@ export class ContentService {
       .leftJoinAndSelect('content.category', 'category')
       .leftJoinAndSelect('content.image', 'image')
       .leftJoinAndSelect('content.series', 'series')
+      .leftJoinAndSelect('content.created_by', 'created_by')
       .where('LOWER(content.title) LIKE :search ', { search: _search })
       .andWhere(
         `category._id ${outside === 'true' ? '<>' : '='} :id ${
@@ -225,11 +226,14 @@ export class ContentService {
       .take(_take)
       .leftJoinAndSelect('content.category', 'category')
       .leftJoinAndSelect('content.series', 'series')
-      .leftJoinAndSelect('content.created_by', 'member')
-      .where('LOWER(content.title) LIKE :search AND member._id = member ', {
-        search: _search,
-        member: member._id,
-      })
+      .leftJoinAndSelect('content.created_by', 'created_by')
+      .where(
+        'LOWER(content.title) LIKE :search AND created_by._id = :member ',
+        {
+          search: _search,
+          member: member._id,
+        },
+      )
       .andWhere(
         `series._id ${outside === 'true' ? '<>' : '='} :id ${
           outside === 'true' ? 'OR series._id IS NULL' : ''

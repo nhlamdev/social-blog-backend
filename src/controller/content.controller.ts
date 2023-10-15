@@ -562,6 +562,10 @@ export class ContentController {
   ) {
     const member: MemberEntity = req.user;
 
+    if (!member.role.owner) {
+      throw new ForbiddenException('Bạn không có quyền thao tác.');
+    }
+
     const _content = await this.contentService.getContentById(content, 'owner');
 
     if (!_content) {
@@ -572,10 +576,6 @@ export class ContentController {
 
     if (!_category) {
       throw new BadRequestException('thể loại không tồn tại.');
-    }
-
-    if (_content._id !== member._id || _category._id !== member._id) {
-      throw new ForbiddenException('Bạn không có quyền thao tác');
     }
 
     return await this.contentService.changeCategory(_content, _category);
