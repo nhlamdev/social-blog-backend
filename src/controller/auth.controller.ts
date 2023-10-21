@@ -2,6 +2,7 @@ import { MemberEntity } from '@/entities';
 import { AccessJwtPayload, RefreshJwtPayload } from '@/interface';
 import { AuthService } from '@/service';
 import { checkIsNumber } from '@/utils/global-func';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
   BadRequestException,
   Body,
@@ -9,6 +10,7 @@ import {
   Delete,
   ForbiddenException,
   Get,
+  Inject,
   Param,
   Patch,
   Query,
@@ -20,13 +22,32 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Cache } from 'cache-manager';
 
 @Controller()
 export class AuthController {
   constructor(
     private authService: AuthService,
     private jwtService: JwtService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
+
+  @Get('test')
+  @ApiTags('common')
+  async test() {
+    const value = await this.cacheManager.get('check');
+
+    console.log('value : ', typeof value === 'number');
+
+    if (typeof value === 'number') {
+      await this.cacheManager.set('check', value + 1, 0);
+      return `up success ${value}`;
+    } else {
+      await this.cacheManager.set('check', 0, 0);
+
+      return `up success ${0}`;
+    }
+  }
 
   @Get('google')
   @ApiTags('social-auth')

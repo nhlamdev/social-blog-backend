@@ -1,33 +1,33 @@
 import { CommonService } from '@/service';
-import { Controller, Get, Put } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Controller, Get, Inject, Put } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { Cache } from 'cache-manager';
 
 @Controller('common')
 export class CommonController {
-  constructor(private readonly commonService: CommonService) {}
+  constructor(
+    private readonly commonService: CommonService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
-  @Get('personal-statistical')
+  @Get('visualize')
   @ApiTags('common')
-  @ApiOperation({
-    summary: 'personal statistical',
-  })
-  async statistical() {
-    return 'test';
+  async visualize() {
+    return this.commonService.ownerVisualizeData();
   }
 
-  @Get('global-statistical')
-  @ApiOperation({
-    summary: 'global statistical (owner)',
-  })
+  @Get('current-memory-use')
   @ApiTags('common')
   async global() {
-    return 'test';
+    return this.commonService.checkMemoryUse();
   }
 
-  @Get('member-action')
+  @Get('test')
   @ApiTags('common')
-  memberAction(): string {
-    return 'test';
+  async up() {
+    const value = await this.cacheManager.get('check');
+    return value ? value : 0;
   }
 
   @Get('setting-action')

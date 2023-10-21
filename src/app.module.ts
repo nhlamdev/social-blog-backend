@@ -12,6 +12,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
+
+import { WebsocketGateway } from './websocket.gateway';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -19,8 +21,7 @@ import { join } from 'path';
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/',
     }),
-    CacheModule.register(),
-
+    CacheModule.register({ isGlobal: true }),
     TypeOrmModule.forFeature(Object.entries(entities).map((v) => v[1])),
     JwtModule.register({}),
     ScheduleModule.forRoot(),
@@ -28,6 +29,7 @@ import { join } from 'path';
   ],
   controllers: Object.entries(controllers).map((v) => v[1]),
   providers: [
+    WebsocketGateway,
     ...Object.entries(services).map((v) => v[1]),
     ...Object.entries(strategy).map((v) => v[1]),
   ],
