@@ -1,5 +1,6 @@
 import {
   CategoryEntity,
+  CommentEntity,
   ContentEntity,
   FileEntity,
   MemberEntity,
@@ -10,17 +11,17 @@ import { ContentDto } from '@/model';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CategoryService, SeriesService } from '.';
+import { CategoryService, CommentService } from '.';
 
 @Injectable()
 export class ContentService {
   constructor(
     @InjectRepository(ContentEntity)
     private contentRepository: Repository<ContentEntity>,
-    @InjectRepository(FileEntity)
-    private fileRepository: Repository<FileEntity>,
-    private readonly categoryService: CategoryService,
-    private readonly seriesService: SeriesService,
+    @InjectRepository(CommentEntity)
+    private commentRepository: Repository<CommentEntity>,
+    private categoryService: CategoryService,
+    private commentService: CommentService,
   ) {}
 
   async checkNameExist(title: string) {
@@ -310,13 +311,23 @@ export class ContentService {
     const max = await query.getCount();
 
     const result = {
-      data: contents.map((content) => {
-        const c = { ...content };
+      data: await Promise.all(
+        contents.map(async (content) => {
+          const c = {
+            ...content,
+            count_comments:
+              await this.commentService.countCommentByContent(content),
+          };
 
-        delete c.body;
+          delete c.body;
+          delete c.draft;
+          delete c.complete;
+          delete c.delete_at;
+          delete c.index;
 
-        return c;
-      }),
+          return c;
+        }),
+      ),
       max: max,
     };
 

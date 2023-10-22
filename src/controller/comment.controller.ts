@@ -1,6 +1,6 @@
 import { MemberEntity } from '@/entities';
 import { CommentCreteDto } from '@/model';
-import { AuthService, CommentService, ContentService } from '@/service';
+import { CommentService, ContentService } from '@/service';
 import { checkIsNumber } from '@/utils/global-func';
 import {
   BadRequestException,
@@ -23,7 +23,6 @@ export class CommentController {
   constructor(
     private readonly commentService: CommentService,
     private readonly contentService: ContentService,
-    private readonly authService: AuthService,
   ) {}
 
   @Get('by-content/:id')
