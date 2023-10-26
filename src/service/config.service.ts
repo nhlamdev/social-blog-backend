@@ -5,7 +5,7 @@ import * as winston from 'winston';
 import * as DailyRotateFile from 'winston-daily-rotate-file';
 
 @Injectable()
-export class AppConfigService {
+export class GlobalConfigService {
   constructor() {
     dotenv.config({
       path: `.env`,

@@ -1,12 +1,12 @@
 import { ConsoleLogger, Injectable } from '@nestjs/common';
 import * as winston from 'winston';
-import { AppConfigService } from './config.service';
+import { GlobalConfigService } from './config.service';
 
 @Injectable()
 export class AppLoggerService extends ConsoleLogger {
   private readonly _logger: winston.Logger;
 
-  constructor(private readonly _configService: AppConfigService) {
+  constructor(private readonly _configService: GlobalConfigService) {
     super(AppLoggerService.name);
 
     this._logger = winston.createLogger(this._configService.winstonConfig);

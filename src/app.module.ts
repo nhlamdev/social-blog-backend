@@ -12,16 +12,18 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
-
+import type { RedisClientOptions } from 'redis';
 import { WebsocketGateway } from './websocket.gateway';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    CacheModule.register<RedisClientOptions>({
+      isGlobal: true,
+    }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/',
     }),
-    CacheModule.register({ isGlobal: true }),
     TypeOrmModule.forFeature(Object.entries(entities).map((v) => v[1])),
     JwtModule.register({}),
     ScheduleModule.forRoot(),
