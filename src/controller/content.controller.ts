@@ -552,6 +552,32 @@ export class ContentController {
     }
   }
 
+  @Patch('note-content/:id')
+  @UseGuards(AuthGuard('jwt-access'))
+  async noteContent(
+    @Req() req,
+    @Query('case') caseAction: string,
+    @Param('contentId') contentId: string,
+  ) {
+    const member: MemberEntity = req.user;
+
+    if (!['add', 'remove'].includes(caseAction)) {
+      throw new BadRequestException('loại thao tác không chuẩn.');
+    }
+
+    const content = await this.contentService.getContentById(contentId, 'view');
+
+    if (!content) {
+      throw new BadRequestException('Bài viết không tồn tại');
+    }
+
+    return await this.contentService.noteContent(
+      content,
+      member,
+      caseAction as any,
+    );
+  }
+
   @Patch('update-category/:content/:category')
   @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))

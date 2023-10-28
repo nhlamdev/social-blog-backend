@@ -312,6 +312,14 @@ export class AuthController {
     return result;
   }
 
+  @Get('all-sesstion')
+  @UseGuards(AuthGuard('jwt-access'))
+  @ApiOperation({})
+  async allSession(@Req() req) {
+    const member: MemberEntity = req.user;
+    return await this.authService.allSession(member);
+  }
+
   @Get('author/:id')
   @ApiTags('member-auth')
   @ApiOperation({
