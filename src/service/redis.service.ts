@@ -9,7 +9,7 @@ export class RedisService {
   constructor() {
     // Create a Redis client and configure it
     this.client = Redis.createClient({
-      url: `redis://${process.env.HOST}:${process.env.REDIS_PORT}`,
+      url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
     });
 
     this.client.on('connect', () => {
@@ -32,6 +32,11 @@ export class RedisService {
     } else {
       return null;
     }
+  }
+
+  async getObjectOrNull() {
+    // this.client.()
+    return '';
   }
 
   // async set

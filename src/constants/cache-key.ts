@@ -1,1 +1,2 @@
 export const TOTAL_MEMBER_ONLINE = 'TOTAL_MEMBER_ONLINE';
+export const COUNT_STATUS = 'COUNT_STATUS';
