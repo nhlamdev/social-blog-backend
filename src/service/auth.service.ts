@@ -15,6 +15,12 @@ export class AuthService {
     private memberRepository: Repository<MemberEntity>,
   ) {}
 
+  async allSession(member: MemberEntity) {
+    return await this.sessionRepository.find({
+      where: { member: { _id: member._id } },
+    });
+  }
+
   async allMemberWidthCountContent(
     _take: number,
     _skip: number,

@@ -16,6 +16,8 @@ import { CategoryService, CommentService } from '.';
 @Injectable()
 export class ContentService {
   constructor(
+    @InjectRepository(MemberEntity)
+    private memberRepository: Repository<MemberEntity>,
     @InjectRepository(ContentEntity)
     private contentRepository: Repository<ContentEntity>,
     @InjectRepository(CommentEntity)
@@ -394,6 +396,36 @@ export class ContentService {
     } else {
       content.series = series;
       return await this.contentRepository.save(content);
+    }
+  }
+
+  async noteContent(
+    content: ContentEntity,
+    member: MemberEntity,
+    status: 'add' | 'remove',
+  ) {
+    const isExist = await member.save_contents.includes(content);
+
+    if (status === 'add') {
+      if (isExist) {
+        throw new BadRequestException('bài viết đã được lưu.');
+      }
+
+      member.save_contents.unshift(content);
+
+      return await this.memberRepository.save(member);
+    }
+
+    if (status === 'remove') {
+      if (isExist) {
+        throw new BadRequestException('bài viết chưa được lưu.');
+      }
+
+      member.save_contents = await member.save_contents.filter(
+        (v) => v._id === v._id,
+      );
+
+      return await this.memberRepository.save(member);
     }
   }
 
