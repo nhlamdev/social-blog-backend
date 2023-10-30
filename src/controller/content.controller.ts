@@ -1,4 +1,5 @@
 import { CASE_SORT } from '@/constants';
+import * as cacheKey from '@/constants/cache-key';
 import { MemberEntity } from '@/entities';
 import { AccessJwtPayload } from '@/interface';
 import { ContentDto } from '@/model';
@@ -11,6 +12,7 @@ import {
   SeriesService,
 } from '@/service';
 import { checkIsNumber } from '@/utils/global-func';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
   BadRequestException,
   Body,
@@ -18,6 +20,7 @@ import {
   Delete,
   ForbiddenException,
   Get,
+  Inject,
   Param,
   Patch,
   Post,
@@ -32,6 +35,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Cache } from 'cache-manager';
 import { diskStorage } from 'multer';
 import { validate as validateUUID } from 'uuid';
 
@@ -44,6 +48,7 @@ export class ContentController {
     private readonly seriesService: SeriesService,
     private readonly commonService: CommonService,
     private readonly authService: AuthService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   @Get()
@@ -179,21 +184,30 @@ export class ContentController {
   }
 
   @Get('count-content')
-  @UseGuards(AuthGuard('jwt-access'))
+  // @UseGuards(AuthGuard('jwt-access'))
   @ApiTags('content')
   @ApiOperation({
     summary: 'Số lượng bài viết tổng.',
   })
   async countContents() {
-    const countContent = await this.contentService.countContent();
-    const seriesContent = await this.seriesService.countSeries();
-    const categoryCount = await this.categoryService.countCategory();
-    const result = await {
-      content: countContent,
-      series: seriesContent,
-      category: categoryCount,
-    };
-    return result;
+    const status = await this.cacheManager.get(cacheKey.COUNT_STATUS);
+
+    if (status) {
+      return status;
+    } else {
+      const countContent = await this.contentService.countContent();
+      const seriesContent = await this.seriesService.countSeries();
+      const categoryCount = await this.categoryService.countCategory();
+      const result = await {
+        content: countContent,
+        series: seriesContent,
+        category: categoryCount,
+      };
+
+      await this.cacheManager.set(cacheKey.COUNT_STATUS, result);
+
+      return result;
+    }
   }
 
   @Get('random')

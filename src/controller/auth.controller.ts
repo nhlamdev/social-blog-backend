@@ -312,12 +312,22 @@ export class AuthController {
     return result;
   }
 
-  @Get('all-sesstion')
-  @UseGuards(AuthGuard('jwt-access'))
-  @ApiOperation({})
+  @Get('all-session')
+  @ApiTags('member-auth')
+  @UseGuards(AuthGuard('jwt-refresh'))
   async allSession(@Req() req) {
-    const member: MemberEntity = req.user;
-    return await this.authService.allSession(member);
+    const s: RefreshJwtPayload = req.user;
+
+    const session = await this.authService.sessionById(s.session_id);
+
+    const sessions = await this.authService.allSession(session.member);
+
+    return Promise.all(
+      sessions.map((v) => {
+        const result = { ...v, isCurrent: v._id === s.session_id };
+        return result;
+      }),
+    );
   }
 
   @Get('author/:id')
