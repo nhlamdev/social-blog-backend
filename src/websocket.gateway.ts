@@ -30,7 +30,7 @@ export class WebsocketGateway
 
   @WebSocketServer() server: Server;
 
-  async handleDisconnect(client: any) {
+  async handleDisconnect(/*client: any*/) {
     const value = await this.cacheManager.get(cacheKeys.TOTAL_MEMBER_ONLINE);
 
     if (typeof value === 'number') {
@@ -38,10 +38,10 @@ export class WebsocketGateway
     } else {
       await this.cacheManager.set(cacheKeys.TOTAL_MEMBER_ONLINE, 0, 0);
     }
-    console.log('client disconnect: ', client.id);
+    // console.log('client disconnect: ', client.id);
   }
 
-  async handleConnection(client: any) {
+  async handleConnection(/*client: any*/) {
     const value = await this.cacheManager.get(cacheKeys.TOTAL_MEMBER_ONLINE);
 
     if (typeof value === 'number') {
@@ -49,11 +49,11 @@ export class WebsocketGateway
     } else {
       await this.cacheManager.set(cacheKeys.TOTAL_MEMBER_ONLINE, 0, 0);
     }
-    console.log('client connect: ', client.id);
+    // console.log('client connect: ', client.id);
     // this.commonService.increaseRequestCount();
   }
 
-  afterInit(server: any) {
+  afterInit(/*server: any*/) {
     console.log('wsc running');
   }
 

@@ -1,6 +1,5 @@
 export * from './config.service';
 export * from './logger.service';
-export * from './redis.service';
 export * from './auth.service';
 export * from './comment.service';
 export * from './category.service';

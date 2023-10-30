@@ -28,10 +28,12 @@ export class ContentEntity extends AbstractEntity {
   body: string;
 
   @Column({ type: 'boolean', nullable: false })
-  draft: boolean;
-
-  @Column({ type: 'boolean', nullable: false })
   complete: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  case_allow: 'noly-me' | 'have-link' | 'public';
+
+  // @Column({type:'datetime'})
 
   @Column({ type: 'integer', nullable: false, default: 0 })
   count_view: number;

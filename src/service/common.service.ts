@@ -1,9 +1,11 @@
 import { FileEntity, SessionEntity } from '@/entities';
 import { owner_visualize } from '@/interface';
-import { Injectable } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-
+import { Cache } from 'cache-manager';
+import * as cacheKeys from '@/constants/cache-key';
 @Injectable()
 export class CommonService {
   constructor(
@@ -11,6 +13,7 @@ export class CommonService {
     private fileRepository: Repository<FileEntity>,
     @InjectRepository(SessionEntity)
     private sessionRepository: Repository<SessionEntity>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async saveFile(files) {
@@ -57,10 +60,14 @@ export class CommonService {
       .groupBy('member._id')
       .getCount();
 
+    const count_member_online = await this.cacheManager.get(
+      cacheKeys.TOTAL_MEMBER_ONLINE,
+    );
+
     const result: owner_visualize = {
-      total_content: 0,
       total_member_access: sessions,
-      total_member_online: 0,
+      total_member_online:
+        typeof count_member_online === 'number' ? count_member_online : 0,
       total_memory_use: Math.round(
         filesSize.reduce((old: number, current: any) => {
           return old + current.file_size;
