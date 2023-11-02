@@ -1,4 +1,4 @@
-import { MemberEntity } from '@/entities';
+import { AccessJwtPayload } from '@/interface';
 import { SeriesDto } from '@/model';
 import { AuthService, SeriesService } from '@/service';
 import { checkIsNumber } from '@/utils/global-func';
@@ -47,7 +47,7 @@ export class SeriesController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    return await this.seriesService.getAllSeries({
+    return await this.seriesService.manySeries({
       _take,
       _skip,
       _search,
@@ -62,7 +62,7 @@ export class SeriesController {
   })
   async getSeriesById(@Param('id') id: string) {
     try {
-      return this.seriesService.getSeriesById(id);
+      return this.seriesService.oneSeriesById(id);
     } catch (error) {
       throw new NotFoundException('Chuỗi bài viết không tồn tại.');
     }
@@ -79,7 +79,7 @@ export class SeriesController {
     @Query('take') take: string,
     @Query('search') search: string | undefined,
   ) {
-    const member = await this.authService.memberById(id);
+    const member = await this.authService.oneMemberById(id);
 
     if (!Boolean(member)) {
       throw new BadRequestException('Thành viên không tồn tại.!');
@@ -95,7 +95,7 @@ export class SeriesController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    return await this.seriesService.getAllSeries({
+    return await this.seriesService.manySeries({
       _take,
       _skip,
       _search,
@@ -116,7 +116,7 @@ export class SeriesController {
     @Query('search') search: string | undefined,
     @Req() req,
   ) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
@@ -128,7 +128,9 @@ export class SeriesController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    return await this.seriesService.getAllSeries({
+    const member = await this.authService.oneMemberById(jwtPayload._id);
+
+    return await this.seriesService.manySeries({
       _take,
       _skip,
       _search,
@@ -154,15 +156,17 @@ export class SeriesController {
     summary: 'Tạo mới một chuỗi bài viết.',
   })
   async createSeries(@Body() body: SeriesDto, @Req() req) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
-    if (!member.role.author && !member.role.owner) {
+    const member = await this.authService.oneMemberById(jwtPayload._id);
+
+    if (!member?.role?.author && !member?.role?.owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với chuỗi bài viết!.',
       );
     }
 
-    const isExist = await this.seriesService.checkNameExist(body.title);
+    const isExist = await this.seriesService.checkExistByTitle(body.title);
 
     if (isExist) {
       throw new NotFoundException('Thể loại đã tồn tại.');
@@ -182,15 +186,17 @@ export class SeriesController {
     @Param('id') id: string,
     @Req() req,
   ) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
-    if (!member.role.owner && !member.role.author) {
+    const member = await this.authService.oneMemberById(jwtPayload._id);
+
+    if (!member?.role?.owner && !member?.role?.author) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với chuỗi bài viết!',
       );
     }
 
-    const series = await this.seriesService.getSeriesById(id);
+    const series = await this.seriesService.oneSeriesById(id);
 
     if (!series) {
       throw new BadRequestException('Thể loại cần chỉnh sửa không tồn tại!');
@@ -212,15 +218,17 @@ export class SeriesController {
     summary: 'Xóa chuỗi bài viết chỉ định.',
   })
   async deleteSeries(@Param('id') id: string, @Req() req) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
-    if (!member.role.author && !member.role.owner) {
+    const member = await this.authService.oneMemberById(jwtPayload._id);
+
+    if (!member?.role?.author && !member?.role?.owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với chuỗi bài viết!.',
       );
     }
 
-    const series = await this.seriesService.getSeriesById(id);
+    const series = await this.seriesService.oneSeriesById(id);
 
     if (!series) {
       throw new BadRequestException('Thể loại cần xoá không tồn tại.!');

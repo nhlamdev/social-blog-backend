@@ -1,6 +1,6 @@
-import { MemberEntity } from '@/entities';
+import { AccessJwtPayload } from '@/interface';
 import { CommentCreteDto } from '@/model';
-import { CommentService, ContentService } from '@/service';
+import { AuthService, CommentService, ContentService } from '@/service';
 import { checkIsNumber } from '@/utils/global-func';
 import {
   BadRequestException,
@@ -23,6 +23,7 @@ export class CommentController {
   constructor(
     private readonly commentService: CommentService,
     private readonly contentService: ContentService,
+    private readonly authService: AuthService,
   ) {}
 
   @Get('by-content/:id')
@@ -32,7 +33,7 @@ export class CommentController {
     @Query('skip') skip: string,
     @Query('take') take: string,
   ) {
-    const content = await this.contentService.getContentById(id, 'view');
+    const content = await this.contentService.oneContentById(id, 'view');
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
 
@@ -69,9 +70,11 @@ export class CommentController {
     @Body() body: CommentCreteDto,
     @Param('id') id: string,
   ) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
-    const content = await this.contentService.getContentById(id, 'owner');
+    const member = await this.authService.oneMemberById(jwtPayload._id);
+
+    const content = await this.contentService.oneContentById(id, 'owner');
 
     if (!Boolean(content)) {
       throw new BadRequestException('Bài viết không tồn tại.');
@@ -92,7 +95,9 @@ export class CommentController {
     @Body() body: CommentCreteDto,
     @Param('id') id: string,
   ) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const member = await this.authService.oneMemberById(jwtPayload._id);
 
     const parent = await this.commentService.commentById(id);
 
@@ -111,7 +116,9 @@ export class CommentController {
   @ApiTags('comment')
   @UseGuards(AuthGuard('jwt-access'))
   async deleteComment(@Param('id') id: string, @Req() req) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const member = await this.authService.oneMemberById(jwtPayload._id);
 
     const comment = await this.commentService.commentById(id);
 

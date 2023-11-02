@@ -19,19 +19,23 @@ export class SeriesService {
    * @param {string} title - tiêu đề cần check
    * @returns {boolean} - Hàm trả về true nếu tồn tại, ngược lại trả về false.
    */
-  async checkNameExist(title: string) {
-    const data = await this.seriesRepository.findOne({
+  async checkExistByTitle(title: string) {
+    return await this.seriesRepository.exist({
       where: { title: title },
     });
+  }
 
-    return Boolean(data);
+  async checkExistById(id) {
+    return await this.seriesRepository.exist({
+      where: { _id: id },
+    });
   }
 
   async countSeries() {
     return await this.seriesRepository.count();
   }
 
-  async getSeriesById(id: string) {
+  async oneSeriesById(id: string) {
     return await this.seriesRepository
       .createQueryBuilder('series')
       .leftJoinAndSelect('series.created_by', 'created_by')
@@ -49,6 +53,7 @@ export class SeriesService {
         COUNT(contents._id) as content_count, SUM(contents.count_view) as contents_total_views,
         ROUND(SUM(contents.count_view) / COUNT(contents._id)) as contents_avg_view`,
       )
+      .where('contents.case_allow = :caseAllow', { caseAllow: 'public' })
       .groupBy(
         'series._id, series.title,created_by.name,created_by.image,created_by.email',
       )
@@ -68,7 +73,7 @@ export class SeriesService {
     return this.seriesRepository.save(series);
   }
 
-  async getAllSeries(payload: {
+  async manySeries(payload: {
     member?: MemberEntity;
     _take: number;
     _skip: number;
@@ -92,10 +97,9 @@ export class SeriesService {
       : await query.orderBy('series.created_at', 'DESC').getMany();
 
     const seriesWithCountContent = series.map(async (series) => {
-      const countContent = await this.contentRepository
-        .createQueryBuilder('content')
-        .where('content.series = :series', { series: series._id })
-        .getCount();
+      const countContent = await this.contentRepository.count({
+        where: { series: { _id: series._id }, case_allow: 'public' },
+      });
 
       return { ...series, contents: countContent };
     });

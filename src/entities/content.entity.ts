@@ -1,19 +1,11 @@
 import {
   Column,
   Entity,
-  JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import {
-  CategoryEntity,
-  CommentEntity,
-  FileEntity,
-  MemberEntity,
-  SeriesEntity,
-} from '.';
+import { CategoryEntity, CommentEntity, MemberEntity, SeriesEntity } from '.';
 import { AbstractEntity } from './abstract.entity';
 
 @Entity('content')
@@ -30,20 +22,17 @@ export class ContentEntity extends AbstractEntity {
   @Column({ type: 'boolean', nullable: false })
   complete: boolean;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'varchar', length: 20, nullable: true })
   case_allow: 'noly-me' | 'have-link' | 'public';
-
-  // @Column({type:'datetime'})
 
   @Column({ type: 'integer', nullable: false, default: 0 })
   count_view: number;
 
-  @Column({ type: 'text', array: true })
-  tags: string[];
+  @Column({ type: 'text', array: true, nullable: false, default: [] })
+  Evaluate: string[];
 
-  @OneToOne(() => FileEntity, { nullable: true, onDelete: 'CASCADE' })
-  @JoinColumn()
-  image?: FileEntity;
+  @Column({ type: 'text', array: true, nullable: false, default: [] })
+  tags: string[];
 
   @OneToMany(() => CommentEntity, (tag) => tag.content, {
     onDelete: 'CASCADE',

@@ -4,6 +4,7 @@ export interface AccessJwtPayload {
   email: string;
   image: string;
   expired: number;
+  session_id: string;
   create_at: string;
 }
 

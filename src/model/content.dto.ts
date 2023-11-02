@@ -41,8 +41,4 @@ export class ContentDto {
   @ApiProperty({ type: String })
   // @IsString({ message: 'Tiêu đề sai kiểu dữ liệu!.' })
   complete: boolean;
-
-  @ApiProperty({ type: String })
-  // @IsString({ message: 'Tiêu đề sai kiểu dữ liệu!.' })
-  draft: boolean;
 }

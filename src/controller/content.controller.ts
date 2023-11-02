@@ -68,8 +68,8 @@ export class ContentController {
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
     const _caseSort = CASE_SORT.includes(caseSort) ? caseSort : CASE_SORT[0];
 
-    const category_query = await this.categoryService.getCategoryById(category);
-    const series_query = await this.seriesService.getSeriesById(series);
+    const category_query = await this.categoryService.oneCategoryById(category);
+    const series_query = await this.seriesService.oneSeriesById(series);
 
     const _category = Boolean(category_query) ? category_query : null;
 
@@ -82,7 +82,7 @@ export class ContentController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    return await this.contentService.getAllContent({
+    return await this.contentService.manyContent({
       _take,
       _skip,
       _search,
@@ -112,7 +112,7 @@ export class ContentController {
       throw new ForbiddenException('Bạn không có quyền hạn thao tác.');
     }
 
-    const category = await this.categoryService.getCategoryById(id);
+    const category = await this.categoryService.oneCategoryById(id);
 
     if (!Boolean(category)) {
       throw new BadRequestException('Thể loại không tồn tại.');
@@ -157,7 +157,7 @@ export class ContentController {
       throw new ForbiddenException('Bạn không có quyền hạn thao tác.');
     }
 
-    const series = this.seriesService.getSeriesById(id);
+    const series = this.seriesService.oneSeriesById(id);
 
     if (!series) {
       throw new BadRequestException('Chuỗi bài viết không tồn tại.');
@@ -173,7 +173,7 @@ export class ContentController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    return this.contentService.getContentBySeries(
+    return this.contentService.contentBySeries(
       _take,
       _skip,
       _search,
@@ -232,7 +232,7 @@ export class ContentController {
     @Query('take') take: string,
     @Query('search') search: string | undefined,
   ) {
-    const member = await this.authService.memberById(id);
+    const member = await this.authService.oneMemberById(id);
 
     if (!Boolean(member)) {
       throw new BadRequestException('Thành viên không tồn tại.');
@@ -247,7 +247,7 @@ export class ContentController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    return await this.contentService.getContentByMember({
+    return await this.contentService.manyContentByMember({
       member,
       status: 'view',
       _take,
@@ -279,7 +279,7 @@ export class ContentController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    return await this.contentService.getContentByMember({
+    return await this.contentService.manyContentByMember({
       member,
       status: 'owner',
       _take,
@@ -300,7 +300,7 @@ export class ContentController {
     }
     const member: MemberEntity = req.user;
 
-    const content = await this.contentService.getContentById(id, 'owner');
+    const content = await this.contentService.oneContentById(id, 'owner');
 
     if (!Boolean(content)) {
       throw new BadRequestException('Không tìm thấy bài viết');
@@ -328,7 +328,7 @@ export class ContentController {
       throw new BadRequestException('Id bài viết sai định dạng.');
     }
 
-    const content = await this.contentService.getContentById(id, 'view');
+    const content = await this.contentService.oneContentById(id, 'view');
 
     if (!Boolean(content)) {
       throw new BadRequestException('Không tìm thấy bài viết');
@@ -354,7 +354,6 @@ export class ContentController {
 
     return await this.contentService.topViewContent({
       _take,
-      status: 'view',
     });
   }
 
@@ -373,7 +372,6 @@ export class ContentController {
 
     return await this.contentService.topViewContent({
       _take,
-      status: 'owner',
       member,
     });
   }
@@ -397,10 +395,10 @@ export class ContentController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
     const { data: members, count: total } =
-      await this.authService.allMemberWidthCountContent(_take, _skip, _search);
+      await this.authService.manyMemberWidthCountContent(_take, _skip, _search);
 
     const membersWidthContents = await members.map(async (member) => {
-      const count = await this.contentService.getCountContentByMember(member);
+      const count = await this.contentService.countContentByMember(member);
 
       const memberWithCountContent = { ...member, countContent: count };
       return memberWithCountContent;
@@ -420,56 +418,14 @@ export class ContentController {
     const jwtPayload: AccessJwtPayload = req.user;
     const _take = checkIsNumber(take) ? Number(take) : null;
 
-    const member = await this.authService.memberById(jwtPayload._id);
+    const member = await this.authService.oneMemberById(jwtPayload._id);
 
     if (Boolean(member)) {
-      return await this.contentService.contentsMoreComments(_take, 'owner');
+      return await this.contentService.contentsMoreComments(_take);
     } else {
-      return await this.contentService.contentsMoreComments(_take, 'view');
+      return await this.contentService.contentsMoreComments(_take);
     }
   }
-
-  // @Get('owner')
-  // @ApiTags('content')
-  // @UseGuards(AuthGuard('jwt-access'))
-  // async getContentsAdmin(
-  //   @Query('skip') skip: string,
-  //   @Query('take') take: string,
-  //   @Query('search') search: string | undefined,
-  //   @Query('category') category: string | undefined,
-  //   @Query('series') series: string | undefined,
-  //   @Query('sortCase') caseSort: string | undefined,
-  //   @Query('complete') complete: string | undefined,
-  //   @Query('draft') draft: string | undefined,
-  // ) {
-  //   const _take = checkIsNumber(take) ? Number(take) : null;
-  //   const _skip = checkIsNumber(skip) ? Number(skip) : null;
-  //   const _caseSort = CASE_SORT.includes(caseSort) ? caseSort : CASE_SORT[0];
-
-  //   const category_query = await this.categoryService.getCategoryById(category);
-  //   const series_query = await this.seriesService.getSeriesById(series);
-
-  //   const _category = Boolean(category_query) ? category_query : null;
-
-  //   const _series = Boolean(series_query) ? series_query : null;
-
-  //   const _search = search
-  //     ? `%${search
-  //         .toLowerCase()
-  //         .normalize('NFD')
-  //         .replace(/[\u0300-\u036f]/g, '')}%`
-  //     : '%%';
-
-  //   return await this.contentService.getAllContent(
-  //     _take,
-  //     _skip,
-  //     _search,
-  //     _category,
-  //     _series,
-  //     _caseSort,
-  //     false,
-  //   );
-  // }
 
   @Post()
   @ApiTags('content')
@@ -508,7 +464,7 @@ export class ContentController {
       throw new BadRequestException('Bạn chưa chọn ảnh.');
     }
 
-    return await this.contentService.create(body, member, filesData[0]);
+    return await this.contentService.create(body, member);
   }
 
   @Put(':id')
@@ -535,11 +491,10 @@ export class ContentController {
     @Body() payload: ContentDto,
     @Param('id') id: string,
     @Req() req,
-    @UploadedFile('files') files: Express.Multer.File,
   ) {
     const member: MemberEntity = req.user;
 
-    const content = await this.contentService.getContentById(id, 'owner');
+    const content = await this.contentService.oneContentById(id, 'owner');
 
     if (!Boolean(content)) {
       throw new BadRequestException('Bài viết cần chỉnh sửa không tồn tại.');
@@ -557,13 +512,7 @@ export class ContentController {
       );
     }
 
-    const filesData = await this.commonService.saveFile(files);
-
-    if (filesData.length === 0) {
-      return await this.contentService.updateContent(id, payload);
-    } else {
-      return await this.contentService.updateContent(id, payload, filesData[0]);
-    }
+    return await this.contentService.updateContent(id, payload);
   }
 
   @Patch('note-content/:id')
@@ -579,7 +528,7 @@ export class ContentController {
       throw new BadRequestException('loại thao tác không chuẩn.');
     }
 
-    const content = await this.contentService.getContentById(contentId, 'view');
+    const content = await this.contentService.oneContentById(contentId, 'view');
 
     if (!content) {
       throw new BadRequestException('Bài viết không tồn tại');
@@ -606,13 +555,13 @@ export class ContentController {
       throw new ForbiddenException('Bạn không có quyền thao tác.');
     }
 
-    const _content = await this.contentService.getContentById(content, 'owner');
+    const _content = await this.contentService.oneContentById(content, 'owner');
 
     if (!_content) {
       throw new BadRequestException('bài viết không tồn tại.');
     }
 
-    const _category = await this.categoryService.getCategoryById(category);
+    const _category = await this.categoryService.oneCategoryById(category);
 
     if (!_category) {
       throw new BadRequestException('thể loại không tồn tại.');
@@ -631,13 +580,13 @@ export class ContentController {
   ) {
     const member: MemberEntity = req.user;
 
-    const _content = await this.contentService.getContentById(content, 'owner');
+    const _content = await this.contentService.oneContentById(content, 'owner');
 
     if (!_content) {
       throw new BadRequestException('bài viết không tồn tại.');
     }
 
-    const _series = await this.seriesService.getSeriesById(series);
+    const _series = await this.seriesService.oneSeriesById(series);
 
     if (!_series) {
       throw new BadRequestException('chuỗi bài viết không tồn tại.');
@@ -659,7 +608,7 @@ export class ContentController {
   async deleteContent(@Param('id') id: string, @Req() req) {
     const member: MemberEntity = req.user;
 
-    const _content = await this.contentService.getContentById(id, 'owner');
+    const _content = await this.contentService.oneContentById(id, 'owner');
 
     if (!Boolean(_content)) {
       throw new BadRequestException('bài viết không tồn tại.');

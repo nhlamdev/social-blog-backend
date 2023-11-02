@@ -1,4 +1,3 @@
-import { MemberEntity } from '@/entities';
 import { AccessJwtPayload } from '@/interface';
 import { AuthService } from '@/service';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
@@ -24,7 +23,7 @@ export class JwtAccessStrategy extends PassportStrategy(
     });
   }
 
-  async validate(payload: AccessJwtPayload): Promise<MemberEntity> {
+  async validate(payload: AccessJwtPayload): Promise<AccessJwtPayload> {
     const date = new Date();
 
     if (
@@ -34,12 +33,20 @@ export class JwtAccessStrategy extends PassportStrategy(
       throw new UnauthorizedException('Phiên đăng nhập quá hạn.');
     }
 
-    const member = await this.authService.memberByIdWidthRole(payload._id);
+    const sessionExist = await this.authService.checkSessionExist(
+      payload.session_id,
+    );
 
-    if (!Boolean(member)) {
+    if (!sessionExist) {
+      throw new UnauthorizedException('Phiên đăng nhập không hợp lệ.');
+    }
+
+    const memberExist = await this.authService.checkMemberExist(payload._id);
+
+    if (memberExist) {
       throw new UnauthorizedException('Thành viên không tồn tại.');
     }
 
-    return member;
+    return payload;
   }
 }

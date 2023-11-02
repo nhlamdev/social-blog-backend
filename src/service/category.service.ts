@@ -13,26 +13,28 @@ export class CategoryService {
     private contentRepository: Repository<ContentEntity>,
   ) {}
 
-  async checkNameExist(title: string) {
-    const data = await this.categoryRepository.findOne({
+  async checkExistByName(title: string) {
+    return await this.categoryRepository.exist({
       where: { title: title },
     });
+  }
 
-    return Boolean(data);
+  async checkExistById(id: string) {
+    return await this.categoryRepository.exist({ where: { _id: id } });
   }
 
   async countCategory() {
     return await this.categoryRepository.count();
   }
 
-  async getCategoryById(id: string) {
+  async oneCategoryById(id: string) {
     return await this.categoryRepository
       .createQueryBuilder('category')
       .where('category._id = :id', { id: id })
       .getOne();
   }
 
-  async getTopCategoryMoreContents(take: number | null) {
+  async topCategoryMorePublicContents(take: number | null) {
     return await this.categoryRepository
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.contents', 'contents')
@@ -40,6 +42,7 @@ export class CategoryService {
       .select(
         'category._id, category.title, COUNT(contents._id) as contentCount',
       )
+      .where('contents.case_allow = :caseAllow', { caseAllow: 'public' })
       .groupBy('category._id')
       .orderBy('contentCount', 'DESC')
       .limit(take)
@@ -48,13 +51,12 @@ export class CategoryService {
 
   async create(payload: CategoryDto) {
     const category = new CategoryEntity();
-
     category.title = payload.title;
     category.summary = payload.summary;
     return this.categoryRepository.save(category);
   }
 
-  async getAllCategory(_take: number, _skip: number, _search: string) {
+  async manyCategory(_take: number, _skip: number, _search: string) {
     const query = this.categoryRepository
       .createQueryBuilder('category')
       .skip(_skip)
@@ -66,10 +68,9 @@ export class CategoryService {
       .getMany();
 
     const categoriesWithCountContent = categories.map(async (category) => {
-      const countContent = await this.contentRepository
-        .createQueryBuilder('content')
-        .where('content.category = :category', { category: category._id })
-        .getCount();
+      const countContent = await this.contentRepository.count({
+        where: { category: { _id: category._id }, case_allow: 'public' },
+      });
 
       return { ...category, contents: countContent };
     });

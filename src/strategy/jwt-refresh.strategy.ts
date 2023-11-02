@@ -1,4 +1,5 @@
 import { RefreshJwtPayload } from '@/interface';
+import { AuthService } from '@/service';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -9,7 +10,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
   Strategy,
   'jwt-refresh',
 ) {
-  constructor() {
+  constructor(private readonly authService: AuthService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request) => {
@@ -28,6 +29,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
       date.getTime() >
       new Date(payload.create_at).getTime() + payload.expired
     ) {
+      await this.authService.removeSession(payload.session_id);
       throw new UnauthorizedException('Phiên đăng nhập quá hạn.');
     }
 

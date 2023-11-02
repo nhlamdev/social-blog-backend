@@ -1,8 +1,8 @@
+import { MemberEntity, RoleEntity, SessionEntity } from '@/entities';
+import { client_data } from '@/interface/common.interface';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MemberEntity, RoleEntity, SessionEntity } from '@/entities';
 import { Repository } from 'typeorm';
-import { client_data } from '@/interface/common.interface';
 
 @Injectable()
 export class AuthService {
@@ -15,13 +15,48 @@ export class AuthService {
     private memberRepository: Repository<MemberEntity>,
   ) {}
 
-  async allSession(member: MemberEntity) {
-    return await this.sessionRepository.find({
-      where: { member: { _id: member._id } },
+  async checkSessionExist(session_id: string) {
+    return await this.sessionRepository.exist({ where: { _id: session_id } });
+  }
+
+  async checkSessionExistByMember(session_id: string, member_id: string) {
+    return await this.sessionRepository.exist({
+      where: { _id: session_id, member: { _id: member_id } },
     });
   }
 
-  async allMemberWidthCountContent(
+  async manySessionByMemberId(id: string) {
+    return await this.sessionRepository.find({
+      where: { member: { _id: id } },
+    });
+  }
+
+  async oneSessionById(session_id: string) {
+    return await this.sessionRepository.findOne({
+      where: { _id: session_id },
+      relations: { member: true },
+    });
+  }
+
+  async checkMemberExist(member_id: string) {
+    return await this.memberRepository.exist({ where: { _id: member_id } });
+  }
+
+  async oneMemberById(id: string) {
+    return this.memberRepository.findOne({
+      where: { _id: id },
+      relations: { role: true },
+    });
+  }
+
+  async updateProfile(payload: { id: string; name?: string; image?: string }) {
+    this.memberRepository.update(payload.id, {
+      name: payload.name,
+      image: payload.image,
+    });
+  }
+
+  async manyMemberWidthCountContent(
     _take: number,
     _skip: number,
     _search: string,
@@ -49,35 +84,6 @@ export class AuthService {
     return result;
   }
 
-  async memberById(id: string) {
-    return this.memberRepository.findOne({
-      where: { _id: id },
-      relations: { role: true },
-    });
-  }
-
-  async memberByIdWidthRole(_id: string) {
-    return this.memberRepository.findOne({
-      where: { _id },
-      relations: { role: true },
-    });
-  }
-
-  async sessionById(session_id: string) {
-    return this.sessionRepository.findOne({
-      where: { _id: session_id },
-      relations: { member: true },
-    });
-  }
-
-  async removeSession(id?: string) {
-    if (id) {
-      return this.sessionRepository.delete({ _id: id });
-    } else {
-      return this.sessionRepository.delete({});
-    }
-  }
-
   async socialVerifyExist(payload: {
     provider: 'google' | 'github' | 'facebook' | 'discord';
     name: string;
@@ -90,15 +96,6 @@ export class AuthService {
     });
 
     if (member) {
-      member.name = payload.name;
-      member.email = payload.email;
-
-      if (payload.image) {
-        member.image = payload.image;
-      }
-
-      this.memberRepository.save(member);
-
       return member;
     } else {
       const newMember = new MemberEntity();
@@ -126,6 +123,7 @@ export class AuthService {
     member?: MemberEntity;
     provider: 'google' | 'github' | 'discord';
     provider_id: string;
+    sessionAge: number;
   }) {
     const newSession = new SessionEntity();
 
@@ -134,6 +132,7 @@ export class AuthService {
     newSession.member = payload.member;
     newSession.provider = payload.provider;
     newSession.provider_id = payload.provider_id;
+    newSession.age = payload.sessionAge;
 
     if (client.device) {
       newSession.device = client.device;
@@ -154,5 +153,18 @@ export class AuthService {
     return this.sessionRepository.save(newSession);
   }
 
-  async certificateLogin() {}
+  async removeSession(criteria: string | string[]) {
+    return this.sessionRepository.delete(criteria);
+  }
+
+  async removeSessionAnother(criteria: string) {
+    const sessionAnother = await this.sessionRepository
+      .createQueryBuilder('session')
+      .where('session._id <> :id', { id: criteria })
+      .getMany();
+
+    return await this.sessionRepository.delete(
+      sessionAnother.map((v) => v._id),
+    );
+  }
 }

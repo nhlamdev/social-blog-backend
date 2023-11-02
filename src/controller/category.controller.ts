@@ -1,4 +1,4 @@
-import { MemberEntity } from '@/entities';
+import { AccessJwtPayload } from '@/interface';
 import { CategoryDto } from '@/model';
 import { AuthService, CategoryService, CommonService } from '@/service';
 import { checkIsNumber } from '@/utils/global-func';
@@ -32,7 +32,7 @@ export class CategoryController {
   @ApiOperation({
     summary: 'Lấy thông tin tất cả thể loại.',
   })
-  async getCategory(
+  async categories(
     @Query('skip') skip: string,
     @Query('take') take: string,
     @Query('search') search: string | undefined,
@@ -47,7 +47,7 @@ export class CategoryController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    return await this.categoryService.getAllCategory(_take, _skip, _search);
+    return await this.categoryService.manyCategory(_take, _skip, _search);
   }
 
   @Get('by-id/:id')
@@ -55,8 +55,8 @@ export class CategoryController {
   @ApiOperation({
     summary: 'Lấy thông tin thể loại theo id.',
   })
-  async getCategoryById(@Param('id') id: string) {
-    const category = await this.categoryService.getCategoryById(id);
+  async categoryById(@Param('id') id: string) {
+    const category = await this.categoryService.oneCategoryById(id);
 
     if (!Boolean(category)) {
       throw new BadRequestException('Thể loại không tồn tại!.');
@@ -72,7 +72,7 @@ export class CategoryController {
   })
   async getTopCategoryMoreContents(@Query('take') take: string | undefined) {
     const _take = checkIsNumber(take) ? Number(take) : null;
-    return await this.categoryService.getTopCategoryMoreContents(_take);
+    return await this.categoryService.topCategoryMorePublicContents(_take);
   }
 
   @Post()
@@ -82,15 +82,17 @@ export class CategoryController {
     summary: 'Tạo mới một thể loại.',
   })
   async createCategory(@Body() body: CategoryDto, @Req() req) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
-    if (!member.role.owner) {
+    const member = await this.authService.oneMemberById(jwtPayload._id);
+
+    if (!member?.role?.owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với thể loại!.',
       );
     }
 
-    const isExist = await this.categoryService.checkNameExist(body.title);
+    const isExist = await this.categoryService.checkExistByName(body.title);
 
     if (isExist) {
       throw new NotFoundException('Thể loại đã tồn tại.');
@@ -110,15 +112,17 @@ export class CategoryController {
     @Param('id') id: string,
     @Req() req,
   ) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
-    if (!member.role.owner) {
+    const member = await this.authService.oneMemberById(jwtPayload._id);
+
+    if (!member?.role?.owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với thể loại!.',
       );
     }
 
-    const category = await this.categoryService.getCategoryById(id);
+    const category = await this.categoryService.oneCategoryById(id);
 
     if (!category) {
       throw new BadRequestException('Thể loại cần chỉnh sửa không tồn tại.!');
@@ -134,15 +138,17 @@ export class CategoryController {
     summary: 'Xóa bài viết được chỉ định.',
   })
   async deleteCategory(@Param('id') id: string, @Req() req) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
-    if (!member.role.owner) {
+    const member = await this.authService.oneMemberById(jwtPayload._id);
+
+    if (!member?.role?.owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với thể loại!.',
       );
     }
 
-    const category = await this.categoryService.getCategoryById(id);
+    const category = await this.categoryService.oneCategoryById(id);
 
     if (!category) {
       throw new BadRequestException('Thể loại cần xoá không tồn tại.!');
