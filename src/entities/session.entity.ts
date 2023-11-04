@@ -25,8 +25,8 @@ export class SessionEntity extends AbstractEntity {
   @Column({ type: 'text', default: 'unknown', nullable: false })
   ip: string;
 
-  @Column({ type: 'integer', nullable: true })
-  age: number;
+  @Column({ type: 'text', nullable: true })
+  age: string;
 
   @ManyToOne(() => MemberEntity, (content) => content.session)
   member: MemberEntity;

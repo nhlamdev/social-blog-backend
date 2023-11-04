@@ -86,7 +86,7 @@ export class CategoryController {
 
     const member = await this.authService.oneMemberById(jwtPayload._id);
 
-    if (!member?.role?.owner) {
+    if (!member.role_owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với thể loại!.',
       );
@@ -116,7 +116,7 @@ export class CategoryController {
 
     const member = await this.authService.oneMemberById(jwtPayload._id);
 
-    if (!member?.role?.owner) {
+    if (!member.role_owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với thể loại!.',
       );
@@ -142,7 +142,7 @@ export class CategoryController {
 
     const member = await this.authService.oneMemberById(jwtPayload._id);
 
-    if (!member?.role?.owner) {
+    if (!member.role_owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với thể loại!.',
       );

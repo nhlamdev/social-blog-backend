@@ -1,10 +1,8 @@
 import {
   Column,
   Entity,
-  JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -12,7 +10,6 @@ import {
   CommentEntity,
   ContentEntity,
   NotifyEntity,
-  RoleEntity,
   SeriesEntity,
   SessionEntity,
 } from '.';
@@ -29,6 +26,15 @@ export class MemberEntity extends AbstractEntity {
   @Column({ type: 'text', nullable: false })
   email: string;
 
+  @Column({ type: 'boolean', default: true })
+  role_author: boolean;
+
+  @Column({ type: 'boolean', default: true })
+  role_comment: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  role_owner: boolean;
+
   @Column({
     type: 'text',
     default:
@@ -36,12 +42,6 @@ export class MemberEntity extends AbstractEntity {
     nullable: false,
   })
   image: string;
-
-  @OneToOne(() => RoleEntity, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn()
-  role: RoleEntity;
 
   @OneToMany(() => SessionEntity, (session) => session.member, {
     onDelete: 'CASCADE',

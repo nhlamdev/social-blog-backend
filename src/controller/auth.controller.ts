@@ -16,7 +16,6 @@ import {
   Query,
   Req,
   Res,
-  UnauthorizedException,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -30,8 +29,10 @@ import { diskStorage } from 'multer';
 
 @Controller()
 export class AuthController {
-  private readonly ACCESS_TOKEN_AGE = 1000 * 60;
+  private readonly ACCESS_TOKEN_NAME = process.env.ACCESS_TOKEN_NAME;
+  private readonly REFRESH_TOKEN_NAME = process.env.REFRESH_TOKEN_NAME;
 
+  private readonly ACCESS_TOKEN_AGE = 1000 * 60;
   private readonly REFRESH_TOKEN_AGE = 1000 * 60 * 60 * 24 * 30 * 6;
 
   constructor(
@@ -80,6 +81,9 @@ export class AuthController {
         name: member.name,
         email: member.email,
         image: member.image,
+        role_author: member.role_author,
+        role_comment: member.role_comment,
+        role_owner: member.role_owner,
         expired: this.ACCESS_TOKEN_AGE,
         session_id: session._id,
         create_at: new Date().toString(),
@@ -93,14 +97,14 @@ export class AuthController {
         secret: process.env.REFRESH_TOKEN_SECRET,
       });
 
-      res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
+      res.cookie(this.ACCESS_TOKEN_NAME, accessToken, {
         maxAge: this.ACCESS_TOKEN_AGE,
-        httpOnly: true,
+        httpOnly: false,
       });
 
-      res.cookie(process.env.REFRESH_TOKEN_NAME, refreshToken, {
-        maxAge: this,
-        httpOnly: true,
+      res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
+        maxAge: this.REFRESH_TOKEN_AGE,
+        httpOnly: false,
       });
 
       res.redirect('/');
@@ -148,6 +152,9 @@ export class AuthController {
         name: member.name,
         email: member.email,
         image: member.image,
+        role_author: member.role_author,
+        role_comment: member.role_comment,
+        role_owner: member.role_owner,
         expired: this.ACCESS_TOKEN_AGE,
         session_id: session._id,
         create_at: new Date().toString(),
@@ -161,14 +168,14 @@ export class AuthController {
         secret: process.env.REFRESH_TOKEN_SECRET,
       });
 
-      res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
+      res.cookie(this.ACCESS_TOKEN_NAME, accessToken, {
         maxAge: this.ACCESS_TOKEN_AGE,
-        httpOnly: true,
+        httpOnly: false,
       });
 
-      res.cookie(process.env.REFRESH_TOKEN_NAME, refreshToken, {
-        maxAge: this,
-        httpOnly: true,
+      res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
+        maxAge: this.REFRESH_TOKEN_AGE,
+        httpOnly: false,
       });
 
       res.redirect('/');
@@ -216,6 +223,9 @@ export class AuthController {
         name: member.name,
         email: member.email,
         image: member.image,
+        role_author: member.role_author,
+        role_comment: member.role_comment,
+        role_owner: member.role_owner,
         expired: this.ACCESS_TOKEN_AGE,
         session_id: session._id,
         create_at: new Date().toString(),
@@ -229,14 +239,14 @@ export class AuthController {
         secret: process.env.REFRESH_TOKEN_SECRET,
       });
 
-      res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
+      res.cookie(this.ACCESS_TOKEN_NAME, accessToken, {
         maxAge: this.ACCESS_TOKEN_AGE,
-        httpOnly: true,
+        httpOnly: false,
       });
 
-      res.cookie(process.env.REFRESH_TOKEN_NAME, refreshToken, {
-        maxAge: this,
-        httpOnly: true,
+      res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
+        maxAge: this.REFRESH_TOKEN_AGE,
+        httpOnly: false,
       });
 
       res.redirect('/');
@@ -254,9 +264,9 @@ export class AuthController {
     summary: 'Lấy thông tin cá nhân.',
   })
   async profile(@Req() req) {
-    const member: AccessJwtPayload = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
-    return member;
+    return jwtPayload;
   }
 
   @Get('all-members')
@@ -275,7 +285,7 @@ export class AuthController {
 
     const member = await this.authService.oneMemberById(jwtPayload._id);
 
-    if (member.role.owner) {
+    if (member.role_owner) {
       throw new ForbiddenException('Bạn không có quyền thực hiện thao tác này');
     }
 
@@ -343,11 +353,11 @@ export class AuthController {
     );
 
     if (!Boolean(session)) {
-      throw new UnauthorizedException('Phiên đăng nhập không tồn tại.');
+      throw new BadRequestException('Phiên đăng nhập không tồn tại.');
     }
 
     if (!session.member) {
-      throw new UnauthorizedException('Thành viên không tồn tại.');
+      throw new BadRequestException('Thành viên không tồn tại.');
     }
 
     const accessAge = 1000 * 60 * 5;
@@ -358,6 +368,9 @@ export class AuthController {
       email: session.member.email,
       image: session.member.image,
       session_id: session._id,
+      role_author: session.member.role_author,
+      role_comment: session.member.role_comment,
+      role_owner: session.member.role_owner,
       expired: accessAge,
       create_at: new Date().toString(),
     };
@@ -366,9 +379,9 @@ export class AuthController {
       secret: process.env.ACCESS_TOKEN_SECRET,
     });
 
-    res.cookie(process.env.ACCESS_TOKEN_NAME, accessToken, {
-      maxAge: 3600000,
-      httpOnly: true,
+    res.cookie(this.ACCESS_TOKEN_NAME, accessToken, {
+      maxAge: this.ACCESS_TOKEN_AGE,
+      httpOnly: false,
     });
 
     res.status(200).json({ message: 'renew success' });
@@ -422,10 +435,7 @@ export class AuthController {
 
     const member = await this.authService.oneMemberById(jwtPayload._id);
 
-    if (!member.role.owner) {
-      throw new BadRequestException('Bạn không có quyền chỉnh sửa.');
-    }
-    if (!member.role.owner) {
+    if (!member.role_owner) {
       throw new BadRequestException('Quyền không hợp lệ.');
     }
     if (!['comment', 'author', 'owner'].includes(payload.key)) {
@@ -437,7 +447,17 @@ export class AuthController {
 
     const memberUpdate = await this.authService.oneMemberById(memberId);
 
-    memberUpdate.role[payload.key] = payload.value;
+    if (payload.key === 'author') {
+      memberUpdate.role_author = payload.value;
+    }
+
+    if (payload.key === 'comment') {
+      memberUpdate.role_comment = payload.value;
+    }
+
+    if (payload.key === 'owner') {
+      memberUpdate.role_owner = payload.value;
+    }
 
     return await this.authService.updateRole(member);
   }
@@ -455,12 +475,12 @@ export class AuthController {
 
     res.cookie(process.env.ACCESS_TOKEN_NAME, '', {
       maxAge: 0,
-      httpOnly: true,
+      httpOnly: false,
     });
 
     res.cookie(process.env.REFRESH_TOKEN_NAME, '', {
       maxAge: 0,
-      httpOnly: true,
+      httpOnly: false,
     });
 
     res.status(200).json({ message: 'logout success !.' });

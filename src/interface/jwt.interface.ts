@@ -6,6 +6,9 @@ export interface AccessJwtPayload {
   expired: number;
   session_id: string;
   create_at: string;
+  role_author: boolean;
+  role_comment: boolean;
+  role_owner: boolean;
 }
 
 export interface RefreshJwtPayload {

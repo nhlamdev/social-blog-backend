@@ -1,4 +1,4 @@
-import { MemberEntity, RoleEntity, SessionEntity } from '@/entities';
+import { MemberEntity, SessionEntity } from '@/entities';
 import { client_data } from '@/interface/common.interface';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,8 +7,6 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(RoleEntity)
-    private roleRepository: Repository<RoleEntity>,
     @InjectRepository(SessionEntity)
     private sessionRepository: Repository<SessionEntity>,
     @InjectRepository(MemberEntity)
@@ -38,14 +36,13 @@ export class AuthService {
     });
   }
 
-  async checkMemberExist(member_id: string) {
+  async checkMemberExistById(member_id: string) {
     return await this.memberRepository.exist({ where: { _id: member_id } });
   }
 
   async oneMemberById(id: string) {
     return this.memberRepository.findOne({
       where: { _id: id },
-      relations: { role: true },
     });
   }
 
@@ -64,13 +61,12 @@ export class AuthService {
     const data = await this.memberRepository
       .createQueryBuilder('member')
       .leftJoinAndSelect('member.contents', 'contents')
-      .leftJoinAndSelect('member.role', 'role')
       .select(
-        `member._id,member.name,member.email,member.image,role.comment,role.owner,role.author,member.created_at,
+        `member._id,member.name,member.email,member.image,member.created_at,
         COUNT(contents._id) as content_count`,
       )
       .groupBy(
-        'member._id,member.name,member.email,member.image,member.created_at,role.comment,role.owner,role.author',
+        'member._id,member.name,member.email,member.image,member.created_at',
       )
       .skip(_skip)
       .take(_take)
@@ -99,13 +95,9 @@ export class AuthService {
       return member;
     } else {
       const newMember = new MemberEntity();
-      const role = new RoleEntity();
-      await this.roleRepository.save(role);
 
       newMember.name = payload.name;
       newMember.email = payload.email;
-      newMember.role = role;
-
       if (payload.image) {
         newMember.image = payload.image;
       }
@@ -132,7 +124,7 @@ export class AuthService {
     newSession.member = payload.member;
     newSession.provider = payload.provider;
     newSession.provider_id = payload.provider_id;
-    newSession.age = payload.sessionAge;
+    newSession.age = payload.sessionAge.toString();
 
     if (client.device) {
       newSession.device = client.device;

@@ -108,7 +108,7 @@ export class ContentController {
   ) {
     const member: MemberEntity = req.user;
 
-    if (!member.role.owner) {
+    if (!member.role_owner) {
       throw new ForbiddenException('Bạn không có quyền hạn thao tác.');
     }
 
@@ -153,7 +153,7 @@ export class ContentController {
   ) {
     const member: MemberEntity = req.user;
 
-    if (!member.role.owner && !member.role.author) {
+    if (!member.role_owner && !member.role_author) {
       throw new ForbiddenException('Bạn không có quyền hạn thao tác.');
     }
 
@@ -381,7 +381,7 @@ export class ContentController {
   @ApiOperation({
     summary: 'All authors!',
   })
-  async allAuththor(
+  async allAuthors(
     @Query('skip') skip: string,
     @Query('take') take: string,
     @Query('search') search: string | undefined,
@@ -394,6 +394,7 @@ export class ContentController {
           .normalize('NFD')
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
+
     const { data: members, count: total } =
       await this.authService.manyMemberWidthCountContent(_take, _skip, _search);
 
@@ -454,7 +455,7 @@ export class ContentController {
   ) {
     const member: MemberEntity = req.user;
 
-    if (!member.role.author && !member.role.owner) {
+    if (!member.role_author && !member.role_owner) {
       throw new ForbiddenException('Bạn không có quyền thêm mới bài viết!.');
     }
 
@@ -500,7 +501,7 @@ export class ContentController {
       throw new BadRequestException('Bài viết cần chỉnh sửa không tồn tại.');
     }
 
-    if (!member.role.author && !member.role.owner) {
+    if (!member.role_author && !member.role_owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với bài viết!.',
       );
@@ -516,6 +517,7 @@ export class ContentController {
   }
 
   @Patch('note-content/:id')
+  @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))
   async noteContent(
     @Req() req,
@@ -551,7 +553,7 @@ export class ContentController {
   ) {
     const member: MemberEntity = req.user;
 
-    if (!member.role.owner) {
+    if (!member.role_owner) {
       throw new ForbiddenException('Bạn không có quyền thao tác.');
     }
 

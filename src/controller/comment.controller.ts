@@ -126,7 +126,7 @@ export class CommentController {
       throw new BadRequestException('Bình luận bạn muốn xoá không tồn tại.');
     }
 
-    if (comment.created_by._id !== member._id || !member.role.owner) {
+    if (comment.created_by._id !== member._id || !member.role_owner) {
       throw new ForbiddenException('Bạn không có quyền xoá bình luận này!');
     }
 

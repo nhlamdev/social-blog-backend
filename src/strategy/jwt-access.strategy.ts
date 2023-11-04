@@ -41,9 +41,11 @@ export class JwtAccessStrategy extends PassportStrategy(
       throw new UnauthorizedException('Phiên đăng nhập không hợp lệ.');
     }
 
-    const memberExist = await this.authService.checkMemberExist(payload._id);
+    const memberExist = await this.authService.checkMemberExistById(
+      payload._id,
+    );
 
-    if (memberExist) {
+    if (!memberExist) {
       throw new UnauthorizedException('Thành viên không tồn tại.');
     }
 

@@ -160,7 +160,7 @@ export class SeriesController {
 
     const member = await this.authService.oneMemberById(jwtPayload._id);
 
-    if (!member?.role?.author && !member?.role?.owner) {
+    if (!member?.role_author && !member?.role_owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với chuỗi bài viết!.',
       );
@@ -190,7 +190,7 @@ export class SeriesController {
 
     const member = await this.authService.oneMemberById(jwtPayload._id);
 
-    if (!member?.role?.owner && !member?.role?.author) {
+    if (!member?.role_owner && !member?.role_author) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với chuỗi bài viết!',
       );
@@ -222,7 +222,7 @@ export class SeriesController {
 
     const member = await this.authService.oneMemberById(jwtPayload._id);
 
-    if (!member?.role?.author && !member?.role?.owner) {
+    if (!member?.role_author && !member?.role_owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với chuỗi bài viết!.',
       );
