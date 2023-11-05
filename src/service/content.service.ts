@@ -310,6 +310,7 @@ export class ContentService {
     content.body = body.body;
     content.category = _category;
     content.tags = body.tags;
+    content.case_allow = body.casePublic;
     content.complete = body.complete;
     content.created_by = member;
 

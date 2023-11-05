@@ -285,7 +285,7 @@ export class AuthController {
 
     const member = await this.authService.oneMemberById(jwtPayload._id);
 
-    if (member.role_owner) {
+    if (!member.role_owner) {
       throw new ForbiddenException('Bạn không có quyền thực hiện thao tác này');
     }
 
@@ -301,7 +301,7 @@ export class AuthController {
     const { data: membersWitdthRole, count } =
       await this.authService.manyMemberWidthCountContent(_take, _skip, _search);
 
-    const result = { data: await Promise.all(membersWitdthRole), count };
+    const result = { data: membersWitdthRole, count };
 
     return result;
   }
@@ -427,15 +427,13 @@ export class AuthController {
   @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-access'))
   async updateRoleMember(
-    @Param('roleId') memberId: string,
+    @Param('memberId') memberId: string,
     @Body() payload: { key: string; value: boolean },
     @Req() req,
   ) {
     const jwtPayload: AccessJwtPayload = req.user;
 
-    const member = await this.authService.oneMemberById(jwtPayload._id);
-
-    if (!member.role_owner) {
+    if (!jwtPayload.role_owner) {
       throw new BadRequestException('Quyền không hợp lệ.');
     }
     if (!['comment', 'author', 'owner'].includes(payload.key)) {
@@ -458,8 +456,10 @@ export class AuthController {
     if (payload.key === 'owner') {
       memberUpdate.role_owner = payload.value;
     }
+    // console.log(memberUpdate);
+    // console.log('memberUpdate : ', memberUpdate);
 
-    return await this.authService.updateRole(member);
+    return await this.authService.updateRole(memberUpdate);
   }
 
   @Delete('logout')
@@ -504,7 +504,7 @@ export class AuthController {
       throw new BadRequestException('Phiên đăng nhập không tồn tại.');
     }
 
-    this.authService.removeSession(jwtPayload.session_id);
+    return this.authService.removeSession(sessionTargetId);
   }
 
   @Delete('logout-all')

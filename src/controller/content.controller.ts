@@ -27,7 +27,6 @@ import {
   Put,
   Query,
   Req,
-  UploadedFile,
   // UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -431,38 +430,11 @@ export class ContentController {
   @Post()
   @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))
-  @UseInterceptors(
-    FilesInterceptor('files', 20, {
-      storage: diskStorage({
-        destination: (req, file, next) => {
-          next(null, 'uploads');
-        },
-        filename: (req, file, next) => {
-          next(
-            null,
-            new Date().toISOString().replace(/:/g, '-') +
-              '-' +
-              file.originalname,
-          );
-        },
-      }),
-    }),
-  )
-  async createContents(
-    @Body() body: ContentDto,
-    @Req() req,
-    @UploadedFile('files') files: Express.Multer.File,
-  ) {
+  async createContents(@Body() body: ContentDto, @Req() req) {
     const member: MemberEntity = req.user;
 
     if (!member.role_author && !member.role_owner) {
       throw new ForbiddenException('Bạn không có quyền thêm mới bài viết!.');
-    }
-
-    const filesData = await this.commonService.saveFile(files);
-
-    if (filesData.length === 0) {
-      throw new BadRequestException('Bạn chưa chọn ảnh.');
     }
 
     return await this.contentService.create(body, member);

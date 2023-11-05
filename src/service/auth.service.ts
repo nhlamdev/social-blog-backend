@@ -23,6 +23,12 @@ export class AuthService {
     });
   }
 
+  async oneSessionByMember(session_id: string, member_id: string) {
+    return await this.sessionRepository.findOne({
+      where: { _id: session_id, member: { _id: member_id } },
+    });
+  }
+
   async manySessionByMemberId(id: string) {
     return await this.sessionRepository.find({
       where: { member: { _id: id } },
@@ -62,11 +68,12 @@ export class AuthService {
       .createQueryBuilder('member')
       .leftJoinAndSelect('member.contents', 'contents')
       .select(
-        `member._id,member.name,member.email,member.image,member.created_at,
-        COUNT(contents._id) as content_count`,
+        `member._id,member.name,member.email,member.image,member.created_at,member.role_owner,
+        member.role_comment,member.role_author, COUNT(contents._id) as content_count`,
       )
       .groupBy(
-        'member._id,member.name,member.email,member.image,member.created_at',
+        `member._id,member.name,member.email,member.image,member.created_at,member.role_owner,
+        member.role_comment,member.role_author`,
       )
       .skip(_skip)
       .take(_take)

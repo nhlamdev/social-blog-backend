@@ -29,6 +29,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
       await this.authService.removeSession(payload.session_id);
       throw new BadRequestException('Phiên đăng nhập quá hạn.');
     }
+
     return payload;
   }
 }
