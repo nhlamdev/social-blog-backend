@@ -137,9 +137,14 @@ export class ContentService {
   async randomContents(take: number | null) {
     const contents = await this.contentRepository
       .createQueryBuilder('content')
+      .leftJoinAndSelect('content.category', 'category')
       .where('content.complete = :isComplete', {
         isComplete: true,
       })
+      .select(
+        `content._id, content.title,content.count_view, content.created_at ,
+        category.title as category`,
+      )
       .where('content.case_allow = :caseAlow ', { caseAlow: 'public' })
       .orderBy('RANDOM()')
       .limit(take)
