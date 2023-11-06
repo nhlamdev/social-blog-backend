@@ -54,6 +54,9 @@ export class SeriesService {
         ROUND(SUM(contents.count_view) / COUNT(contents._id)) as contents_avg_view`,
       )
       .where('contents.case_allow = :caseAllow', { caseAllow: 'public' })
+      .andWhere('content.complete = :isComplete', {
+        isComplete: true,
+      })
       .groupBy(
         'series._id, series.title,created_by.name,created_by.image,created_by.email',
       )
@@ -74,11 +77,10 @@ export class SeriesService {
   }
 
   async manySeries(payload: {
-    member?: MemberEntity;
+    memberId?: string;
     _take: number;
     _skip: number;
     _search: string;
-    status: 'owner' | 'member';
   }) {
     const query = this.seriesRepository
       .createQueryBuilder('series')
@@ -89,19 +91,35 @@ export class SeriesService {
         search: payload._search,
       });
 
-    const series = payload.member
+    const series = payload.memberId
       ? await query
-          .andWhere('created_by._id = :member', { member: payload.member._id })
+          .andWhere('created_by._id = :member', {
+            member: payload.memberId,
+          })
           .orderBy('series.created_at', 'DESC')
           .getMany()
       : await query.orderBy('series.created_at', 'DESC').getMany();
 
     const seriesWithCountContent = series.map(async (series) => {
-      const countContent = await this.contentRepository.count({
-        where: { series: { _id: series._id }, case_allow: 'public' },
-      });
+      if (payload.memberId) {
+        const countContent = this.contentRepository.count({
+          where: {
+            series: { _id: series._id },
+            created_by: { _id: payload.memberId },
+          },
+        });
 
-      return { ...series, contents: countContent };
+        return { ...series, contents: countContent };
+      } else {
+        const countContent = this.contentRepository.count({
+          where: {
+            series: { _id: series._id },
+            case_allow: 'public',
+            complete: true,
+          },
+        });
+        return { ...series, contents: countContent };
+      }
     });
 
     const max = await query.getCount();

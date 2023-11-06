@@ -43,6 +43,9 @@ export class CategoryService {
         'category._id, category.title, COUNT(contents._id) as contentCount',
       )
       .where('contents.case_allow = :caseAllow', { caseAllow: 'public' })
+      .andWhere('content.complete = :isComplete', {
+        isComplete: true,
+      })
       .groupBy('category._id')
       .orderBy('contentCount', 'DESC')
       .limit(take)
@@ -69,8 +72,15 @@ export class CategoryService {
 
     const categoriesWithCountContent = categories.map(async (category) => {
       const countContent = await this.contentRepository.count({
-        where: { category: { _id: category._id }, case_allow: 'public' },
+        where: {
+          category: { _id: category._id },
+          case_allow: 'public',
+          complete: true,
+        },
       });
+
+      delete category.delete_at;
+      delete category.index;
 
       return { ...category, contents: countContent };
     });

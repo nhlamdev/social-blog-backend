@@ -9,6 +9,10 @@ export class CommentService {
     private commentRepository: Repository<CommentEntity>,
   ) {}
 
+  async checkExistById(id: string) {
+    return await this.commentRepository.exist({ where: { _id: id } });
+  }
+
   async commentById(id: string) {
     return await this.commentRepository.findOne({
       where: { _id: id },

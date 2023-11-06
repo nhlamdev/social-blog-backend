@@ -70,12 +70,10 @@ export class AuthService {
       .createQueryBuilder('member')
       .leftJoinAndSelect('member.contents', 'contents')
       .select(
-        `member._id,member.name,member.email,member.image,member.created_at,member.role_owner,
-        member.role_comment,member.role_author, COUNT(contents._id) as content_count`,
+        `member._id,member.name,member.email,member.image,member.created_at, COUNT(contents._id) as content_count`,
       )
       .groupBy(
-        `member._id,member.name,member.email,member.image,member.created_at,member.role_owner,
-        member.role_comment,member.role_author`,
+        `member._id,member.name,member.email,member.image,member.created_at`,
       )
       .skip(_skip)
       .take(_take)
