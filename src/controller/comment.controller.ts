@@ -8,6 +8,7 @@ import {
   Controller,
   Delete,
   ForbiddenException,
+  NotFoundException,
   Get,
   Param,
   Post,
@@ -33,13 +34,16 @@ export class CommentController {
     @Query('skip') skip: string,
     @Query('take') take: string,
   ) {
-    const content = await this.contentService.oneContentById(id, 'view');
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
 
-    if (!Boolean(content)) {
+    const isExistContent = await this.contentService.checkExistById(id);
+
+    if (!isExistContent) {
       throw new BadRequestException('Bài viết không tồn tại.');
     }
+
+    const content = await this.contentService.oneContentById(id);
 
     return await this.commentService.commentByContent(content, _take, _skip);
   }
@@ -74,11 +78,13 @@ export class CommentController {
 
     const member = await this.authService.oneMemberById(jwtPayload._id);
 
-    const content = await this.contentService.oneContentById(id, 'owner');
+    const isExistContent = await this.contentService.checkExistById(id);
 
-    if (!Boolean(content)) {
-      throw new BadRequestException('Bài viết không tồn tại.');
+    if (!isExistContent) {
+      throw new NotFoundException('Bài viết không tồn tại.');
     }
+
+    const content = await this.contentService.oneContentById(id);
 
     return await this.commentService.createComment({
       text: body.text,
