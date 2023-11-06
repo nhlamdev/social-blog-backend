@@ -290,6 +290,9 @@ export class AuthController {
       }),
     }),
   )
+  @ApiOperation({
+    summary: 'Thay đổi thông tin cá nhân của thành viên.',
+  })
   async updateProfile(
     @UploadedFile('files') files: Express.Multer.File,
     @Req() req,
@@ -350,6 +353,9 @@ export class AuthController {
   @Get('all-session')
   @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-access'))
+  @ApiOperation({
+    summary: 'Lấy thông tin tất cả các phiên đăng nhập của thành viên.',
+  })
   async allSession(@Req() req) {
     const jwtPayload: AccessJwtPayload = req.user;
 
@@ -368,7 +374,7 @@ export class AuthController {
   @Get('author/:id')
   @ApiTags('member-auth')
   @ApiOperation({
-    summary: 'Lấy thông tin tất cả thành viên (owner).',
+    summary: 'Lấy thông tin cá nhân của một tác giả.',
   })
   async authorById(@Param('id') id: string) {
     const member = await this.authService.oneMemberById(id);
@@ -431,6 +437,9 @@ export class AuthController {
   @Patch('change-role/:memberId')
   @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-access'))
+  @ApiOperation({
+    summary: 'Thay đổi quyền của thành viên.',
+  })
   async updateRoleMember(
     @Param('memberId') memberId: string,
     @Body() payload: { key: string; value: boolean },

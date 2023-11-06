@@ -255,11 +255,11 @@ export class ContentService {
   }) {
     const query = this.contentRepository
       .createQueryBuilder('content')
-      .skip(payload._skip)
-      .take(payload._take)
       .leftJoinAndSelect('content.category', 'category')
       .leftJoinAndSelect('content.series', 'series')
       .leftJoinAndSelect('content.created_by', 'created_by')
+      .skip(payload._skip)
+      .take(payload._take)
       .where('content.case_allow = :caseAlow ', { caseAlow: 'public' })
       .where('LOWER(content.title) LIKE :search', { search: payload._search })
       .andWhere('content.complete = :isComplete', {
@@ -279,6 +279,7 @@ export class ContentService {
       : filterCategory;
 
     const [value, order] = payload._caseSort.split('_');
+
     const contents = await filterSeries
       .orderBy(
         `content.${value === 'NAME' ? 'title' : 'created_at'}`,
@@ -299,6 +300,8 @@ export class ContentService {
 
           delete c.body;
           delete c.complete;
+          delete c.case_allow;
+          delete c.saved_by;
           delete c.delete_at;
           delete c.index;
 
