@@ -56,11 +56,13 @@ export class CategoryController {
     summary: 'Lấy thông tin thể loại theo id.',
   })
   async categoryById(@Param('id') id: string) {
-    const category = await this.categoryService.oneCategoryById(id);
+    const isExist = await this.categoryById(id);
 
-    if (!Boolean(category)) {
-      throw new BadRequestException('Thể loại không tồn tại!.');
+    if (isExist) {
+      throw new NotFoundException('Thể loại không tồn tại!.');
     }
+
+    const category = await this.categoryService.oneCategoryById(id);
 
     return category;
   }
@@ -84,9 +86,7 @@ export class CategoryController {
   async createCategory(@Body() body: CategoryDto, @Req() req) {
     const jwtPayload: AccessJwtPayload = req.user;
 
-    const member = await this.authService.oneMemberById(jwtPayload._id);
-
-    if (!member.role_owner) {
+    if (!jwtPayload.role_owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với thể loại!.',
       );
@@ -95,7 +95,7 @@ export class CategoryController {
     const isExist = await this.categoryService.checkExistByName(body.title);
 
     if (isExist) {
-      throw new NotFoundException('Thể loại đã tồn tại.');
+      throw new NotFoundException('Tiêu dề thể loại đã tồn tại.');
     }
 
     return await this.categoryService.create(body);
@@ -114,9 +114,7 @@ export class CategoryController {
   ) {
     const jwtPayload: AccessJwtPayload = req.user;
 
-    const member = await this.authService.oneMemberById(jwtPayload._id);
-
-    if (!member.role_owner) {
+    if (!jwtPayload.role_owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với thể loại!.',
       );
@@ -140,17 +138,15 @@ export class CategoryController {
   async deleteCategory(@Param('id') id: string, @Req() req) {
     const jwtPayload: AccessJwtPayload = req.user;
 
-    const member = await this.authService.oneMemberById(jwtPayload._id);
-
-    if (!member.role_owner) {
+    if (!jwtPayload.role_owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với thể loại!.',
       );
     }
 
-    const category = await this.categoryService.oneCategoryById(id);
+    const isExist = await this.categoryService.checkExistById(id);
 
-    if (!category) {
+    if (!isExist) {
       throw new BadRequestException('Thể loại cần xoá không tồn tại.!');
     }
 

@@ -51,7 +51,6 @@ export class SeriesController {
       _take,
       _skip,
       _search,
-      status: 'member',
     });
   }
 
@@ -79,11 +78,13 @@ export class SeriesController {
     @Query('take') take: string,
     @Query('search') search: string | undefined,
   ) {
-    const member = await this.authService.oneMemberById(id);
+    const isExistMember = await this.authService.checkMemberExistById(id);
 
-    if (!Boolean(member)) {
-      throw new BadRequestException('Thành viên không tồn tại.!');
+    if (!isExistMember) {
+      throw new NotFoundException('Thành viên không tồn tại.!');
     }
+
+    const member = await this.authService.oneMemberById(id);
 
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
@@ -99,8 +100,7 @@ export class SeriesController {
       _take,
       _skip,
       _search,
-      member,
-      status: 'member',
+      memberId: member._id,
     });
   }
 
@@ -128,14 +128,11 @@ export class SeriesController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    const member = await this.authService.oneMemberById(jwtPayload._id);
-
     return await this.seriesService.manySeries({
       _take,
       _skip,
       _search,
-      member,
-      status: 'owner',
+      memberId: jwtPayload._id,
     });
   }
 
@@ -188,21 +185,21 @@ export class SeriesController {
   ) {
     const jwtPayload: AccessJwtPayload = req.user;
 
-    const member = await this.authService.oneMemberById(jwtPayload._id);
-
-    if (!member?.role_owner && !member?.role_author) {
+    if (!jwtPayload?.role_owner && !jwtPayload?.role_author) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với chuỗi bài viết!',
       );
     }
 
-    const series = await this.seriesService.oneSeriesById(id);
+    const isExistSeries = await this.seriesService.checkExistById(id);
 
-    if (!series) {
+    if (!isExistSeries) {
       throw new BadRequestException('Thể loại cần chỉnh sửa không tồn tại!');
     }
 
-    if (member._id !== series.created_by._id) {
+    const series = await this.seriesService.oneSeriesById(id);
+
+    if (jwtPayload._id !== series.created_by._id) {
       throw new ForbiddenException(
         'Bạn không phải là người tạo của chuỗi bài viết này!',
       );
@@ -220,9 +217,7 @@ export class SeriesController {
   async deleteSeries(@Param('id') id: string, @Req() req) {
     const jwtPayload: AccessJwtPayload = req.user;
 
-    const member = await this.authService.oneMemberById(jwtPayload._id);
-
-    if (!member?.role_author && !member?.role_owner) {
+    if (!jwtPayload?.role_author && !jwtPayload?.role_owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với chuỗi bài viết!.',
       );
@@ -234,7 +229,7 @@ export class SeriesController {
       throw new BadRequestException('Thể loại cần xoá không tồn tại.!');
     }
 
-    if (member._id !== series.created_by._id) {
+    if (jwtPayload._id !== series.created_by._id) {
       throw new ForbiddenException(
         'Bạn không phải là người tạo chuỗi bài viết này!.',
       );

@@ -55,13 +55,16 @@ export class CommentController {
     @Query('skip') skip: string,
     @Query('take') take: string,
   ) {
-    const parent = await this.commentService.commentById(id);
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
 
-    if (!Boolean(parent)) {
+    const isExistParent = await this.commentService.checkExistById(id);
+
+    if (isExistParent) {
       throw new BadRequestException('bình luận mà bạn trả lời không tồn tại.');
     }
+
+    const parent = await this.commentService.commentById(id);
 
     return await this.commentService.commentByParent(parent, _take, _skip);
   }
@@ -124,15 +127,13 @@ export class CommentController {
   async deleteComment(@Param('id') id: string, @Req() req) {
     const jwtPayload: AccessJwtPayload = req.user;
 
-    const member = await this.authService.oneMemberById(jwtPayload._id);
-
     const comment = await this.commentService.commentById(id);
 
     if (!Boolean(comment)) {
       throw new BadRequestException('Bình luận bạn muốn xoá không tồn tại.');
     }
 
-    if (comment.created_by._id !== member._id || !member.role_owner) {
+    if (comment.created_by._id !== jwtPayload._id || !jwtPayload.role_owner) {
       throw new ForbiddenException('Bạn không có quyền xoá bình luận này!');
     }
 
