@@ -1,6 +1,5 @@
 import { CASE_SORT } from '@/constants';
 import * as cacheKey from '@/constants/cache-key';
-import { MemberEntity } from '@/entities';
 import { AccessJwtPayload } from '@/interface';
 import { ContentDto } from '@/model';
 import {
@@ -105,9 +104,9 @@ export class ContentController {
     @Param('id') id: string,
     @Req() req,
   ) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
-    if (!member.role_owner) {
+    if (!jwtPayload.role_owner) {
       throw new ForbiddenException('Bạn không có quyền hạn thao tác.');
     }
 
@@ -150,9 +149,9 @@ export class ContentController {
     @Param('id') id: string,
     @Req() req,
   ) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
-    if (!member.role_owner && !member.role_author) {
+    if (!jwtPayload.role_owner && !jwtPayload.role_author) {
       throw new ForbiddenException('Bạn không có quyền hạn thao tác.');
     }
 
@@ -178,17 +177,52 @@ export class ContentController {
       _search,
       id,
       outside,
-      member,
+      jwtPayload,
     );
   }
 
-  @Get('count-content')
-  // @UseGuards(AuthGuard('jwt-access'))
+  @Get('my-saved')
+  @ApiTags('content')
+  @UseGuards(AuthGuard('jwt-access'))
+  @ApiOperation({
+    summary: 'Lấy thông tin tất cả bài viết đã lưu của cá nhân.',
+  })
+  async mySavedContent(
+    @Req() req,
+    @Query('skip') skip: string,
+    @Query('take') take: string,
+    @Query('search') search: string | undefined,
+  ) {
+    const jwtPayload: AccessJwtPayload = req.user;
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    const _skip = checkIsNumber(skip) ? Number(skip) : null;
+    const _search = search
+      ? `%${search
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')}%`
+      : '%%';
+
+    return await this.contentService.manyAndCountContentMemberSave(jwtPayload, {
+      _take,
+      _skip,
+      _search,
+    });
+  }
+
+  @Get('count-result')
+  @UseGuards(AuthGuard('jwt-access'))
   @ApiTags('content')
   @ApiOperation({
     summary: 'Số lượng bài viết tổng.',
   })
-  async countContents() {
+  async countContents(@Req() req) {
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    if (!jwtPayload.role_owner) {
+      throw new BadRequestException('Bạn không có quyền thao tác.');
+    }
+
     const status = await this.cacheManager.get(cacheKey.COUNT_STATUS);
 
     if (status) {
@@ -247,7 +281,7 @@ export class ContentController {
       : '%%';
 
     return await this.contentService.manyContentByMember({
-      member,
+      memberId: member._id,
       status: 'view',
       _take,
       _skip,
@@ -267,7 +301,7 @@ export class ContentController {
     @Query('take') take: string,
     @Query('search') search: string | undefined,
   ) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
@@ -279,11 +313,11 @@ export class ContentController {
       : '%%';
 
     return await this.contentService.manyContentByMember({
-      member,
-      status: 'owner',
+      memberId: jwtPayload._id,
       _take,
       _skip,
       _search,
+      status: 'owner',
     });
   }
 
@@ -297,7 +331,7 @@ export class ContentController {
     if (!validateUUID(id)) {
       throw new BadRequestException('Id bài viết sai định dạng.');
     }
-    const member: MemberEntity = req.user;
+    const member: AccessJwtPayload = req.user;
 
     const content = await this.contentService.oneContentById(id, 'owner');
 
@@ -362,16 +396,11 @@ export class ContentController {
   @ApiOperation({
     summary: 'All posts sorted by views!',
   })
-  async contentsTopViewOwner(
-    @Query('take') take: string | undefined,
-    @Req() req,
-  ) {
-    const member: MemberEntity = req.user;
+  async contentsTopViewOwner(@Query('take') take: string | undefined) {
     const _take = checkIsNumber(take) ? Number(take) : null;
 
     return await this.contentService.topViewContent({
       _take,
-      member,
     });
   }
 
@@ -431,13 +460,13 @@ export class ContentController {
   @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))
   async createContents(@Body() body: ContentDto, @Req() req) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
-    if (!member.role_author && !member.role_owner) {
+    if (!jwtPayload.role_author && !jwtPayload.role_owner) {
       throw new ForbiddenException('Bạn không có quyền thêm mới bài viết!.');
     }
 
-    return await this.contentService.create(body, member);
+    return await this.contentService.create(body, jwtPayload._id);
   }
 
   @Put(':id')
@@ -465,7 +494,7 @@ export class ContentController {
     @Param('id') id: string,
     @Req() req,
   ) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
     const content = await this.contentService.oneContentById(id, 'owner');
 
@@ -473,13 +502,13 @@ export class ContentController {
       throw new BadRequestException('Bài viết cần chỉnh sửa không tồn tại.');
     }
 
-    if (!member.role_author && !member.role_owner) {
+    if (!jwtPayload.role_author && !jwtPayload.role_owner) {
       throw new ForbiddenException(
         'Bạn không có quyền thao tác với bài viết!.',
       );
     }
 
-    if (content.created_by._id !== member._id) {
+    if (content.created_by._id !== jwtPayload._id) {
       throw new ForbiddenException(
         'Bạn không phải là người tạo ra bài viết này.',
       );
@@ -488,15 +517,15 @@ export class ContentController {
     return await this.contentService.updateContent(id, payload);
   }
 
-  @Patch('note-content/:id')
+  @Patch('save-content/:id')
   @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))
-  async noteContent(
+  async saveContent(
     @Req() req,
     @Query('case') caseAction: string,
     @Param('contentId') contentId: string,
   ) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
     if (!['add', 'remove'].includes(caseAction)) {
       throw new BadRequestException('loại thao tác không chuẩn.');
@@ -508,9 +537,9 @@ export class ContentController {
       throw new BadRequestException('Bài viết không tồn tại');
     }
 
-    return await this.contentService.noteContent(
+    return await this.contentService.saveContent(
       content,
-      member,
+      jwtPayload,
       caseAction as any,
     );
   }
@@ -523,9 +552,9 @@ export class ContentController {
     @Param('category') category: string,
     @Req() req,
   ) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
-    if (!member.role_owner) {
+    if (!jwtPayload.role_owner) {
       throw new ForbiddenException('Bạn không có quyền thao tác.');
     }
 
@@ -552,7 +581,7 @@ export class ContentController {
     @Param('series') series: string,
     @Req() req,
   ) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
     const _content = await this.contentService.oneContentById(content, 'owner');
 
@@ -567,8 +596,8 @@ export class ContentController {
     }
 
     if (
-      _content.created_by._id !== member._id ||
-      _series.created_by._id !== member._id
+      _content.created_by._id !== jwtPayload._id ||
+      _series.created_by._id !== jwtPayload._id
     ) {
       throw new ForbiddenException('Bạn không có quyền thao tác');
     }
@@ -580,7 +609,7 @@ export class ContentController {
   @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))
   async deleteContent(@Param('id') id: string, @Req() req) {
-    const member: MemberEntity = req.user;
+    const jwtPayload: AccessJwtPayload = req.user;
 
     const _content = await this.contentService.oneContentById(id, 'owner');
 
@@ -588,7 +617,7 @@ export class ContentController {
       throw new BadRequestException('bài viết không tồn tại.');
     }
 
-    if (_content.created_by._id !== member._id) {
+    if (_content.created_by._id !== jwtPayload._id) {
       throw new ForbiddenException('Bạn không có quyền xoá bài viết này');
     }
 

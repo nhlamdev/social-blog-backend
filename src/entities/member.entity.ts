@@ -51,11 +51,8 @@ export class MemberEntity extends AbstractEntity {
   @OneToMany(() => ContentEntity, (content) => content.created_by)
   contents: ContentEntity[];
 
-  @OneToMany(() => ContentEntity, (content) => content.created_by)
-  save_contents: ContentEntity[];
-
   @OneToMany(() => SeriesEntity, (series) => series.created_by)
-  series: SeriesEntity[];
+  series: string[];
 
   @OneToMany(() => NotifyEntity, (notify) => notify.member)
   notifies: NotifyEntity[];

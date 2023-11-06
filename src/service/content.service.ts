@@ -9,8 +9,9 @@ import { ContentDto } from '@/model';
 // import { CategoryService, SeriesService } from '@/service';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
+import { Like, Not, Repository } from 'typeorm';
 import { CategoryService, CommentService } from '.';
+import { AccessJwtPayload } from '@/interface';
 
 @Injectable()
 export class ContentService {
@@ -37,6 +38,17 @@ export class ContentService {
 
   async countContent() {
     return await this.contentRepository.count();
+  }
+
+  async manyAndCountContentMemberSave(
+    jwtPayload: AccessJwtPayload,
+    params: { _take: number; _skip: number; _search: string },
+  ) {
+    return await this.contentRepository.findAndCount({
+      where: { saved_by: jwtPayload._id, title: Like(`%${params._search}%`) },
+      take: params._take,
+      skip: params._skip,
+    });
   }
 
   async oneContentById(id: string, status: 'view' | 'owner') {
@@ -73,10 +85,7 @@ export class ContentService {
     return this.contentRepository.save(content);
   }
 
-  async topViewContent(payload: {
-    _take: number | null;
-    member?: MemberEntity;
-  }) {
+  async topViewContent(payload: { _take: number | null }) {
     return await this.contentRepository
       .createQueryBuilder('content')
       .leftJoinAndSelect('content.category', 'category')
@@ -111,7 +120,7 @@ export class ContentService {
     _take: number;
     _skip: number;
     _search: string;
-    member: MemberEntity;
+    memberId: string;
     status: 'view' | 'owner';
   }) {
     const query = this.contentRepository
@@ -120,13 +129,15 @@ export class ContentService {
       .take(payload._take)
       .leftJoinAndSelect('content.category', 'category')
       .leftJoinAndSelect('content.series', 'series')
-      .where('LOWER(content.title) LIKE :search ', { search: payload._search });
+      .leftJoinAndSelect('content.created_by', 'created_by')
+      .where('LOWER(content.title) LIKE :search ', { search: payload._search })
+      .andWhere('created_by._id = :member ', { member: payload.memberId });
 
     if (payload.status === 'owner') {
       return query.getManyAndCount();
     } else {
       return query
-        .where('content.case_allow = :caseAlow ', { caseAlow: 'public' })
+        .andWhere('content.case_allow = :caseAlow ', { caseAlow: 'public' })
         .andWhere('complete = :complete', {
           complete: true,
         })
@@ -197,7 +208,7 @@ export class ContentService {
     _search: string,
     id: string,
     outside: string | undefined,
-    member: MemberEntity,
+    member: AccessJwtPayload,
   ) {
     const query = this.contentRepository
       .createQueryBuilder('content')
@@ -300,7 +311,11 @@ export class ContentService {
     return result;
   }
 
-  async create(body: ContentDto, member: MemberEntity) {
+  async create(body: ContentDto, memberId: string) {
+    const member = await this.memberRepository.findOne({
+      where: { _id: memberId },
+    });
+
     const categoryExist = await this.categoryService.checkExistById(
       body.category,
     );
@@ -361,21 +376,21 @@ export class ContentService {
     }
   }
 
-  async noteContent(
+  async saveContent(
     content: ContentEntity,
-    member: MemberEntity,
+    jwtPayload: AccessJwtPayload,
     status: 'add' | 'remove',
   ) {
-    const isExist = await member.save_contents.includes(content);
+    const isExist = await content.saved_by.includes(jwtPayload._id);
 
     if (status === 'add') {
       if (isExist) {
         throw new BadRequestException('bài viết đã được lưu.');
       }
 
-      member.save_contents.unshift(content);
+      content.saved_by.push(jwtPayload._id);
 
-      return await this.memberRepository.save(member);
+      return await this.contentRepository.save(content);
     }
 
     if (status === 'remove') {
@@ -383,11 +398,9 @@ export class ContentService {
         throw new BadRequestException('bài viết chưa được lưu.');
       }
 
-      member.save_contents = await member.save_contents.filter(
-        (v) => v._id === v._id,
-      );
+      content.saved_by = content.saved_by.filter((v) => v !== jwtPayload._id);
 
-      return await this.memberRepository.save(member);
+      return await this.contentRepository.save(content);
     }
   }
 

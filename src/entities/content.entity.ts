@@ -34,6 +34,9 @@ export class ContentEntity extends AbstractEntity {
   @Column({ type: 'text', array: true, nullable: false, default: [] })
   tags: string[];
 
+  @Column({ type: 'text', array: true, default: [] })
+  saved_by: string[];
+
   @OneToMany(() => CommentEntity, (tag) => tag.content, {
     onDelete: 'CASCADE',
   })

@@ -1,4 +1,5 @@
 import { AccessJwtPayload, RefreshJwtPayload } from '@/interface';
+import { ProfileDto } from '@/model';
 import { AuthService, CommonService } from '@/service';
 import { checkIsNumber } from '@/utils/global-func';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -269,6 +270,46 @@ export class AuthController {
     return jwtPayload;
   }
 
+  @Put('change')
+  @ApiTags('member-auth')
+  @UseGuards(AuthGuard('jwt-access'))
+  @UseInterceptors(
+    FilesInterceptor('files', 20, {
+      storage: diskStorage({
+        destination: (req, file, next) => {
+          next(null, 'uploads');
+        },
+        filename: (req, file, next) => {
+          next(
+            null,
+            new Date().toISOString().replace(/:/g, '-') +
+              '-' +
+              file.originalname,
+          );
+        },
+      }),
+    }),
+  )
+  async updateProfile(
+    @UploadedFile('files') files: Express.Multer.File,
+    @Req() req,
+    @Body() body: ProfileDto,
+  ) {
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const filesData = await this.commonService.saveFile(files);
+
+    if (!body.name && filesData.length === 0) {
+      throw new BadRequestException('Dữ liệu không thay đổi.');
+    }
+
+    return await this.authService.updateProfile({
+      id: jwtPayload._id,
+      image: filesData.length !== 0 ? filesData[0].fileName : undefined,
+      name: body.name ? body.name : undefined,
+    });
+  }
+
   @Get('all-members')
   @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-access'))
@@ -385,42 +426,6 @@ export class AuthController {
     });
 
     res.status(200).json({ message: 'renew success' });
-  }
-
-  @Put('change')
-  @ApiTags('member-auth')
-  @UseGuards(AuthGuard('jwt-access'))
-  @UseInterceptors(
-    FilesInterceptor('files', 20, {
-      storage: diskStorage({
-        destination: (req, file, next) => {
-          next(null, 'uploads');
-        },
-        filename: (req, file, next) => {
-          next(
-            null,
-            new Date().toISOString().replace(/:/g, '-') +
-              '-' +
-              file.originalname,
-          );
-        },
-      }),
-    }),
-  )
-  async updateProfile(
-    @UploadedFile('files') files: Express.Multer.File,
-    @Req() req,
-    @Body() body,
-  ) {
-    const jwtPayload: AccessJwtPayload = req.user;
-
-    const filesData = await this.commonService.saveFile(files);
-
-    return await this.authService.updateProfile({
-      id: jwtPayload._id,
-      image: filesData.length !== 0 ? filesData[0].fileName : undefined,
-      name: body.name ? body.name : undefined,
-    });
   }
 
   @Patch('change-role/:memberId')

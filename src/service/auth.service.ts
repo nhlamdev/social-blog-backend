@@ -53,10 +53,12 @@ export class AuthService {
   }
 
   async updateProfile(payload: { id: string; name?: string; image?: string }) {
-    this.memberRepository.update(payload.id, {
-      name: payload.name,
-      image: payload.image,
-    });
+    if (payload.name || payload.name) {
+      return await this.memberRepository.update(payload.id, {
+        name: payload.name,
+        image: payload.image,
+      });
+    }
   }
 
   async manyMemberWidthCountContent(
