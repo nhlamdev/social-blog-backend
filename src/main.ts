@@ -29,7 +29,7 @@ async function bootstrap() {
 
   dotenv.config();
 
-  if (process.env.MODE !== 'production') {
+  if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('authen api docs')
       .setDescription('api for hoang lam blog')

@@ -28,10 +28,6 @@ export class GlobalConfigService {
     return Boolean(this.get(key));
   }
 
-  get globalPrefix(): string {
-    return this.get('GLOBAL_PREFIX') || '';
-  }
-
   get nodeEnv(): string {
     return this.get('NODE_ENV') || 'development';
   }
