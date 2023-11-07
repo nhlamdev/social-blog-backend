@@ -43,7 +43,7 @@ export class CategoryService {
         'category._id, category.title, COUNT(contents._id) as contentCount',
       )
       .where('contents.case_allow = :caseAllow', { caseAllow: 'public' })
-      .andWhere('content.complete = :isComplete', {
+      .andWhere('contents.complete = :isComplete', {
         isComplete: true,
       })
       .groupBy('category._id')

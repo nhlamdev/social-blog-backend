@@ -106,9 +106,13 @@ export class ContentService {
       .getManyAndCount();
   }
 
-  async countContentByMember(member: MemberEntity) {
+  async countContentByMember(memberId: string) {
     return await this.contentRepository.count({
-      where: { created_by: { _id: member._id }, complete: true },
+      where: {
+        created_by: { _id: memberId },
+        complete: true,
+        case_allow: 'public',
+      },
     });
   }
 
@@ -131,8 +135,6 @@ export class ContentService {
         'content.created_at',
         'category._id ',
         'category.title ',
-        'series._id ',
-        'series.title ',
         'created_by._id',
         'created_by.name',
         'created_by.image',

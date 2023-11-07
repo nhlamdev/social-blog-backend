@@ -343,7 +343,12 @@ export class AuthController {
       : '%%';
 
     const { data: membersWitdthRole, count } =
-      await this.authService.manyMemberWidthCountContent(_take, _skip, _search);
+      await this.authService.manyMemberWidthCountContent(
+        _take,
+        _skip,
+        _search,
+        true,
+      );
 
     const result = { data: membersWitdthRole, count };
 

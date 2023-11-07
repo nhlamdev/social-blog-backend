@@ -450,10 +450,15 @@ export class ContentController {
       : '%%';
 
     const { data: members, count: total } =
-      await this.authService.manyMemberWidthCountContent(_take, _skip, _search);
+      await this.authService.manyMemberWidthCountContent(
+        _take,
+        _skip,
+        _search,
+        false,
+      );
 
     const membersWidthContents = await members.map(async (member) => {
-      const count = await this.contentService.countContentByMember(member);
+      const count = await this.contentService.countContentByMember(member._id);
 
       const memberWithCountContent = { ...member, countContent: count };
       return memberWithCountContent;

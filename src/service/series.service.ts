@@ -54,7 +54,7 @@ export class SeriesService {
         ROUND(SUM(contents.count_view) / COUNT(contents._id)) as contents_avg_view`,
       )
       .where('contents.case_allow = :caseAllow', { caseAllow: 'public' })
-      .andWhere('content.complete = :isComplete', {
+      .andWhere('contents.complete = :isComplete', {
         isComplete: true,
       })
       .groupBy(
@@ -102,7 +102,7 @@ export class SeriesService {
 
     const seriesWithCountContent = series.map(async (series) => {
       if (payload.memberId) {
-        const countContent = this.contentRepository.count({
+        const countContent = await this.contentRepository.count({
           where: {
             series: { _id: series._id },
             created_by: { _id: payload.memberId },
@@ -111,7 +111,7 @@ export class SeriesService {
 
         return { ...series, contents: countContent };
       } else {
-        const countContent = this.contentRepository.count({
+        const countContent = await this.contentRepository.count({
           where: {
             series: { _id: series._id },
             case_allow: 'public',

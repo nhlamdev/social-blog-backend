@@ -1,4 +1,4 @@
-import { MemberEntity, SessionEntity } from '@/entities';
+import { ContentEntity, MemberEntity, SessionEntity } from '@/entities';
 import { client_data } from '@/interface/common.interface';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,6 +11,8 @@ export class AuthService {
     private sessionRepository: Repository<SessionEntity>,
     @InjectRepository(MemberEntity)
     private memberRepository: Repository<MemberEntity>,
+    @InjectRepository(ContentEntity)
+    private contentRepository: Repository<ContentEntity>,
   ) {}
 
   async checkSessionExist(session_id: string) {
@@ -65,24 +67,62 @@ export class AuthService {
     _take: number,
     _skip: number,
     _search: string,
+    isOwner: boolean,
   ) {
-    const data = await this.memberRepository
+    const query = await this.memberRepository
       .createQueryBuilder('member')
       .leftJoinAndSelect('member.contents', 'contents')
-      .select(
-        `member._id,member.name,member.email,member.image,member.created_at, COUNT(contents._id) as content_count`,
-      )
-      .groupBy(
-        `member._id,member.name,member.email,member.image,member.created_at`,
-      )
       .skip(_skip)
       .take(_take)
-      .where('LOWER(member.name) LIKE :search', { search: _search })
-      .getRawMany();
+      .where('LOWER(member.name) LIKE :search', { search: _search });
+
+    const members = isOwner
+      ? await query
+          .select([
+            'member._id',
+            'member.name',
+            'member.email',
+            'member.image',
+            'member.created_at',
+            'member.role_comment',
+            'member.role_author',
+            'member.role_owner',
+          ])
+          .getMany()
+      : await query
+          .select([
+            'member._id',
+            'member.name',
+            'member.email',
+            'member.image',
+            'member.created_at',
+          ])
+          .getMany();
+
+    const membersWidthCountContents = await Promise.all(
+      members.map(async (c) => {
+        if (isOwner) {
+          const content_count = await this.contentRepository.count({
+            where: { created_by: { _id: c._id } },
+          });
+
+          return { ...c, content_count };
+        } else {
+          const content_count = await this.contentRepository.count({
+            where: {
+              created_by: { _id: c._id },
+              case_allow: 'public',
+              complete: true,
+            },
+          });
+          return { ...c, content_count };
+        }
+      }),
+    );
 
     const count = await this.memberRepository.count();
 
-    const result = { data, count };
+    const result = { data: membersWidthCountContents, count };
 
     return result;
   }
