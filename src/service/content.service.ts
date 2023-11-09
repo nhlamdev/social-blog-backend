@@ -325,7 +325,7 @@ export class ContentService {
         'content.tags',
         'content.created_at',
         'category._id ',
-        'category.title ',
+        'category.title',
         'series._id ',
         'series.title ',
         'created_by._id',
