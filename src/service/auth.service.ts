@@ -31,10 +31,20 @@ export class AuthService {
     });
   }
 
-  async manySessionByMemberId(id: string) {
-    return await this.sessionRepository.find({
+  async manySessionByMemberId(id: string, _take: number, _skip: number) {
+    const data = await this.sessionRepository.find({
       where: { member: { _id: id } },
+      take: _take,
+      skip: _skip,
     });
+
+    const count = await this.sessionRepository.count({
+      where: { member: { _id: id } },
+      take: _take,
+      skip: _skip,
+    });
+
+    return { data, count };
   }
 
   async oneSessionById(session_id: string) {

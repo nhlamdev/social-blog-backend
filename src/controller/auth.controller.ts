@@ -361,19 +361,31 @@ export class AuthController {
   @ApiOperation({
     summary: 'Lấy thông tin tất cả các phiên đăng nhập của thành viên.',
   })
-  async allSession(@Req() req) {
+  async allSession(
+    @Req() req,
+    @Query('skip') skip: string,
+    @Query('take') take: string,
+  ) {
     const jwtPayload: AccessJwtPayload = req.user;
 
-    const sessions = await this.authService.manySessionByMemberId(
-      jwtPayload._id,
-    );
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    const _skip = checkIsNumber(skip) ? Number(skip) : null;
 
-    return Promise.all(
+    const { data: sessions, count } =
+      await this.authService.manySessionByMemberId(
+        jwtPayload._id,
+        _take,
+        _skip,
+      );
+
+    const sessionsWidthCheckCurrent = await Promise.all(
       sessions.map((v) => {
         const result = { ...v, isCurrent: v._id === jwtPayload.session_id };
         return result;
       }),
     );
+
+    return { data: sessionsWidthCheckCurrent, count };
   }
 
   @Get('author/:id')
