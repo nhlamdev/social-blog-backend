@@ -324,10 +324,8 @@ export class ContentService {
         'content.count_view',
         'content.tags',
         'content.created_at',
-        'category._id ',
+        'category._id',
         'category.title',
-        'series._id ',
-        'series.title ',
         'created_by._id',
         'created_by.name',
         'created_by.image',
@@ -364,7 +362,7 @@ export class ContentService {
       )
       .getMany();
 
-    const max = await query.getCount();
+    const max = await filterSeries.getCount();
 
     const result = {
       data: await Promise.all(
