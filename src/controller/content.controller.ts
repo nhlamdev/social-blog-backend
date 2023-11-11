@@ -117,19 +117,21 @@ export class ContentController {
     });
   }
 
-  @Get('tags-by-author/:author')
+  @Get('tags-by-author')
   @ApiTags('content')
   @ApiOperation({
     summary: 'Lấy thông tin tất cả bài viết đã lưu của cá nhân.',
   })
-  async tagsByAuthor(@Param('author') author: string) {
-    const isExist = await this.authService.checkMemberExistById(author);
+  async tagsByAuthor(@Query('author') author: string | undefined) {
+    if (typeof author !== 'undefined') {
+      const isExist = await this.authService.checkMemberExistById(author);
 
-    if (!isExist) {
-      return new NotFoundException('Thành viên không tồn tại');
+      if (!isExist) {
+        return new NotFoundException('Thành viên không tồn tại');
+      }
     }
 
-    return this.contentService.manytagsPublicContentByAuthor(author);
+    return this.contentService.manyTagsPublicContentByAuthor(author);
   }
 
   @Get('by-category/:id')

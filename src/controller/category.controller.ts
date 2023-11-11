@@ -56,7 +56,6 @@ export class CategoryController {
     summary: 'Lấy thông tin thể loại theo id.',
   })
   async categoryById(@Param('id') id: string) {
-    console.log('action xxx');
     const isExist = await this.categoryService.checkExistById(id);
 
     if (isExist) {
@@ -65,7 +64,6 @@ export class CategoryController {
 
     const category = await this.categoryService.oneCategoryById(id);
 
-    console.log('category : ', category);
     return category;
   }
 

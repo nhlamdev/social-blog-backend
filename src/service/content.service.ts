@@ -106,16 +106,23 @@ export class ContentService {
       .getManyAndCount();
   }
 
-  async manytagsPublicContentByAuthor(author: string) {
-    const queryData = await this.contentRepository
+  async manyTagsPublicContentByAuthor(author?: string) {
+    const query = await this.contentRepository
       .createQueryBuilder('content')
       .select('content.tags')
-      .where('content.created_by = :author ', { author: author })
-      .getMany();
+      .where('content.case_allow = :caseAlow ', { caseAlow: 'public' })
+      .andWhere('content.complete = :isComplete', {
+        isComplete: true,
+      });
 
-    return queryData.reduce((result: { [key: string]: number }, curr) => {
+    const queryAuthorFilter = author
+      ? query.andWhere('content.created_by = :author ', { author: author })
+      : query;
+
+    const queryResult = await queryAuthorFilter.getMany();
+
+    return queryResult.reduce((result: { [key: string]: number }, curr) => {
       curr.tags.forEach((tag) => {
-        console.log(result[tag]);
         if (result[tag]) {
           const newCount = result[tag] + 1;
           result[tag] = newCount;
@@ -355,10 +362,10 @@ export class ContentService {
       ])
       .skip(payload._skip)
       .take(payload._take)
-      .where('content.case_allow = :caseAlow ', { caseAlow: 'public' })
       .andWhere('LOWER(content.title) LIKE :search', {
         search: payload._search,
       })
+      .where('content.case_allow = :caseAlow ', { caseAlow: 'public' })
       .andWhere('content.complete = :isComplete', {
         isComplete: true,
       });
