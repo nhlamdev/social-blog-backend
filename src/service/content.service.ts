@@ -106,6 +106,27 @@ export class ContentService {
       .getManyAndCount();
   }
 
+  async manytagsPublicContentByAuthor(author: string) {
+    const queryData = await this.contentRepository
+      .createQueryBuilder('content')
+      .select('content.tags')
+      .where('content.created_by = :author ', { author: author })
+      .getMany();
+
+    return queryData.reduce((result: { [key: string]: number }, curr) => {
+      curr.tags.forEach((tag) => {
+        console.log(result[tag]);
+        if (result[tag]) {
+          const newCount = result[tag] + 1;
+          result[tag] = newCount;
+        } else {
+          result = { ...result, [tag]: 1 };
+        }
+      });
+      return result;
+    }, {});
+  }
+
   async countContentByMember(memberId: string) {
     return await this.contentRepository.count({
       where: {
@@ -312,6 +333,7 @@ export class ContentService {
     _category: CategoryEntity | null;
     _series: SeriesEntity | null;
     _caseSort: string;
+    _author?: string;
   }) {
     const query = this.contentRepository
       .createQueryBuilder('content')
@@ -353,16 +375,22 @@ export class ContentService {
         })
       : filterCategory;
 
+    const filterAuthor = payload._author
+      ? filterSeries.andWhere('created_by._id = :author ', {
+          author: payload._author,
+        })
+      : filterSeries;
+
     const [value, order] = payload._caseSort.split('_');
 
-    const contents = await filterSeries
+    const contents = await filterAuthor
       .orderBy(
         `content.${value === 'NAME' ? 'title' : 'created_at'}`,
         order === 'ASC' ? 'ASC' : 'DESC',
       )
       .getMany();
 
-    const max = await filterSeries.getCount();
+    const max = await filterAuthor.getCount();
 
     const result = {
       data: await Promise.all(

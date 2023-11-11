@@ -36,6 +36,7 @@ export class SeriesController {
     @Query('skip') skip: string,
     @Query('take') take: string,
     @Query('search') search: string | undefined,
+    @Query('author') author: string | undefined,
   ) {
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
@@ -51,6 +52,7 @@ export class SeriesController {
       _take,
       _skip,
       _search,
+      _author: author,
     });
   }
 

@@ -81,6 +81,7 @@ export class SeriesService {
     _take: number;
     _skip: number;
     _search: string;
+    _author?: string;
   }) {
     const query = this.seriesRepository
       .createQueryBuilder('series')
@@ -91,14 +92,18 @@ export class SeriesService {
         search: payload._search,
       });
 
+    const authorFilter = payload._author
+      ? query.andWhere('created_by._id = :author', { author: payload._author })
+      : query;
+
     const series = payload.memberId
-      ? await query
+      ? await authorFilter
           .andWhere('created_by._id = :member', {
             member: payload.memberId,
           })
           .orderBy('series.created_at', 'DESC')
           .getMany()
-      : await query.orderBy('series.created_at', 'DESC').getMany();
+      : await authorFilter.orderBy('series.created_at', 'DESC').getMany();
 
     const seriesWithCountContent = series.map(async (series) => {
       if (payload.memberId) {
@@ -122,7 +127,7 @@ export class SeriesService {
       }
     });
 
-    const max = await query.getCount();
+    const max = await authorFilter.getCount();
 
     const result = {
       data: await Promise.all(seriesWithCountContent),

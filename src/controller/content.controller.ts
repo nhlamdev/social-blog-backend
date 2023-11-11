@@ -57,6 +57,7 @@ export class ContentController {
     @Query('category') category: string | undefined,
     @Query('series') series: string | undefined,
     @Query('sortCase') caseSort: string | undefined,
+    @Query('author') author: string | undefined,
   ) {
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
@@ -83,6 +84,7 @@ export class ContentController {
       _category,
       _series,
       _caseSort,
+      _author: author,
     });
   }
 
@@ -113,6 +115,21 @@ export class ContentController {
       _skip,
       _search,
     });
+  }
+
+  @Get('tags-by-author/:author')
+  @ApiTags('content')
+  @ApiOperation({
+    summary: 'Lấy thông tin tất cả bài viết đã lưu của cá nhân.',
+  })
+  async tagsByAuthor(@Param('author') author: string) {
+    const isExist = await this.authService.checkMemberExistById(author);
+
+    if (!isExist) {
+      return new NotFoundException('Thành viên không tồn tại');
+    }
+
+    return this.contentService.manytagsPublicContentByAuthor(author);
   }
 
   @Get('by-category/:id')
