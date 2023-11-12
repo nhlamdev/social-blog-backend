@@ -11,6 +11,7 @@ import {
   ForbiddenException,
   Get,
   Inject,
+  NotFoundException,
   Param,
   Patch,
   Put,
@@ -313,6 +314,24 @@ export class AuthController {
     });
   }
 
+  @Patch('update-follow/:targetAuthor')
+  @ApiTags('member-auth')
+  @UseGuards(AuthGuard('jwt-access'))
+  async handleFollowContent(
+    @Param('targetAuthor') targetAuthor: string,
+    @Req() req,
+  ) {
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const isExist = await this.authService.checkMemberExistById(targetAuthor);
+
+    if (!isExist) {
+      throw new NotFoundException('Tác giả không tồn tại.');
+    }
+
+    return await this.authService.UpdateMemberFollow(jwtPayload, targetAuthor);
+  }
+
   @Get('all-members')
   @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-access'))
@@ -342,7 +361,7 @@ export class AuthController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    const { data: membersWitdthRole, count } =
+    const { data: membersWitthRole, count } =
       await this.authService.manyMemberWidthCountContent(
         _take,
         _skip,
@@ -350,7 +369,7 @@ export class AuthController {
         true,
       );
 
-    const result = { data: membersWitdthRole, count };
+    const result = { data: membersWitthRole, count };
 
     return result;
   }

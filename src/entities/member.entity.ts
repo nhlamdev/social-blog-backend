@@ -1,10 +1,4 @@
-import {
-  Column,
-  Entity,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 import {
   CommentEntity,
@@ -43,6 +37,9 @@ export class MemberEntity extends AbstractEntity {
   })
   image: string;
 
+  @Column({ type: 'text', array: true, default: [], nullable: false })
+  follow_by: string[];
+
   @OneToMany(() => SessionEntity, (session) => session.member, {
     onDelete: 'CASCADE',
   })
@@ -52,7 +49,7 @@ export class MemberEntity extends AbstractEntity {
   contents: ContentEntity[];
 
   @OneToMany(() => SeriesEntity, (series) => series.created_by)
-  series: string[];
+  series: SeriesEntity[];
 
   @OneToMany(() => NotifyEntity, (notify) => notify.member)
   notifies: NotifyEntity[];
@@ -61,15 +58,4 @@ export class MemberEntity extends AbstractEntity {
     onDelete: 'CASCADE',
   })
   comments: CommentEntity[];
-
-  @OneToMany(() => MemberEntity, (member) => member.follow, {
-    onDelete: 'CASCADE',
-  })
-  followed_by: MemberEntity[];
-
-  @ManyToOne(() => MemberEntity, (comment) => comment.followed_by, {
-    onDelete: 'CASCADE',
-    nullable: true,
-  })
-  follow?: MemberEntity | null;
 }

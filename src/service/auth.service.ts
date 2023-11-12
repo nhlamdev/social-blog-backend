@@ -1,4 +1,10 @@
-import { ContentEntity, MemberEntity, SessionEntity } from '@/entities';
+import {
+  ContentEntity,
+  MemberEntity,
+  SeriesEntity,
+  SessionEntity,
+} from '@/entities';
+import { AccessJwtPayload } from '@/interface';
 import { client_data } from '@/interface/common.interface';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,6 +17,8 @@ export class AuthService {
     private sessionRepository: Repository<SessionEntity>,
     @InjectRepository(MemberEntity)
     private memberRepository: Repository<MemberEntity>,
+    @InjectRepository(SeriesEntity)
+    private seriesRepository: Repository<SeriesEntity>,
     @InjectRepository(ContentEntity)
     private contentRepository: Repository<ContentEntity>,
   ) {}
@@ -45,6 +53,30 @@ export class AuthService {
     });
 
     return { data, count };
+  }
+
+  async findMemberFolowedByAuthor(authorTarget: string) {
+    const queryResult = await this.memberRepository
+      .createQueryBuilder('member')
+      .select('member.follow_by')
+      .where('member._id = :authorTarget ', { authorTarget: authorTarget })
+      .getOne();
+
+    return queryResult.follow_by;
+  }
+
+  async UpdateMemberFollow(jwtPayload: AccessJwtPayload, authorTarget: string) {
+    const memberFollowed = await this.findMemberFolowedByAuthor(authorTarget);
+
+    if (memberFollowed.includes(jwtPayload._id)) {
+      await this.memberRepository.update(authorTarget, {
+        follow_by: memberFollowed.filter((m) => m !== jwtPayload._id),
+      });
+    } else {
+      await this.memberRepository.update(authorTarget, {
+        follow_by: [...memberFollowed, jwtPayload._id],
+      });
+    }
   }
 
   async oneSessionById(session_id: string) {
@@ -94,6 +126,7 @@ export class AuthService {
             'member.email',
             'member.image',
             'member.created_at',
+            'member.follow_by',
             'member.role_comment',
             'member.role_author',
             'member.role_owner',
@@ -104,6 +137,7 @@ export class AuthService {
             'member._id',
             'member.name',
             'member.email',
+            'member.follow_by',
             'member.image',
             'member.created_at',
           ])
@@ -116,7 +150,11 @@ export class AuthService {
             where: { created_by: { _id: c._id } },
           });
 
-          return { ...c, content_count };
+          const series_count = await this.seriesRepository.count({
+            where: { created_by: { _id: c._id } },
+          });
+
+          return { ...c, content_count, series_count };
         } else {
           const content_count = await this.contentRepository.count({
             where: {
@@ -125,7 +163,12 @@ export class AuthService {
               complete: true,
             },
           });
-          return { ...c, content_count };
+
+          const series_count = await this.seriesRepository.count({
+            where: { created_by: { _id: c._id } },
+          });
+
+          return { ...c, content_count, series_count };
         }
       }),
     );
