@@ -2,6 +2,10 @@ import { Controller, Get } from '@nestjs/common';
 import {
   ClientProxy,
   ClientProxyFactory,
+  Ctx,
+  MessagePattern,
+  Payload,
+  RmqContext,
   Transport,
 } from '@nestjs/microservices';
 
@@ -17,7 +21,7 @@ export class AppController {
         urls: ['amqp://localhost:5672'],
         queue: 'notify_queue',
         queueOptions: {
-          durable: false,
+          durable: true,
         },
       },
     });
@@ -28,7 +32,7 @@ export class AppController {
         urls: ['amqp://localhost:5672'],
         queue: 'mail_queue',
         queueOptions: {
-          durable: false,
+          durable: true,
         },
       },
     });
@@ -39,5 +43,13 @@ export class AppController {
     const pattern = { cmd: 'message' };
     const data = 'Hello RabbitMQ!';
     return this.clientMailQueue.send(pattern, data);
+  }
+
+  @MessagePattern('notifications')
+  getNotifications(@Payload() data: number[], @Ctx() context: RmqContext) {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+
+    channel.ack(originalMsg);
   }
 }
