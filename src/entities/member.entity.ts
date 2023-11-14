@@ -1,12 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-import {
-  CommentEntity,
-  ContentEntity,
-  NotifyEntity,
-  SeriesEntity,
-  SessionEntity,
-} from '.';
+import { CommentEntity, ContentEntity, SeriesEntity, SessionEntity } from '.';
 import { AbstractEntity } from './abstract.entity';
 
 @Entity('member')
@@ -50,9 +44,6 @@ export class MemberEntity extends AbstractEntity {
 
   @OneToMany(() => SeriesEntity, (series) => series.created_by)
   series: SeriesEntity[];
-
-  @OneToMany(() => NotifyEntity, (notify) => notify.member)
-  notifies: NotifyEntity[];
 
   @OneToMany(() => CommentEntity, (comment) => comment.created_by, {
     onDelete: 'CASCADE',

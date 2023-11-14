@@ -96,7 +96,9 @@ export class ContentService {
       .where('LOWER(content.title) LIKE :search ', {
         search: params._search,
       })
-      .andWhere('content.saved_by = :memberId ', { memberId: jwtPayload._id })
+      .andWhere('content.bookmark_by = :memberId ', {
+        memberId: jwtPayload._id,
+      })
       .andWhere('content.case_allow = :caseAlow ', { caseAlow: 'public' })
       .andWhere('content.complete = :isComplete', {
         isComplete: true,
@@ -482,14 +484,14 @@ export class ContentService {
     jwtPayload: AccessJwtPayload,
     status: 'add' | 'remove',
   ) {
-    const isExist = await content.saved_by.includes(jwtPayload._id);
+    const isExist = await content.bookmark_by.includes(jwtPayload._id);
 
     if (status === 'add') {
       if (isExist) {
         throw new BadRequestException('bài viết đã được lưu.');
       }
 
-      content.saved_by.push(jwtPayload._id);
+      content.bookmark_by.push(jwtPayload._id);
 
       return await this.contentRepository.save(content);
     }
@@ -499,7 +501,9 @@ export class ContentService {
         throw new BadRequestException('bài viết chưa được lưu.');
       }
 
-      content.saved_by = content.saved_by.filter((v) => v !== jwtPayload._id);
+      content.bookmark_by = content.bookmark_by.filter(
+        (v) => v !== jwtPayload._id,
+      );
 
       return await this.contentRepository.save(content);
     }

@@ -28,14 +28,25 @@ export class ContentEntity extends AbstractEntity {
   @Column({ type: 'integer', nullable: false, default: 0 })
   count_view: number;
 
-  @Column({ type: 'text', array: true, nullable: false, default: [] })
+  @Column({
+    type: 'text',
+    array: true,
+    nullable: false,
+    default: [],
+  })
   Evaluate: string[];
+
+  @Column({ type: 'string', array: true, nullable: false, default: [] })
+  member_up_vote: string[];
+
+  @Column({ type: 'string', array: true, nullable: false, default: [] })
+  member_down_vote: string[];
 
   @Column({ type: 'text', array: true, nullable: false, default: [] })
   tags: string[];
 
   @Column({ type: 'text', array: true, default: [] })
-  saved_by: string[];
+  bookmark_by: string[];
 
   @OneToMany(() => CommentEntity, (tag) => tag.content, {
     onDelete: 'CASCADE',
