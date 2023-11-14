@@ -9,13 +9,33 @@ import * as compression from 'compression';
 
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { Transport } from '@nestjs/microservices';
 // import { ConfigService } from './service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // const configService = app.select(AppModule).get(ConfigService);
-  // const configService = app.get(ConfigService);
+  await app.connectMicroservice({
+    transport: Transport.RMQ,
+    options: {
+      urls: ['amqp://localhost:5672'],
+      queue: 'mail-queue',
+      queueOptions: {
+        durable: false,
+      },
+    },
+  });
+
+  await app.connectMicroservice({
+    transport: Transport.RMQ,
+    options: {
+      urls: ['amqp://localhost:5672'],
+      queue: 'notify-queue',
+      queueOptions: {
+        durable: false,
+      },
+    },
+  });
 
   app.enableCors();
   app.use(cookieParser());
@@ -46,6 +66,7 @@ async function bootstrap() {
     Logger.error(`Cannot read env port`);
   }
 
+  await app.startAllMicroservices();
   await app.listen(port);
 
   Logger.warn(`The server is running on port http://localhost:${port}`);
