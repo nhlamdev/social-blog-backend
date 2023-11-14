@@ -36,10 +36,10 @@ export class ContentEntity extends AbstractEntity {
   })
   Evaluate: string[];
 
-  @Column({ type: 'string', array: true, nullable: false, default: [] })
+  @Column({ type: 'text', array: true, nullable: false, default: [] })
   member_up_vote: string[];
 
-  @Column({ type: 'string', array: true, nullable: false, default: [] })
+  @Column({ type: 'text', array: true, nullable: false, default: [] })
   member_down_vote: string[];
 
   @Column({ type: 'text', array: true, nullable: false, default: [] })

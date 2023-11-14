@@ -17,7 +17,7 @@ export class CommentEntity extends AbstractEntity {
   @Column({ type: 'text', nullable: false, default: '' })
   text: string;
 
-  @Column({ type: 'string', array: true, default: [], nullable: false })
+  @Column({ type: 'text', array: true, default: [], nullable: false })
   member_like: string[];
 
   @ManyToOne(() => CommentEntity, (comment) => comment.replies, {
