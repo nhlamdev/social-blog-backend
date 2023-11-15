@@ -73,11 +73,11 @@ export class ContentService {
     // }
   }
 
-  async manyAndCountContentMemberSave(
+  async manyAndCountContentMemberBookmark(
     jwtPayload: AccessJwtPayload,
     params: { _take: number; _skip: number; _search: string },
   ) {
-    this.contentRepository
+    return this.contentRepository
       .createQueryBuilder('content')
       .leftJoinAndSelect('content.category', 'category')
       .leftJoinAndSelect('content.series', 'series')
@@ -88,6 +88,10 @@ export class ContentService {
         'content.count_view',
         'content.tags',
         'content.created_at',
+        'created_by._id',
+        'created_by.name',
+        'created_by.email',
+        'created_by.image',
         'category._id ',
         'category.title ',
         'series._id ',

@@ -88,13 +88,13 @@ export class ContentController {
     });
   }
 
-  @Get('my-saved')
+  @Get('bookmark')
   @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))
   @ApiOperation({
     summary: 'Lấy thông tin tất cả bài viết đã lưu của cá nhân.',
   })
-  async mySavedContent(
+  async myBookmarkContent(
     @Req() req,
     @Query('skip') skip: string,
     @Query('take') take: string,
@@ -110,11 +110,26 @@ export class ContentController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    return await this.contentService.manyAndCountContentMemberSave(jwtPayload, {
-      _take,
-      _skip,
-      _search,
+    const [contents, count] =
+      await this.contentService.manyAndCountContentMemberBookmark(jwtPayload, {
+        _take,
+        _skip,
+        _search,
+      });
+
+    const contentsWithCountComment = contents.map(async (content) => {
+      const count_comments =
+        await this.commentService.countCommentByContent(content);
+
+      return { ...content, count_comments };
     });
+
+    const result = {
+      data: Promise.all(contentsWithCountComment),
+      count,
+    };
+
+    return result;
   }
 
   @Get('tags-by-author')
