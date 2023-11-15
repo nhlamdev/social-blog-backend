@@ -1,6 +1,7 @@
 import { CommonService } from '@/service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Controller, Get, Inject, Put } from '@nestjs/common';
+import { Controller, Get, Inject } from '@nestjs/common';
+import { Ctx, RmqContext } from '@nestjs/microservices';
 import { ApiTags } from '@nestjs/swagger';
 import { Cache } from 'cache-manager';
 @Controller('common')
@@ -28,9 +29,13 @@ export class CommonController {
     return 'test';
   }
 
-  @Put('update-setting-action')
+  @Get('update-setting-action')
   @ApiTags('common')
-  async settingUpdate() {
+  async settingUpdate(@Ctx() context: RmqContext) {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+    channel.ack(originalMsg);
+
     return 'test';
   }
 }

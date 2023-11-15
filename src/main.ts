@@ -19,7 +19,7 @@ async function bootstrap() {
     transport: Transport.RMQ,
     options: {
       urls: ['amqp://localhost:5672'],
-      queue: 'mail-queue',
+      queue: process.env.RABBITMQ_QUEUE_NOTIFY_NAME,
       queueOptions: {
         durable: false,
       },
@@ -30,7 +30,7 @@ async function bootstrap() {
     transport: Transport.RMQ,
     options: {
       urls: ['amqp://localhost:5672'],
-      queue: 'notify-queue',
+      queue: process.env.RABBITMQ_QUEUE_MAIL_NAME,
       queueOptions: {
         durable: false,
       },
