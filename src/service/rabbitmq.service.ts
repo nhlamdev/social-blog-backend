@@ -11,6 +11,11 @@ import {
 
 @Controller()
 export class AppController {
+  private readonly host = process.env.RABBITMQ_HOST;
+  private readonly port = process.env.RABBITMQ_PORT;
+  private readonly account = process.env.RABBITMQ_ACCOUNT;
+  private readonly password = process.env.RABBITMQ_PASSWORD;
+
   private clientNotifyQueue: ClientProxy;
   private clientMailQueue: ClientProxy;
 
@@ -18,8 +23,10 @@ export class AppController {
     this.clientNotifyQueue = ClientProxyFactory.create({
       transport: Transport.RMQ,
       options: {
-        urls: ['amqp://localhost:5672'],
-        queue: 'notify_queue',
+        urls: [
+          `amqp://${this.account}:${this.password}@${this.host}:${this.port}`,
+        ],
+        queue: process.env.RABBITMQ_QUEUE_NOTIFY_NAME,
         queueOptions: {
           durable: true,
         },
@@ -30,7 +37,7 @@ export class AppController {
       transport: Transport.RMQ,
       options: {
         urls: ['amqp://localhost:5672'],
-        queue: 'mail_queue',
+        queue: process.env.RABBITMQ_QUEUE_MAIL_NAME,
         queueOptions: {
           durable: true,
         },
