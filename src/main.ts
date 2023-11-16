@@ -41,6 +41,7 @@ async function bootstrap() {
   app.use(cookieParser());
   app.use(helmet());
   app.use(compression());
+  app.use(xss());
 
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));

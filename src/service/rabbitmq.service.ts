@@ -20,12 +20,12 @@ export class AppController {
   private clientMailQueue: ClientProxy;
 
   constructor() {
+    const connection = `amqp://${this.account}:${this.password}@${this.host}:${this.port}`;
+
     this.clientNotifyQueue = ClientProxyFactory.create({
       transport: Transport.RMQ,
       options: {
-        urls: [
-          `amqp://${this.account}:${this.password}@${this.host}:${this.port}`,
-        ],
+        urls: [connection],
         queue: process.env.RABBITMQ_QUEUE_NOTIFY_NAME,
         queueOptions: {
           durable: true,
@@ -36,7 +36,7 @@ export class AppController {
     this.clientMailQueue = ClientProxyFactory.create({
       transport: Transport.RMQ,
       options: {
-        urls: ['amqp://localhost:5672'],
+        urls: [connection],
         queue: process.env.RABBITMQ_QUEUE_MAIL_NAME,
         queueOptions: {
           durable: true,
