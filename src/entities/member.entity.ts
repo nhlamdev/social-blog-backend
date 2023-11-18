@@ -39,6 +39,9 @@ export class MemberEntity extends AbstractEntity {
   @Column({ type: 'text', array: true, default: [], nullable: false })
   follow_by: string[];
 
+  @Column({ type: 'text', array: true, default: [], nullable: false })
+  notify: string[];
+
   @OneToMany(() => SessionEntity, (session) => session.member, {
     onDelete: 'CASCADE',
   })
