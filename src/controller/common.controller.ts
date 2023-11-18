@@ -29,7 +29,7 @@ export class CommonController {
     return 'test';
   }
 
-  @Get('update-setting-action')
+  @Get('test')
   @ApiTags('common')
   async settingUpdate(@Ctx() context: RmqContext) {
     const channel = context.getChannelRef();

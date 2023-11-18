@@ -198,9 +198,6 @@ export class AuthService {
 
       newMember.name = payload.name;
       newMember.email = payload.email;
-      if (payload.image) {
-        newMember.image = payload.image;
-      }
 
       return await this.memberRepository.save(newMember);
     }

@@ -1,4 +1,10 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 import { CommentEntity, ContentEntity, SeriesEntity, SessionEntity } from '.';
 import { AbstractEntity } from './abstract.entity';
@@ -25,8 +31,7 @@ export class MemberEntity extends AbstractEntity {
 
   @Column({
     type: 'text',
-    default:
-      'https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png',
+    default: 'member-default.png.webp',
     nullable: false,
   })
   image: string;
@@ -49,4 +54,9 @@ export class MemberEntity extends AbstractEntity {
     onDelete: 'CASCADE',
   })
   comments: CommentEntity[];
+
+  @BeforeInsert()
+  async beforeInsert() {
+    this.image = this.image;
+  }
 }

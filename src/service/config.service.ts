@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { RmqOptions, Transport } from '@nestjs/microservices';
 // import { RmqOptions, Transport } from '@nestjs/microservices';
 import * as dotenv from 'dotenv';
 import * as winston from 'winston';
@@ -32,52 +33,25 @@ export class GlobalConfigService {
     return this.get('NODE_ENV') || 'development';
   }
 
-  // public getRmqOptions(queue: string): RmqOptions {
-  // 	const USER = this.rabbitMQ.user;
-  // 	const PASSWORD = this.rabbitMQ.password;
-  // 	const HOST = this.rabbitMQ.host;
-  // 	const PORT = this.rabbitMQ.port;
+  public getRmqOptions(queue: string): RmqOptions {
+    const USER = this.rabbitMQ.user;
+    const PASSWORD = this.rabbitMQ.password;
+    const HOST = this.rabbitMQ.host;
+    const PORT = this.rabbitMQ.port;
 
-  // 	const url = `amqp://${USER}:${PASSWORD}@${HOST}:${PORT}`;
+    const url = `amqp://${USER}:${PASSWORD}@${HOST}:${PORT}`;
 
-  // 	return {
-  // 		transport: Transport.RMQ,
-  // 		options: {
-  // 			urls: [url],
-  // 			noAck: false,
-  // 			queue,
-  // 			queueOptions: {
-  // 				durable: true,
-  // 				// set message time to live to 4s
-  // 				// messageTtl: 4000,
-  // 			},
-  // 		},
-  // 	};
-  // }
-
-  get eventStoreConfig() {
     return {
-      protocol: this.get('EVENT_STORE_PROTOCOL') || 'http',
-      connectionSettings: {
-        defaultUserCredentials: {
-          username: this.get('EVENT_STORE_CREDENTIALS_USERNAME') || 'admin',
-          password: this.get('EVENT_STORE_CREDENTIALS_PASSWORD') || 'changeit',
+      transport: Transport.RMQ,
+      options: {
+        urls: [url],
+        noAck: false,
+        queue,
+        queueOptions: {
+          durable: true,
+          // set message time to live to 4s
+          // messageTtl: 4000,
         },
-        verboseLogging: true,
-        failOnNoServerResponse: true,
-        // log: console, // TODO: improve Eventstore logger (separate chanel)
-      },
-      tcpEndpoint: {
-        host: this.get('EVENT_STORE_HOSTNAME') || 'localhost',
-        port: this.getNumber('EVENT_STORE_TCP_PORT') || 1113,
-      },
-      httpEndpoint: {
-        host: this.get('EVENT_STORE_HOSTNAME') || 'localhost',
-        port: this.getNumber('EVENT_STORE_HTTP_PORT') || 2113,
-      },
-      poolOptions: {
-        min: this.getNumber('EVENT_STORE_POOLOPTIONS_MIN') || 1,
-        max: this.getNumber('EVENT_STORE_POOLOPTIONS_MAX') || 10,
       },
     };
   }
