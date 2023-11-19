@@ -125,7 +125,7 @@ export class ContentController {
     });
 
     const result = {
-      data: Promise.all(contentsWithCountComment),
+      data: await Promise.all(contentsWithCountComment),
       count,
     };
 

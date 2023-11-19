@@ -100,8 +100,8 @@ export class ContentService {
       .where('LOWER(content.title) LIKE :search ', {
         search: params._search,
       })
-      .andWhere('content.bookmark_by = :memberId ', {
-        memberId: jwtPayload._id,
+      .andWhere('content.bookmark_by @> ARRAY[:...members]', {
+        members: [jwtPayload._id],
       })
       .andWhere('content.case_allow = :caseAlow ', { caseAlow: 'public' })
       .andWhere('content.complete = :isComplete', {
@@ -359,6 +359,7 @@ export class ContentService {
         'content.count_view',
         'content.tags',
         'content.created_at',
+        'content.bookmark_by',
         'category._id',
         'category.title',
         'created_by._id',
