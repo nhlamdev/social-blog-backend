@@ -557,19 +557,11 @@ export class ContentController {
     return await this.contentService.updateContent(id, payload, content);
   }
 
-  @Patch('save-content/:contentId')
+  @Patch('bookmark-content/:contentId')
   @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))
-  async saveContent(
-    @Req() req,
-    @Query('case') caseAction: string,
-    @Param('contentId') contentId: string,
-  ) {
+  async bookmarkContent(@Req() req, @Param('contentId') contentId: string) {
     const jwtPayload: AccessJwtPayload = req.user;
-
-    if (!['add', 'remove'].includes(caseAction)) {
-      throw new BadRequestException('loại thao tác không chuẩn.');
-    }
 
     const isExist = await this.contentService.checkExistById(contentId);
 
@@ -579,11 +571,7 @@ export class ContentController {
 
     const content = await this.contentService.oneContentById(contentId);
 
-    return await this.contentService.saveContent(
-      content,
-      jwtPayload,
-      caseAction as any,
-    );
+    return await this.contentService.bookMarkContent(content, jwtPayload);
   }
 
   @Patch('update-category/:content/:category')

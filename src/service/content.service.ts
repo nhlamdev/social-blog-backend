@@ -8,7 +8,7 @@ import {
 import { ContentDto } from '@/model';
 // import { CategoryService, SeriesService } from '@/service';
 import { AccessJwtPayload } from '@/interface';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CategoryService, CommentService } from '.';
@@ -483,34 +483,20 @@ export class ContentService {
     }
   }
 
-  async saveContent(
-    content: ContentEntity,
-    jwtPayload: AccessJwtPayload,
-    status: 'add' | 'remove',
-  ) {
+  async bookMarkContent(content: ContentEntity, jwtPayload: AccessJwtPayload) {
     const isExist = await content.bookmark_by.includes(jwtPayload._id);
 
-    if (status === 'add') {
-      if (isExist) {
-        throw new BadRequestException('bài viết đã được lưu.');
-      }
-
+    if (isExist) {
+      content.bookmark_by = content.bookmark_by.filter(
+        (v) => v !== jwtPayload._id,
+      );
+    } else {
       content.bookmark_by.push(jwtPayload._id);
 
       return await this.contentRepository.save(content);
     }
 
-    if (status === 'remove') {
-      if (isExist) {
-        throw new BadRequestException('bài viết chưa được lưu.');
-      }
-
-      content.bookmark_by = content.bookmark_by.filter(
-        (v) => v !== jwtPayload._id,
-      );
-
-      return await this.contentRepository.save(content);
-    }
+    return await this.contentRepository.save(content);
   }
 
   async delete(_id) {
