@@ -524,6 +524,44 @@ export class ContentController {
     return await this.contentService.create(body, jwtPayload._id);
   }
 
+  @Patch('/:contentId/vote-up')
+  @ApiTags('content')
+  @UseGuards(AuthGuard('jwt-access'))
+  async upVote(@Param('contentId') contentId: string, @Req() req) {
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const isExist = await this.contentService.checkExistById(contentId);
+
+    if (!isExist) {
+      throw new NotFoundException('Bài viết cần vote không tồn tại.');
+    }
+
+    return await this.contentService.voteContentAction(
+      jwtPayload,
+      contentId,
+      'up',
+    );
+  }
+
+  @Patch('/:contentId/vote-down')
+  @ApiTags('content')
+  @UseGuards(AuthGuard('jwt-access'))
+  async downVote(@Param('contentId') contentId: string, @Req() req) {
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const isExist = await this.contentService.checkExistById(contentId);
+
+    if (!isExist) {
+      throw new NotFoundException('Bài viết cần vote không tồn tại.');
+    }
+
+    return await this.contentService.voteContentAction(
+      jwtPayload,
+      contentId,
+      'down',
+    );
+  }
+
   @Put(':id')
   @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))

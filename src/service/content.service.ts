@@ -156,6 +156,57 @@ export class ContentService {
     return this.contentRepository.save(content);
   }
 
+  async voteContentAction(
+    jwtPayload: AccessJwtPayload,
+    contentId: string,
+    caseAction: 'up' | 'down',
+  ) {
+    const voteContentData = await this.contentRepository.findOne({
+      where: { _id: contentId },
+      select: { member_up_vote: true, member_down_vote: true },
+    });
+
+    const { member_down_vote, member_up_vote } = voteContentData;
+
+    if (caseAction === 'up') {
+      if (member_up_vote.includes(jwtPayload._id)) {
+        await this.contentRepository.update(contentId, {
+          member_up_vote: member_up_vote.filter((v) => v !== jwtPayload._id),
+          member_down_vote: member_down_vote.filter(
+            (v) => v !== jwtPayload._id,
+          ),
+        });
+      } else {
+        await this.contentRepository.update(contentId, {
+          member_up_vote: [...member_up_vote, jwtPayload._id],
+          member_down_vote: member_down_vote.filter(
+            (v) => v !== jwtPayload._id,
+          ),
+        });
+      }
+    }
+
+    if (caseAction === 'down') {
+      if (member_down_vote.includes(jwtPayload._id)) {
+        await this.contentRepository.update(contentId, {
+          member_up_vote: member_up_vote.filter((v) => v !== jwtPayload._id),
+          member_down_vote: member_down_vote.filter(
+            (v) => v !== jwtPayload._id,
+          ),
+        });
+      } else {
+        await this.contentRepository.update(contentId, {
+          member_up_vote: member_up_vote.filter((v) => v !== jwtPayload._id),
+          member_down_vote: [...member_down_vote, jwtPayload._id],
+        });
+      }
+    }
+
+    // if(){}
+
+    return voteContentData;
+  }
+
   async topViewPublicContent(payload: { _take: number | null }) {
     return await this.contentRepository
       .createQueryBuilder('content')
