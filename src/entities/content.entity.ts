@@ -25,16 +25,11 @@ export class ContentEntity extends AbstractEntity {
   @Column({ type: 'varchar', length: 20, nullable: true })
   case_allow: 'noly-me' | 'have-link' | 'public';
 
+  @Column({ type: 'text', array: true, default: [] })
+  watches: string[];
+
   @Column({ type: 'integer', nullable: false, default: 0 })
   count_view: number;
-
-  @Column({
-    type: 'text',
-    array: true,
-    nullable: false,
-    default: [],
-  })
-  Evaluate: string[];
 
   @Column({ type: 'text', array: true, nullable: false, default: [] })
   member_up_vote: string[];

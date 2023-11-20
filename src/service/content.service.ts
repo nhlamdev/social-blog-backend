@@ -290,6 +290,15 @@ export class ContentService {
     }
   }
 
+  async makeWatched(content: ContentEntity, jwtPayload: AccessJwtPayload) {
+    if (content.watches.includes(jwtPayload._id)) {
+      return;
+    }
+    content.watches = [...content.watches, jwtPayload._id];
+
+    await this.contentRepository.save(content);
+  }
+
   async randomContents(take: number | null) {
     const contents = await this.contentRepository
       .createQueryBuilder('content')

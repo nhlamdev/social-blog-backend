@@ -681,6 +681,22 @@ export class ContentController {
     return await this.contentService.changeSeries(_content, _series);
   }
 
+  @Patch('/:id/watch')
+  @UseGuards(AuthGuard('jwt-access'))
+  async makeWatched(@Param('id') id: string, @Req() req) {
+    const jwtPayload: AccessJwtPayload = req.user;
+
+    const checkExist = await this.contentService.checkExistById(id);
+
+    if (!checkExist) {
+      throw new NotFoundException('Bài viết không tồn tại.');
+    }
+
+    const content = await this.contentService.oneContentById(id);
+
+    await this.contentService.makeWatched(content, jwtPayload);
+  }
+
   @Delete(':id')
   @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))

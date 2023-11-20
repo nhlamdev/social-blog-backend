@@ -48,21 +48,21 @@ export class SeriesService {
       .createQueryBuilder('series')
       .leftJoinAndSelect('series.contents', 'contents')
       .leftJoinAndSelect('series.created_by', 'created_by')
-      .select(
-        `series._id, series.title,created_by.name as created_name,created_by.image as created_image, created_by.email as created_email,
-        COUNT(contents._id) as content_count, SUM(contents.count_view) as contents_total_views,
-        ROUND(SUM(contents.count_view) / COUNT(contents._id)) as contents_avg_view`,
-      )
-      .where('contents.case_allow = :caseAllow', { caseAllow: 'public' })
-      .andWhere('contents.complete = :isComplete', {
-        isComplete: true,
-      })
-      .groupBy(
-        'series._id, series.title,created_by.name,created_by.image,created_by.email',
-      )
-      .having('COUNT(contents._id) > 0')
-      .andHaving('SUM(contents.count_view) > 0')
-      .orderBy('contents_avg_view', 'DESC')
+      // .select(
+      //   `series._id, series.title,created_by.name as created_name,created_by.image as created_image, created_by.email as created_email,
+      //   COUNT(contents._id) as content_count, SUM(contents.count_view) as contents_total_views,
+      //   ROUND(SUM(contents.count_view) / COUNT(contents._id)) as contents_avg_view`,
+      // )
+      // .where('contents.case_allow = :caseAllow', { caseAllow: 'public' })
+      // .andWhere('contents.complete = :isComplete', {
+      //   isComplete: true,
+      // })
+      // .groupBy(
+      //   'series._id, series.title,created_by.name,created_by.image,created_by.email',
+      // )
+      // .having('COUNT(contents._id) > 0')
+      // .andHaving('SUM(contents.count_view) > 0')
+      // .orderBy('contents_avg_view', 'DESC')
       .limit(take)
       .getRawMany();
   }
