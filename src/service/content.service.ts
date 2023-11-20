@@ -63,7 +63,7 @@ export class ContentService {
     //   });
     // } else {
     //   return await this.contentRepository.findOne({
-    //     where: { _id: id, complete: true, case_allow: Not('noly-me') },
+    //     where: { _id: id, complete: true, case_allow: Not('only-me') },
     //     relations: {
     //       category: true,
     //       series: true,
@@ -518,6 +518,7 @@ export class ContentService {
     content.title = body.title;
     content.body = body.body;
     content.category = _category;
+    content.case_allow = body.casePublic;
     content.complete = Boolean(body.complete);
     content.tags = body.tags;
 

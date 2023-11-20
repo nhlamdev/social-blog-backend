@@ -40,7 +40,7 @@ export class ContentDto {
 
   @ApiProperty({ type: String })
   // @IsString({ message: 'Tiêu đề sai kiểu dữ liệu!.' })
-  casePublic: 'public' | 'noly-me' | 'have-link';
+  casePublic: 'public' | 'only-me' | 'have-link';
 
   @ApiProperty({ type: String })
   // @IsString({ message: 'Tiêu đề sai kiểu dữ liệu!.' })

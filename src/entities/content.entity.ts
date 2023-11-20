@@ -23,7 +23,7 @@ export class ContentEntity extends AbstractEntity {
   complete: boolean;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
-  case_allow: 'noly-me' | 'have-link' | 'public';
+  case_allow: 'only-me' | 'have-link' | 'public';
 
   @Column({ type: 'text', array: true, default: [] })
   watches: string[];

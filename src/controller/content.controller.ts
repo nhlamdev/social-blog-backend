@@ -382,14 +382,14 @@ export class ContentController {
 
     const isExist = await this.contentService.checkExistById(id);
 
-    if (isExist) {
+    if (!isExist) {
       throw new NotFoundException('Không tìm thấy bài viết');
     }
 
     const content = await this.contentService.oneContentById(id);
 
     if (content.created_by._id !== jwtPayload._id) {
-      throw new NotFoundException('Không tìm thấy bài viết');
+      throw new NotFoundException('Bạn không phải chủ bài viết');
     }
 
     const result = {
@@ -418,7 +418,7 @@ export class ContentController {
 
     const content = await this.contentService.oneContentById(id);
 
-    if (content.case_allow === 'noly-me' || content.complete === false) {
+    if (content.case_allow === 'only-me' || content.complete === false) {
       throw new BadRequestException('Không tìm thấy bài viết');
     }
 
