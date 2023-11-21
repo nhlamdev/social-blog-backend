@@ -248,15 +248,32 @@ export class ContentService {
     return this.contentRepository
       .createQueryBuilder('content')
       .leftJoinAndSelect('content.comments', 'comments')
+      .leftJoinAndSelect('content.created_by', 'created_by')
       .where('content.complete = :isComplete', {
         isComplete: true,
       })
       .select(
-        'content._id, content.title, COUNT(comments._id) as commentsCount',
+        `content._id, 
+        content.title,
+        content.created_at,
+        content.watches,
+        created_by._id as created_by_id,
+        created_by.name as created_by_name,
+        created_by.email as created_by_email,
+        created_by.image as created_by_image, 
+        COUNT(comments._id) as comments_count`,
       )
       .where('content.case_allow = :caseAlow ', { caseAlow: 'public' })
-      .groupBy('content._id')
-      .orderBy('commentsCount', 'DESC')
+      .groupBy(
+        `content._id, 
+        content.title,
+        created_by._id,
+        created_by.name,
+        created_by.email,
+        created_by.image`,
+      )
+      .orderBy('comments_count', 'DESC')
+      .having('COUNT(comments._id) > 0')
       .limit(take)
       .getRawMany();
   }
