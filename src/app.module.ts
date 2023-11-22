@@ -14,9 +14,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import type { RedisClientOptions } from 'redis';
 import { WebsocketGateway } from './websocket.gateway';
+import { queue_provider } from './providers';
 
 @Module({
   imports: [
+    queue_provider,
     ConfigModule.forRoot({ isGlobal: true }),
     CacheModule.register<RedisClientOptions>({
       isGlobal: true,

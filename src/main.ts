@@ -15,10 +15,18 @@ import { Transport } from '@nestjs/microservices';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  const host = process.env.RABBITMQ_HOST;
+  const portRabbitmq = process.env.RABBITMQ_PORT;
+  const account = process.env.RABBITMQ_USER;
+  const password = process.env.RABBITMQ_PASSWORD;
+
+  const connection = `amqp://${account}:${password}@${host}:${portRabbitmq}`;
+  console.log('connection 2 : ', connection);
+
   await app.connectMicroservice({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://localhost:5672'],
+      urls: [connection],
       queue: process.env.RABBITMQ_QUEUE_NOTIFY_NAME,
       queueOptions: {
         durable: false,
@@ -29,10 +37,10 @@ async function bootstrap() {
   await app.connectMicroservice({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://localhost:5672'],
+      urls: [connection],
       queue: process.env.RABBITMQ_QUEUE_MAIL_NAME,
       queueOptions: {
-        durable: false,
+        durable: true,
       },
     },
   });

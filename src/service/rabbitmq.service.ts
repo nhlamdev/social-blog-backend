@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Get, Injectable } from '@nestjs/common';
 import {
   ClientProxy,
   ClientProxyFactory,
@@ -9,8 +9,8 @@ import {
   Transport,
 } from '@nestjs/microservices';
 
-@Controller()
-export class AppController {
+@Injectable()
+export class RabbitMQService {
   private readonly host = process.env.RABBITMQ_HOST;
   private readonly port = process.env.RABBITMQ_PORT;
   private readonly account = process.env.RABBITMQ_ACCOUNT;

@@ -6,4 +6,4 @@ export * from './category.service';
 export * from './series.service';
 export * from './content.service';
 export * from './common.service';
-export * from './rabbitmq.service';
+// export * from './rabbitmq.service';
