@@ -15,10 +15,16 @@ import { join } from 'path';
 import type { RedisClientOptions } from 'redis';
 import { WebsocketGateway } from './websocket.gateway';
 import { queue_provider } from './providers';
-
+import { BullModule } from '@nestjs/bull';
 @Module({
   imports: [
     queue_provider,
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
     ConfigModule.forRoot({ isGlobal: true }),
     CacheModule.register<RedisClientOptions>({
       isGlobal: true,
