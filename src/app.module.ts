@@ -2,8 +2,10 @@ import * as controllers from '@/controller';
 import { DbConnectModule } from '@/database.module';
 import * as entities from '@/entities';
 import * as middleware from '@/middleware';
+import * as queues from '@/queue';
 import * as services from '@/service';
 import * as strategy from '@/strategy';
+import { BullModule } from '@nestjs/bull';
 import { CacheModule } from '@nestjs/cache-manager';
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -14,11 +16,20 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import type { RedisClientOptions } from 'redis';
 import { WebsocketGateway } from './websocket.gateway';
-import { queue_provider } from './providers';
 
 @Module({
   imports: [
-    queue_provider,
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
+    BullModule.registerQueue(
+      { name: 'queue-mail' },
+      { name: 'queue-notify' },
+      { name: 'queue-logger' },
+    ),
     ConfigModule.forRoot({ isGlobal: true }),
     CacheModule.register<RedisClientOptions>({
       isGlobal: true,
@@ -35,6 +46,7 @@ import { queue_provider } from './providers';
   controllers: Object.entries(controllers).map((v) => v[1]),
   providers: [
     WebsocketGateway,
+    ...Object.entries(queues).map((v) => v[1]),
     ...Object.entries(services).map((v) => v[1]),
     ...Object.entries(strategy).map((v) => v[1]),
   ],

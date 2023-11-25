@@ -1,22 +1,15 @@
 import { CommonService } from '@/service';
-import { Controller, Get, Inject } from '@nestjs/common';
-import {
-  ClientProxy,
-  Ctx,
-  MessagePattern,
-  Payload,
-  RmqContext,
-} from '@nestjs/microservices';
+import { InjectQueue } from '@nestjs/bull';
+// import { RabbitMQService } from '@/service/rabbitmq.service';
+import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { Queue } from 'bull';
 @Controller('common')
 export class CommonController {
   constructor(
     private readonly commonService: CommonService,
-    @Inject('QUEUE_NOTIFY')
-    private subscribersService: ClientProxy,
-  ) {
-    this.subscribersService.connect();
-  }
+    @InjectQueue('queue-mail') private queueMail: Queue,
+  ) {}
 
   @Get('visualize')
   @ApiTags('common')
@@ -39,21 +32,6 @@ export class CommonController {
   @Get('test')
   @ApiTags('common')
   async settingUpdate() {
-    return await this.subscribersService.send(
-      {
-        cmd: 'notifications',
-      },
-      JSON.stringify({ data: 'test data' }),
-    );
-  }
-
-  @MessagePattern({ cmd: 'notifications' })
-  async addSubscriber(@Payload() subscriber, @Ctx() context: RmqContext) {
-    const channel = context.getChannelRef();
-    const originalMsg = context.getMessage();
-
-    channel.ack(originalMsg);
-
-    console.log('subscriber : ', subscriber);
+    this.queueMail.add('send', { test: 'test' });
   }
 }
