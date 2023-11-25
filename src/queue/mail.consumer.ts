@@ -1,7 +1,8 @@
+import { QUEUE_MAIL } from '@/constants/queue';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 
-@Processor('queue-mail')
+@Processor(QUEUE_MAIL)
 export class MailConsumer {
   @Process('send')
   async sendMail(job: Job<any>) {
