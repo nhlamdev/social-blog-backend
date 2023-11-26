@@ -443,6 +443,8 @@ export class ContentService {
         'content.tags',
         'content.created_at',
         'content.bookmark_by',
+        'content.member_up_vote',
+        'content.member_down_vote',
         'category._id',
         'category.title',
         'created_by._id',

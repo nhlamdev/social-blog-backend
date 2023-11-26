@@ -34,6 +34,15 @@ export class CommonController {
   @Get('test')
   @ApiTags('common')
   async settingUpdate() {
-    this.queueMail.add('send', { test: 'test' }, { removeOnComplete: true });
+    this.queueMail.add(
+      'send-notify-mail',
+      { test: 'test' },
+      {
+        attempts: 3,
+        backoff: 3000,
+        removeOnComplete: true,
+        removeOnFail: true,
+      },
+    );
   }
 }
