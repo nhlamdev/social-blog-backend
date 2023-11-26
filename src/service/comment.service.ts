@@ -2,11 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CommentEntity, ContentEntity, MemberEntity } from '@/entities';
 import { Repository } from 'typeorm';
+import { QUEUE_NOTIFY } from '@/constants/queue';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
+import { IQueueContentNotify } from '@/interface/queue.intereface';
 @Injectable()
 export class CommentService {
   constructor(
     @InjectRepository(CommentEntity)
     private commentRepository: Repository<CommentEntity>,
+    @InjectQueue(QUEUE_NOTIFY) private queueNotify: Queue,
   ) {}
 
   async checkExistById(id: string) {
@@ -90,10 +95,40 @@ export class CommentService {
 
     if (payload.content) {
       newComment.content = payload.content;
+
+      const queuePayload: IQueueContentNotify = {
+        from: payload.member._id,
+        to: payload.content.created_by._id,
+        title: 'trả lời bình luận',
+        content: payload.content._id,
+        type: 'create-reply',
+      };
+
+      this.queueNotify.add('notify-action', queuePayload, {
+        attempts: 3,
+        backoff: 3000,
+        removeOnComplete: true,
+        removeOnFail: true,
+      });
     }
 
     if (payload.parent) {
       newComment.comment_parent = payload.parent;
+
+      const queuePayload: IQueueContentNotify = {
+        from: payload.member._id,
+        to: payload.parent._id,
+        title: 'trả lời bình luận',
+        content: null,
+        type: 'create-reply',
+      };
+
+      this.queueNotify.add('notify-action', queuePayload, {
+        attempts: 3,
+        backoff: 3000,
+        removeOnComplete: true,
+        removeOnFail: true,
+      });
     }
 
     return await this.commentRepository.save(newComment);

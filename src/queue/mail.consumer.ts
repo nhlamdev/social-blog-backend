@@ -4,7 +4,9 @@ import { Job } from 'bull';
 
 @Processor(QUEUE_MAIL)
 export class MailConsumer {
-  @Process('send')
+  constructor() {}
+
+  @Process('send-notify-mail')
   async sendMail(job: Job<any>) {
     console.log(job.data);
   }

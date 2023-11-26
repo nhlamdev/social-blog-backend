@@ -12,6 +12,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CategoryService, CommentService } from '.';
+import { QUEUE_MAIL, QUEUE_NOTIFY } from '@/constants/queue';
+import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
+import { IQueueContentNotify } from '@/interface/queue.intereface';
 
 @Injectable()
 export class ContentService {
@@ -24,6 +28,8 @@ export class ContentService {
     private commentRepository: Repository<CommentEntity>,
     private categoryService: CategoryService,
     private commentService: CommentService,
+    @InjectQueue(QUEUE_MAIL) private queueMail: Queue,
+    @InjectQueue(QUEUE_NOTIFY) private queueNotify: Queue,
   ) {}
 
   async checkExistByTitle(title: string) {
@@ -523,6 +529,26 @@ export class ContentService {
     content.case_allow = body.casePublic;
     content.complete = body.complete;
     content.created_by = member;
+
+    if (body.casePublic === 'public') {
+      console.log('asd', member.follow_by);
+      member.follow_by.forEach((m) => {
+        const payload: IQueueContentNotify = {
+          from: member._id,
+          to: m,
+          title: 'đăng tải bài viết',
+          content: content._id,
+          type: 'create-content',
+        };
+
+        this.queueNotify.add('notify-action', payload, {
+          attempts: 3,
+          backoff: 3000,
+          removeOnComplete: true,
+          removeOnFail: true,
+        });
+      });
+    }
 
     return this.contentRepository.save(content);
   }
