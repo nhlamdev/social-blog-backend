@@ -109,10 +109,7 @@ export class ContentService {
       .andWhere('content.bookmark_by @> ARRAY[:...members]', {
         members: [jwtPayload._id],
       })
-      .andWhere('content.case_allow = :caseAlow ', { caseAlow: 'public' })
-      .andWhere('content.complete = :isComplete', {
-        isComplete: true,
-      })
+      .andWhere('content.public = true AND content.complete = true ')
       .take(params._take)
       .skip(params._skip)
       .getManyAndCount();
@@ -122,10 +119,7 @@ export class ContentService {
     const query = await this.contentRepository
       .createQueryBuilder('content')
       .select('content.tags')
-      .where('content.case_allow = :caseAlow ', { caseAlow: 'public' })
-      .andWhere('content.complete = :isComplete', {
-        isComplete: true,
-      });
+      .where('content.public = true AND content.complete = true ');
 
     const queryAuthorFilter = author
       ? query.andWhere('content.created_by = :author ', { author: author })
@@ -151,7 +145,7 @@ export class ContentService {
       where: {
         created_by: { _id: memberId },
         complete: true,
-        case_allow: 'public',
+        public: true,
       },
     });
   }
@@ -231,7 +225,7 @@ export class ContentService {
         'created_by.image',
         'created_by.email',
       ])
-      .where('content.case_allow = :caseAlow ', { caseAlow: 'public' })
+      .where('content.public = true')
       .take(payload._take)
       .orderBy('content.count_view', 'DESC')
       .where('content.complete = :isComplete', {
@@ -269,7 +263,7 @@ export class ContentService {
         created_by.image as created_by_image, 
         COUNT(comments._id) as comments_count`,
       )
-      .where('content.case_allow = :caseAlow ', { caseAlow: 'public' })
+      .where('content.public = true')
       .groupBy(
         `content._id, 
         content.title,
@@ -305,10 +299,7 @@ export class ContentService {
       return query.getManyAndCount();
     } else {
       return query
-        .andWhere('content.case_allow = :caseAlow ', { caseAlow: 'public' })
-        .andWhere('complete = :complete', {
-          complete: true,
-        })
+        .andWhere('content.public = true  and content.complete = true')
         .getManyAndCount();
     }
   }
@@ -330,10 +321,7 @@ export class ContentService {
         `content._id, content.title,content.count_view, content.created_at ,
         category.title as category`,
       )
-      .where('content.case_allow = :caseAlow ', { caseAlow: 'public' })
-      .andWhere('complete = :complete', {
-        complete: true,
-      })
+      .where('content.public = true AND content.complete = true')
       .orderBy('RANDOM()')
       .limit(take)
       .getRawMany();
@@ -457,10 +445,7 @@ export class ContentService {
       .andWhere('LOWER(content.title) LIKE :search', {
         search: payload._search,
       })
-      .where('content.case_allow = :caseAlow ', { caseAlow: 'public' })
-      .andWhere('content.complete = :isComplete', {
-        isComplete: true,
-      });
+      .where('content.public = true AND content.complete = true');
 
     const filterCategory = payload._category
       ? query.andWhere('category._id = :category ', {
@@ -528,12 +513,11 @@ export class ContentService {
     content.body = body.body;
     content.category = _category;
     content.tags = body.tags;
-    content.case_allow = body.casePublic;
+    content.public = body.public;
     content.complete = body.complete;
     content.created_by = member;
 
-    if (body.casePublic === 'public') {
-      console.log('asd', member.follow_by);
+    if (body.public) {
       member.follow_by.forEach((m) => {
         const payload: IQueueContentNotify = {
           from: member._id,
@@ -563,7 +547,7 @@ export class ContentService {
     content.title = body.title;
     content.body = body.body;
     content.category = _category;
-    content.case_allow = body.casePublic;
+    content.public = body.public;
     content.complete = Boolean(body.complete);
     content.tags = body.tags;
 

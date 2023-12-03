@@ -323,7 +323,7 @@ export class ContentController {
 
     const result = {
       contents: data.map((c) => {
-        delete c.case_allow;
+        delete c.public;
         delete c.complete;
         delete c.delete_at;
         delete c.body;
@@ -418,7 +418,7 @@ export class ContentController {
 
     const content = await this.contentService.oneContentById(id);
 
-    if (content.case_allow === 'only-me' || content.complete === false) {
+    if (!content.public || content.complete === false) {
       throw new BadRequestException('Không tìm thấy bài viết');
     }
 
@@ -427,7 +427,7 @@ export class ContentController {
       countComment: await this.commentService.countCommentByContent(content),
     };
 
-    delete result.case_allow;
+    delete result.public;
     delete result.complete;
     delete result.delete_at;
     delete result.updated_at;

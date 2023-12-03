@@ -19,11 +19,11 @@ export class ContentEntity extends AbstractEntity {
   @Column({ type: 'text', nullable: false })
   body: string;
 
-  @Column({ type: 'boolean', nullable: false })
+  @Column({ type: 'boolean', nullable: false, default: false })
   complete: boolean;
 
-  @Column({ type: 'varchar', length: 20, nullable: true })
-  case_allow: 'only-me' | 'have-link' | 'public';
+  @Column({ type: 'boolean', nullable: false, default: true })
+  public: boolean;
 
   @Column({ type: 'text', array: true, default: [] })
   watches: string[];
@@ -56,4 +56,16 @@ export class ContentEntity extends AbstractEntity {
 
   @ManyToOne(() => MemberEntity, (member) => member.contents)
   created_by: MemberEntity;
+
+  // @AfterInsert()
+  // afterInsertContent() {
+  //   const follows = this.created_by.follow_by;
+
+  //   follows.forEach( follow =>{
+  //     const newNotify = new NotifyEntity();
+
+  //     newNotify.save();
+  //   })
+
+  // }
 }

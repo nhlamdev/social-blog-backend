@@ -42,10 +42,7 @@ export class CategoryService {
       .select(
         'category._id, category.title, COUNT(contents._id) as contentCount',
       )
-      .where('contents.case_allow = :caseAllow', { caseAllow: 'public' })
-      .andWhere('contents.complete = :isComplete', {
-        isComplete: true,
-      })
+      .where('contents.public = true AND contents.complete = true')
       .groupBy('category._id')
       .orderBy('contentCount', 'DESC')
       .limit(take)
@@ -74,7 +71,7 @@ export class CategoryService {
       const countContent = await this.contentRepository.count({
         where: {
           category: { _id: category._id },
-          case_allow: 'public',
+          public: true,
           complete: true,
         },
       });

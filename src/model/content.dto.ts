@@ -38,11 +38,11 @@ export class ContentDto {
   // @IsString({ message: 'Tiêu đề sai kiểu dữ liệu!.' })
   series?: string;
 
-  @ApiProperty({ type: String })
+  @ApiProperty({ type: Boolean })
   // @IsString({ message: 'Tiêu đề sai kiểu dữ liệu!.' })
-  casePublic: 'public' | 'only-me' | 'have-link';
+  public: boolean;
 
-  @ApiProperty({ type: String })
+  @ApiProperty({ type: Boolean })
   // @IsString({ message: 'Tiêu đề sai kiểu dữ liệu!.' })
   complete: boolean;
 }

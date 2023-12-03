@@ -159,7 +159,7 @@ export class AuthService {
           const content_count = await this.contentRepository.count({
             where: {
               created_by: { _id: c._id },
-              case_allow: 'public',
+              public: true,
               complete: true,
             },
           });

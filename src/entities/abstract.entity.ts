@@ -8,14 +8,14 @@ import {
 } from 'typeorm';
 
 export abstract class AbstractEntity extends BaseEntity {
-  @DeleteDateColumn({ type: 'timestamp', nullable: false })
-  delete_at: Date;
-
   @CreateDateColumn({ type: 'timestamp', nullable: false })
   created_at: Date;
 
-  @UpdateDateColumn({ type: 'timestamp', nullable: false })
+  @UpdateDateColumn({ type: 'timestamp', nullable: false, select: false })
   updated_at: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', nullable: false, select: false })
+  delete_at: Date;
 
   @Generated('increment')
   @Column({ type: 'integer', nullable: false })
