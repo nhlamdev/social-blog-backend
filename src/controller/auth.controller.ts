@@ -271,6 +271,15 @@ export class AuthController {
     return jwtPayload;
   }
 
+  @Get('member-follow/:id')
+  @ApiTags('member-auth')
+  @ApiOperation({
+    summary: 'Lấy thông tin cá nhân.',
+  })
+  async membersFollow(@Param('id') id: string) {
+    return await this.authService.findFullInfoMemberFollow(id);
+  }
+
   @Put('change')
   @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-access'))

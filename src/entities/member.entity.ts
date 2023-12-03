@@ -1,10 +1,4 @@
-import {
-  BeforeInsert,
-  Column,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 import { CommentEntity, ContentEntity, SeriesEntity, SessionEntity } from '.';
 import { AbstractEntity } from './abstract.entity';
@@ -20,13 +14,13 @@ export class MemberEntity extends AbstractEntity {
   @Column({ type: 'text', nullable: false })
   email: string;
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ type: 'boolean', default: true, select: false })
   role_author: boolean;
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ type: 'boolean', default: true, select: false })
   role_comment: boolean;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, select: false })
   role_owner: boolean;
 
   @Column({
@@ -55,8 +49,8 @@ export class MemberEntity extends AbstractEntity {
   })
   comments: CommentEntity[];
 
-  @BeforeInsert()
-  async beforeInsert() {
-    this.image = this.image;
-  }
+  // @BeforeInsert()
+  // async beforeInsert() {
+  //   this.image = this.image;
+  // }
 }

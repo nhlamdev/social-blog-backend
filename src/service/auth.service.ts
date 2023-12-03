@@ -55,7 +55,7 @@ export class AuthService {
     return { data, count };
   }
 
-  async findMemberFolowedByAuthor(authorTarget: string) {
+  async findMemberFollowedByAuthor(authorTarget: string) {
     const queryResult = await this.memberRepository
       .createQueryBuilder('member')
       .select('member.follow_by')
@@ -65,8 +65,17 @@ export class AuthService {
     return queryResult.follow_by;
   }
 
+  async findFullInfoMemberFollow(id: string) {
+    const ids = await this.findMemberFollowedByAuthor(id);
+    const members = ids.map(async (item) => {
+      return await this.memberRepository.findOne({ where: { _id: item } });
+    });
+
+    return await Promise.all(members);
+  }
+
   async UpdateMemberFollow(jwtPayload: AccessJwtPayload, authorTarget: string) {
-    const memberFollowed = await this.findMemberFolowedByAuthor(authorTarget);
+    const memberFollowed = await this.findMemberFollowedByAuthor(authorTarget);
 
     if (memberFollowed.includes(jwtPayload._id)) {
       await this.memberRepository.update(authorTarget, {
