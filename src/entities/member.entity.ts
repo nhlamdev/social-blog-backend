@@ -14,13 +14,13 @@ export class MemberEntity extends AbstractEntity {
   @Column({ type: 'text', nullable: false })
   email: string;
 
-  @Column({ type: 'boolean', default: true, select: false })
+  @Column({ type: 'boolean', default: true })
   role_author: boolean;
 
-  @Column({ type: 'boolean', default: true, select: false })
+  @Column({ type: 'boolean', default: true })
   role_comment: boolean;
 
-  @Column({ type: 'boolean', default: false, select: false })
+  @Column({ type: 'boolean', default: false })
   role_owner: boolean;
 
   @Column({

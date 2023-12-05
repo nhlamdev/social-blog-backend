@@ -16,13 +16,18 @@ export class CommonController {
   @Get('visualize')
   @ApiTags('common')
   async visualize() {
-    return this.commonService.ownerVisualizeData();
+    const result = {
+      visual: await this.commonService.ownerVisualizeData(),
+      status: await this.commonService.status(),
+    };
+
+    return result;
   }
 
-  @Get('current-memory-use')
-  @ApiTags('common')
-  async global() {
-    return this.commonService.checkMemoryUse();
+  @Get('status')
+  @ApiTags()
+  async() {
+    return this.commonService.status();
   }
 
   @Get('setting-action')

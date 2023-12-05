@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cache } from 'cache-manager';
 import * as cacheKeys from '@/constants/cache-key';
+import { CategoryService, ContentService, SeriesService } from '.';
 @Injectable()
 export class CommonService {
   constructor(
@@ -14,6 +15,9 @@ export class CommonService {
     @InjectRepository(SessionEntity)
     private sessionRepository: Repository<SessionEntity>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly contentService: ContentService,
+    private readonly seriesService: SeriesService,
+    private readonly categoryService: CategoryService,
   ) {}
 
   async saveFile(files) {
@@ -68,14 +72,25 @@ export class CommonService {
       total_member_access: sessions,
       total_member_online:
         typeof count_member_online === 'number' ? count_member_online : 0,
-      total_memory_use: Math.round(
-        filesSize.reduce((old: number, current: any) => {
-          return old + current.file_size;
-        }, 0) /
-          (1024 * 1024),
-      ),
+      total_memory_use:
+        Math.round(
+          filesSize.reduce((old: number, current: any) => {
+            return old + current.file_size;
+          }, 0) /
+            ((1024 * 1024) / 100),
+        ) / 100,
     };
 
     return result;
+  }
+
+  async status() {
+    const count = {
+      content: await this.contentService.countContent(),
+      series: await this.seriesService.countSeries(),
+      category: await this.categoryService.countCategory(),
+    };
+
+    return count;
   }
 }
