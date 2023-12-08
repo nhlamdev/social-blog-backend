@@ -8,14 +8,12 @@ import {
 import { ContentDto } from '@/model';
 // import { CategoryService, SeriesService } from '@/service';
 import { AccessJwtPayload } from '@/interface';
+import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Queue } from 'bull';
 import { Repository } from 'typeorm';
 import { CategoryService, CommentService } from '.';
-import { QUEUE_MAIL, QUEUE_NOTIFY } from '@/constants/queue';
-import { Queue } from 'bull';
-import { InjectQueue } from '@nestjs/bull';
-import { IQueueContentNotify } from '@/interface/queue.intereface';
 
 @Injectable()
 export class ContentService {
@@ -28,8 +26,7 @@ export class ContentService {
     private commentRepository: Repository<CommentEntity>,
     private categoryService: CategoryService,
     private commentService: CommentService,
-    @InjectQueue(QUEUE_MAIL) private queueMail: Queue,
-    @InjectQueue(QUEUE_NOTIFY) private queueNotify: Queue,
+    @InjectQueue('QUEUE_MAIL') private queueMail: Queue,
   ) {}
 
   async checkExistByTitle(title: string) {
@@ -517,24 +514,24 @@ export class ContentService {
     content.complete = body.complete;
     content.created_by = member;
 
-    if (body.public) {
-      member.follow_by.forEach((m) => {
-        const payload: IQueueContentNotify = {
-          from: member._id,
-          to: m,
-          title: 'đăng tải bài viết',
-          content: content._id,
-          type: 'create-content',
-        };
+    // if (body.public) {
+    //   member.follow_by.forEach((m) => {
+    //     const payload: IQueueContentNotify = {
+    //       from: member._id,
+    //       to: m,
+    //       title: 'đăng tải bài viết',
+    //       content: content._id,
+    //       type: 'create-content',
+    //     };
 
-        this.queueNotify.add('notify-action', payload, {
-          attempts: 3,
-          backoff: 3000,
-          removeOnComplete: true,
-          removeOnFail: true,
-        });
-      });
-    }
+    //     this.queueNotify.add('notify-action', payload, {
+    //       attempts: 3,
+    //       backoff: 3000,
+    //       removeOnComplete: true,
+    //       removeOnFail: true,
+    //     });
+    //   });
+    // }
 
     return this.contentRepository.save(content);
   }

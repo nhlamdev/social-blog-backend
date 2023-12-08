@@ -15,7 +15,6 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import type { RedisClientOptions } from 'redis';
-import { QueuesRegisterConfig } from './constants/queue';
 import { WebsocketGateway } from './websocket.gateway';
 
 @Module({
@@ -30,7 +29,11 @@ import { WebsocketGateway } from './websocket.gateway';
       }),
       inject: [ConfigService],
     }),
-    BullModule.registerQueue(...QueuesRegisterConfig),
+    BullModule.registerQueue({
+      name: 'QUEUE_MAIL',
+      settings: {},
+      limiter: { max: 30, duration: 1000 },
+    }),
     ConfigModule.forRoot({ isGlobal: true }),
     CacheModule.register<RedisClientOptions>({
       isGlobal: true,

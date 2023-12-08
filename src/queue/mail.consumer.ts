@@ -1,10 +1,9 @@
-import { QUEUE_MAIL } from '@/constants/queue';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import nodemailer from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 
-@Processor(QUEUE_MAIL)
+@Processor('QUEUE_MAIL')
 export class MailConsumer {
   private readonly emailAccount = process.env.EMAIL_ACCOUNT;
   private readonly emailPassword = process.env.EMAIL_PASSWORD;

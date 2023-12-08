@@ -56,16 +56,4 @@ export class ContentEntity extends AbstractEntity {
 
   @ManyToOne(() => MemberEntity, (member) => member.contents)
   created_by: MemberEntity;
-
-  // @AfterInsert()
-  // afterInsertContent() {
-  //   const follows = this.created_by.follow_by;
-
-  //   follows.forEach( follow =>{
-  //     const newNotify = new NotifyEntity();
-
-  //     newNotify.save();
-  //   })
-
-  // }
 }

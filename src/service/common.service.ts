@@ -1,4 +1,4 @@
-import { FileEntity, SessionEntity } from '@/entities';
+import { FileEntity, NotifyEntity, SessionEntity } from '@/entities';
 import { owner_visualize } from '@/interface';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
@@ -6,7 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cache } from 'cache-manager';
 import * as cacheKeys from '@/constants/cache-key';
-import { CategoryService, ContentService, SeriesService } from '.';
+import { AuthService, CategoryService, ContentService, SeriesService } from '.';
 @Injectable()
 export class CommonService {
   constructor(
@@ -14,10 +14,13 @@ export class CommonService {
     private fileRepository: Repository<FileEntity>,
     @InjectRepository(SessionEntity)
     private sessionRepository: Repository<SessionEntity>,
+    @InjectRepository(NotifyEntity)
+    private notifyRepository: Repository<NotifyEntity>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly contentService: ContentService,
     private readonly seriesService: SeriesService,
     private readonly categoryService: CategoryService,
+    private readonly authService: AuthService,
   ) {}
 
   async saveFile(files) {
@@ -92,5 +95,11 @@ export class CommonService {
     };
 
     return count;
+  }
+
+  async allNotify() {
+    const notifies = await this.notifyRepository.find();
+
+    return notifies;
   }
 }

@@ -4,11 +4,13 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Generated,
+  Index,
   UpdateDateColumn,
 } from 'typeorm';
 
 export abstract class AbstractEntity extends BaseEntity {
   @CreateDateColumn({ type: 'timestamp', nullable: false })
+  @Index()
   created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamp', nullable: false, select: false })

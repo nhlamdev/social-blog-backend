@@ -682,6 +682,7 @@ export class ContentController {
   }
 
   @Patch('/:id/watch')
+  @ApiTags('content')
   @UseGuards(AuthGuard('jwt-access'))
   async makeWatched(@Param('id') id: string, @Req() req) {
     const jwtPayload: AccessJwtPayload = req.user;

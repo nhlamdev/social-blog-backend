@@ -4,13 +4,13 @@ import { InjectQueue } from '@nestjs/bull';
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Queue } from 'bull';
-import { QUEUE_MAIL } from '@/constants/queue';
 
 @Controller('common')
 export class CommonController {
   constructor(
     private readonly commonService: CommonService,
-    @InjectQueue(QUEUE_MAIL) private queueMail: Queue,
+
+    @InjectQueue('QUEUE_MAIL') private queueMail: Queue,
   ) {}
 
   @Get('visualize')
@@ -25,15 +25,15 @@ export class CommonController {
   }
 
   @Get('status')
-  @ApiTags()
+  @ApiTags('common')
   async() {
     return this.commonService.status();
   }
 
-  @Get('setting-action')
+  @Get('all-notify')
   @ApiTags('common')
   async setting() {
-    return 'test';
+    return this.commonService.allNotify();
   }
 
   @Get('test')

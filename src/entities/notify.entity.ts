@@ -1,6 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 import { AbstractEntity } from './abstract.entity';
+import { MemberEntity } from './member.entity';
 
 @Entity('notify')
 export class NotifyEntity extends AbstractEntity {
@@ -8,23 +9,17 @@ export class NotifyEntity extends AbstractEntity {
   _id: string;
 
   @Column({ type: 'text', nullable: false })
-  body: string;
+  title: string;
 
   @Column({ type: 'text', nullable: false })
-  from: string;
+  description: string;
 
-  @Column({ type: 'text', nullable: true })
-  content: string;
-
-  @Column({ type: 'boolean', default: false, nullable: false })
-  hidden: boolean;
+  @Column({ type: 'text', nullable: false })
+  from: MemberEntity;
 
   @Column({ type: 'boolean', default: false, nullable: false })
   seen: boolean;
 
   @Column({ type: 'text', nullable: false })
-  to: string;
-
-  @Column({ type: 'text', nullable: false })
-  type: 'create-content' | 'create-content' | 'create-reply';
+  to: MemberEntity;
 }
