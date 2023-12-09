@@ -8,10 +8,8 @@ import {
 import { ContentDto } from '@/model';
 // import { CategoryService, SeriesService } from '@/service';
 import { AccessJwtPayload } from '@/interface';
-import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Queue } from 'bull';
 import { Repository } from 'typeorm';
 import { CategoryService, CommentService, CommonService } from '.';
 
@@ -23,11 +21,9 @@ export class ContentService {
     @InjectRepository(ContentEntity)
     private contentRepository: Repository<ContentEntity>,
     @InjectRepository(CommentEntity)
-    private readonly commentRepository: Repository<CommentEntity>,
+    private readonly commonService: CommonService,
     private readonly categoryService: CategoryService,
     private readonly commentService: CommentService,
-    private readonly commonService: CommonService,
-    @InjectQueue('QUEUE_MAIL') private queueMail: Queue,
   ) {}
 
   async checkExistByTitle(title: string) {

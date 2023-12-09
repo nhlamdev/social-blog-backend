@@ -1,12 +1,11 @@
+import * as cacheKeys from '@/constants/cache-key';
 import { FileEntity, NotifyEntity, SessionEntity } from '@/entities';
 import { owner_visualize } from '@/interface';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { Cache } from 'cache-manager';
-import * as cacheKeys from '@/constants/cache-key';
-import { AuthService, CategoryService, ContentService, SeriesService } from '.';
+import { Repository } from 'typeorm';
 @Injectable()
 export class CommonService {
   constructor(
@@ -17,10 +16,6 @@ export class CommonService {
     @InjectRepository(NotifyEntity)
     private notifyRepository: Repository<NotifyEntity>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    private readonly contentService: ContentService,
-    private readonly seriesService: SeriesService,
-    private readonly categoryService: CategoryService,
-    private readonly authService: AuthService,
   ) {}
 
   async saveFile(files) {
@@ -87,15 +82,15 @@ export class CommonService {
     return result;
   }
 
-  async status() {
-    const count = {
-      content: await this.contentService.countContent(),
-      series: await this.seriesService.countSeries(),
-      category: await this.categoryService.countCategory(),
-    };
+  // async status() {
+  //   const count = {
+  //     content: await this.contentService.countContent(),
+  //     series: await this.seriesService.countSeries(),
+  //     category: await this.categoryService.countCategory(),
+  //   };
 
-    return count;
-  }
+  //   return count;
+  // }
 
   async saveNotify(payload: {
     title: string;

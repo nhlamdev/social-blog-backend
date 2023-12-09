@@ -18,17 +18,17 @@ export class CommonController {
   async visualize() {
     const result = {
       visual: await this.commonService.ownerVisualizeData(),
-      status: await this.commonService.status(),
+      // status: await this.commonService.status(),
     };
 
     return result;
   }
 
-  @Get('status')
-  @ApiTags('common')
-  async() {
-    return this.commonService.status();
-  }
+  // @Get('status')
+  // @ApiTags('common')
+  // async() {
+  //   return this.commonService.status();
+  // }
 
   @Get('all-notify')
   @ApiTags('common')
