@@ -97,6 +97,33 @@ export class CommonService {
     return count;
   }
 
+  async saveNotify(payload: {
+    title: string;
+    description?: string;
+    from: string;
+    to: string;
+    url?: string;
+  }) {
+    const notify = new NotifyEntity();
+    notify.title = payload.title;
+    notify.description = payload.description;
+    notify.to = payload.to;
+
+    if (payload.from) {
+      notify.from = payload.from;
+    }
+
+    if (payload.url) {
+      notify.url = payload.url;
+    }
+
+    this.notifyRepository.save(notify);
+  }
+
+  async makeSeenAllNotifies(memberFromId: string) {
+    await this.notifyRepository.update(memberFromId, { seen: true });
+  }
+
   async allNotify() {
     const notifies = await this.notifyRepository.find();
 

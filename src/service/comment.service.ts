@@ -1,12 +1,23 @@
-import { CommentEntity, ContentEntity, MemberEntity } from '@/entities';
+import {
+  CommentEntity,
+  ContentEntity,
+  MemberEntity,
+  NotifyEntity,
+} from '@/entities';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CommonService } from './common.service';
 @Injectable()
 export class CommentService {
   constructor(
     @InjectRepository(CommentEntity)
-    private commentRepository: Repository<CommentEntity>,
+    private readonly commentRepository: Repository<CommentEntity>,
+    @InjectRepository(NotifyEntity)
+    private readonly notifyRepository: Repository<NotifyEntity>,
+    @InjectRepository(MemberEntity)
+    private readonly memberRepository: Repository<MemberEntity>,
+    private readonly commonService: CommonService,
   ) {}
 
   async checkExistById(id: string) {
@@ -88,43 +99,43 @@ export class CommentService {
       newComment.created_by = payload.member;
     }
 
-    // if (payload.content) {
-    //   newComment.content = payload.content;
+    if (payload.content) {
+      newComment.content = payload.content;
 
-    //   const queuePayload: IQueueContentNotify = {
-    //     from: payload.member._id,
-    //     to: payload.content.created_by._id,
-    //     title: 'trả lời bình luận',
-    //     content: payload.content._id,
-    //     type: 'create-reply',
-    //   };
+      const notifyPayload: {
+        title: string;
+        description?: string;
+        from: string;
+        to: string;
+        url?: string;
+      } = {
+        from: payload.member._id,
+        to: payload.content.created_by._id,
+        title: 'bình luận',
+        url: `/content/${payload.content._id}`,
+      };
 
-    //   this.queueNotify.add('notify-action', queuePayload, {
-    //     attempts: 3,
-    //     backoff: 3000,
-    //     removeOnComplete: true,
-    //     removeOnFail: true,
-    //   });
-    // }
+      this.commonService.saveNotify(notifyPayload);
+    }
 
-    // if (payload.parent) {
-    //   newComment.comment_parent = payload.parent;
+    if (payload.parent) {
+      newComment.comment_parent = payload.parent;
 
-    //   // const queuePayload: IQueueContentNotify = {
-    //   //   from: payload.member._id,
-    //   //   to: payload.parent._id,
-    //   //   title: 'trả lời bình luận',
-    //   //   content: null,
-    //   //   type: 'create-reply',
-    //   // };
+      const notifyPayload: {
+        title: string;
+        description?: string;
+        from: string;
+        to: string;
+        url?: string;
+      } = {
+        from: payload.member._id,
+        to: payload.parent._id,
+        title: 'trả lời bình luận',
+        url: `/content/${payload.parent.content._id}`,
+      };
 
-    //   // this.queueNotify.add('notify-action', queuePayload, {
-    //   //   attempts: 3,
-    //   //   backoff: 3000,
-    //   //   removeOnComplete: true,
-    //   //   removeOnFail: true,
-    //   // });
-    // }
+      this.commonService.saveNotify(notifyPayload);
+    }
 
     return await this.commentRepository.save(newComment);
   }

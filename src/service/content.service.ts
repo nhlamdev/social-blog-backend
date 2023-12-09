@@ -13,7 +13,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
 import { Repository } from 'typeorm';
-import { CategoryService, CommentService } from '.';
+import { CategoryService, CommentService, CommonService } from '.';
 
 @Injectable()
 export class ContentService {
@@ -23,9 +23,10 @@ export class ContentService {
     @InjectRepository(ContentEntity)
     private contentRepository: Repository<ContentEntity>,
     @InjectRepository(CommentEntity)
-    private commentRepository: Repository<CommentEntity>,
-    private categoryService: CategoryService,
-    private commentService: CommentService,
+    private readonly commentRepository: Repository<CommentEntity>,
+    private readonly categoryService: CategoryService,
+    private readonly commentService: CommentService,
+    private readonly commonService: CommonService,
     @InjectQueue('QUEUE_MAIL') private queueMail: Queue,
   ) {}
 
@@ -514,24 +515,24 @@ export class ContentService {
     content.complete = body.complete;
     content.created_by = member;
 
-    // if (body.public) {
-    //   member.follow_by.forEach((m) => {
-    //     const payload: IQueueContentNotify = {
-    //       from: member._id,
-    //       to: m,
-    //       title: 'đăng tải bài viết',
-    //       content: content._id,
-    //       type: 'create-content',
-    //     };
+    if (body.public) {
+      member.follow_by.forEach((m) => {
+        const notifyPayload: {
+          title: string;
+          description?: string;
+          from: string;
+          to: string;
+          url?: string;
+        } = {
+          from: member._id,
+          to: m,
+          title: 'đăng tải bài viết',
+          url: `/content/${content._id}`,
+        };
 
-    //     this.queueNotify.add('notify-action', payload, {
-    //       attempts: 3,
-    //       backoff: 3000,
-    //       removeOnComplete: true,
-    //       removeOnFail: true,
-    //     });
-    //   });
-    // }
+        this.commonService.saveNotify(notifyPayload);
+      });
+    }
 
     return this.contentRepository.save(content);
   }

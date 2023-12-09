@@ -1,25 +1,27 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 import { AbstractEntity } from './abstract.entity';
-import { MemberEntity } from './member.entity';
 
 @Entity('notify')
 export class NotifyEntity extends AbstractEntity {
   @PrimaryGeneratedColumn('uuid')
   _id: string;
 
-  @Column({ type: 'text', nullable: false })
+  @Column({ type: 'text', nullable: true })
   title: string;
 
-  @Column({ type: 'text', nullable: false })
-  description: string;
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
 
-  @Column({ type: 'text', nullable: false })
-  from: MemberEntity;
+  @Column({ type: 'text', nullable: true })
+  from: string | null;
 
   @Column({ type: 'boolean', default: false, nullable: false })
   seen: boolean;
 
   @Column({ type: 'text', nullable: false })
-  to: MemberEntity;
+  to: string;
+
+  @Column({ type: 'text', nullable: true })
+  url: string | null;
 }
