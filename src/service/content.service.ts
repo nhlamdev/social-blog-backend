@@ -537,12 +537,12 @@ export class ContentService {
         } = {
           from: member._id,
           to: m,
-          title: 'đăng tải bài viết',
+          title: `vừa mới đăng tải bài viết ${body.title}`,
           url: `/content/${result._id}`,
         };
 
         const date = new Date();
-        const timeFormat = `ngày ${date.getDate()}/${
+        const timeFormat = `${date.getHours()}:${date.getHours()} ${date.getDate()}/${
           date.getMonth() + 1
         }/${date.getFullYear()}`;
 

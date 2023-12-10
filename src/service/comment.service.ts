@@ -111,7 +111,7 @@ export class CommentService {
       } = {
         from: payload.member._id,
         to: payload.content.created_by._id,
-        title: 'bình luận',
+        title: 'vừa bình luận bài viết của bạn',
         url: `/content/${payload.content._id}`,
       };
 
@@ -130,7 +130,7 @@ export class CommentService {
       } = {
         from: payload.member._id,
         to: payload.parent._id,
-        title: 'trả lời bình luận',
+        title: 'vừa trả lời bình luận của bạn',
         url: `/content/${payload.parent.content._id}`,
       };
 
