@@ -1,11 +1,16 @@
 import * as cacheKeys from '@/constants/cache-key';
-import { FileEntity, NotifyEntity, SessionEntity } from '@/entities';
-import { owner_visualize } from '@/interface';
+import {
+  FileEntity,
+  MemberEntity,
+  NotifyEntity,
+  SessionEntity,
+} from '@/entities';
+import { AccessJwtPayload, owner_visualize } from '@/interface';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 @Injectable()
 export class CommonService {
   constructor(
@@ -15,6 +20,8 @@ export class CommonService {
     private sessionRepository: Repository<SessionEntity>,
     @InjectRepository(NotifyEntity)
     private notifyRepository: Repository<NotifyEntity>,
+    @InjectRepository(MemberEntity)
+    private memberRepository: Repository<MemberEntity>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -115,8 +122,43 @@ export class CommonService {
     this.notifyRepository.save(notify);
   }
 
-  async makeSeenAllNotifies(memberFromId: string) {
-    await this.notifyRepository.update(memberFromId, { seen: true });
+  async makeSeenAllNotifies(jwtPayload: AccessJwtPayload) {
+    // const notifies = await this.notifyRepository.find({
+    //   select: { _id: true },
+    //   where: { to: memberFromId, seen: false },
+    // });
+
+    return await this.notifyRepository.update(
+      { to: jwtPayload._id },
+      { seen: true },
+    );
+  }
+
+  async notifiesByMember(
+    jwtPayload: AccessJwtPayload,
+    _last: number,
+    _take: number,
+  ) {
+    const result = await this.notifyRepository.find({
+      where: { to: jwtPayload._id, index: _last ? LessThan(_last) : undefined },
+      take: _take,
+      order: { index: 'DESC' },
+    });
+
+    const resultWithDetailMemberSend = result.map(async (v) => {
+      const from = await this.memberRepository.findOne({
+        select: { _id: true, email: true, name: true, image: true },
+        where: { _id: v.from },
+      });
+
+      return { ...v, from: from };
+    });
+
+    const unSeen = await this.notifyRepository.count({
+      where: { to: jwtPayload._id, seen: false },
+    });
+
+    return { notifies: await Promise.all(resultWithDetailMemberSend), unSeen };
   }
 
   async allNotify() {

@@ -515,8 +515,19 @@ export class ContentService {
     content.complete = body.complete;
     content.created_by = member;
 
+    const result = await this.contentRepository.save(content);
+
     if (body.public) {
-      member.follow_by.forEach((m) => {
+      member.follow_by.forEach(async (m) => {
+        const memberFollow = await this.memberRepository.findOne({
+          select: { email: true },
+          where: { _id: m },
+        });
+
+        if (!Boolean(memberFollow)) {
+          return;
+        }
+
         const notifyPayload: {
           title: string;
           description?: string;
@@ -527,7 +538,7 @@ export class ContentService {
           from: member._id,
           to: m,
           title: 'đăng tải bài viết',
-          url: `/content/${content._id}`,
+          url: `/content/${result._id}`,
         };
 
         const date = new Date();
@@ -536,12 +547,12 @@ export class ContentService {
         }/${date.getFullYear()}`;
 
         const subscribePayload: IQueueMailPayload = {
-          title: `${member.email} vừa mới đăng tải bài viết.`,
+          title: `${member.name} vừa mới đăng tải bài viết.`,
           description: `Bài viết  ${body.title} vừa được đăng tải vào lúc ${timeFormat}`,
-          emailReceive: member.email,
+          emailReceive: memberFollow.email,
           context: {
             author: member.name,
-            create_time: date,
+            create_time: timeFormat,
             content_title: body.title,
           },
         };
@@ -561,7 +572,7 @@ export class ContentService {
       });
     }
 
-    return this.contentRepository.save(content);
+    return result;
   }
 
   async updateContent(_id: string, body: ContentDto, content: ContentEntity) {

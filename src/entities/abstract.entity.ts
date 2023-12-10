@@ -21,5 +21,6 @@ export abstract class AbstractEntity extends BaseEntity {
 
   @Generated('increment')
   @Column({ type: 'integer', nullable: false, select: false })
+  @Index()
   index: number;
 }

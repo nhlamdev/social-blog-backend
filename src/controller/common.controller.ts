@@ -1,8 +1,11 @@
 import { MAIL_QUEUE, MAIL_QUEUE_SUBSCRIBE_CREATE_CONTENT } from '@/constants';
+import { AccessJwtPayload } from '@/interface';
 import { CommonService } from '@/service';
+import { checkIsNumber } from '@/utils/global-func';
 import { InjectQueue } from '@nestjs/bull';
 // import { RabbitMQService } from '@/service/rabbitmq.service';
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Patch, Query, Req, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { Queue } from 'bull';
 
@@ -35,6 +38,28 @@ export class CommonController {
   @ApiTags('common')
   async setting() {
     return this.commonService.allNotify();
+  }
+
+  @Get('/notifies-by-member')
+  @ApiTags('common')
+  @UseGuards(AuthGuard('jwt-access'))
+  async notifiesByMember(
+    @Req() req,
+    @Query('last') last: string,
+    @Query('skip') skip: string,
+  ) {
+    const jwtPayload: AccessJwtPayload = req.user;
+    const _last = checkIsNumber(last) ? Number(last) : null;
+    const _skip = checkIsNumber(skip) ? Number(skip) : null;
+
+    return this.commonService.notifiesByMember(jwtPayload, _last, _skip);
+  }
+
+  @Patch('/notifies-seen-all')
+  @UseGuards(AuthGuard('jwt-access'))
+  async makeSeenAllNotifies(@Req() req) {
+    const jwtPayload: AccessJwtPayload = req.user;
+    return this.commonService.makeSeenAllNotifies(jwtPayload);
   }
 
   @Get('test')
