@@ -1,3 +1,4 @@
+import { MAIL_QUEUE, MAIL_QUEUE_SUBSCRIBE_CREATE_CONTENT } from '@/constants';
 import { CommonService } from '@/service';
 import { InjectQueue } from '@nestjs/bull';
 // import { RabbitMQService } from '@/service/rabbitmq.service';
@@ -10,7 +11,7 @@ export class CommonController {
   constructor(
     private readonly commonService: CommonService,
 
-    @InjectQueue('QUEUE_MAIL') private queueMail: Queue,
+    @InjectQueue(MAIL_QUEUE) private queueMail: Queue,
   ) {}
 
   @Get('visualize')
@@ -40,8 +41,19 @@ export class CommonController {
   @ApiTags('common')
   async settingUpdate() {
     this.queueMail.add(
-      'send-notify-mail',
-      { test: 'test' },
+      MAIL_QUEUE_SUBSCRIBE_CREATE_CONTENT,
+      {
+        emailReceive: 'lam.nh@oryza.vn',
+        title: 'nhlamdev@gmail.com vừa mới đăng tải bài viết.',
+        description:
+          'Bài viết  Cập nhật công nghệ mùa 3 vừa được đăng tải vào lúc ngày 9/12/2023',
+
+        context: {
+          author: 'Lâm Nguyễn Hoàng',
+          create_time: '2023-12-09T12:22:01.546Z',
+          content_title: 'Cập nhật công nghệ mùa 3',
+        },
+      },
       {
         attempts: 3,
         backoff: 3000,

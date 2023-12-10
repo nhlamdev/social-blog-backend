@@ -1,15 +1,18 @@
 import {
   CategoryEntity,
-  CommentEntity,
   ContentEntity,
   MemberEntity,
   SeriesEntity,
 } from '@/entities';
 import { ContentDto } from '@/model';
 // import { CategoryService, SeriesService } from '@/service';
+import { MAIL_QUEUE, MAIL_QUEUE_SUBSCRIBE_CREATE_CONTENT } from '@/constants';
 import { AccessJwtPayload } from '@/interface';
+import { IQueueMailPayload } from '@/interface/mail.interface';
+import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Queue } from 'bull';
 import { Repository } from 'typeorm';
 import { CategoryService, CommentService, CommonService } from '.';
 
@@ -20,10 +23,11 @@ export class ContentService {
     private memberRepository: Repository<MemberEntity>,
     @InjectRepository(ContentEntity)
     private contentRepository: Repository<ContentEntity>,
-    @InjectRepository(CommentEntity)
+
     private readonly commonService: CommonService,
     private readonly categoryService: CategoryService,
     private readonly commentService: CommentService,
+    @InjectQueue(MAIL_QUEUE) private mailQueue: Queue,
   ) {}
 
   async checkExistByTitle(title: string) {
@@ -525,6 +529,33 @@ export class ContentService {
           title: 'đăng tải bài viết',
           url: `/content/${content._id}`,
         };
+
+        const date = new Date();
+        const timeFormat = `ngày ${date.getDate()}/${
+          date.getMonth() + 1
+        }/${date.getFullYear()}`;
+
+        const subscribePayload: IQueueMailPayload = {
+          title: `${member.email} vừa mới đăng tải bài viết.`,
+          description: `Bài viết  ${body.title} vừa được đăng tải vào lúc ${timeFormat}`,
+          emailReceive: member.email,
+          context: {
+            author: member.name,
+            create_time: date,
+            content_title: body.title,
+          },
+        };
+
+        this.mailQueue.add(
+          MAIL_QUEUE_SUBSCRIBE_CREATE_CONTENT,
+          subscribePayload,
+          {
+            attempts: 3,
+            backoff: 3000,
+            removeOnComplete: true,
+            removeOnFail: true,
+          },
+        );
 
         this.commonService.saveNotify(notifyPayload);
       });

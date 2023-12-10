@@ -16,6 +16,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import type { RedisClientOptions } from 'redis';
 import { WebsocketGateway } from './websocket.gateway';
+import { MAIL_QUEUE } from './constants';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { WebsocketGateway } from './websocket.gateway';
       inject: [ConfigService],
     }),
     BullModule.registerQueue({
-      name: 'QUEUE_MAIL',
+      name: MAIL_QUEUE,
       settings: {},
       limiter: { max: 30, duration: 1000 },
     }),

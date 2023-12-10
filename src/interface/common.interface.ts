@@ -16,3 +16,15 @@ export interface owner_visualize {
   total_member_online: number;
   total_memory_use: number;
 }
+
+export interface IMailTemplateConfig {
+  from?: string;
+  to: string;
+  subject: string;
+  text?: string;
+
+  template?: {
+    name: string;
+    context: any;
+  };
+}

@@ -26,7 +26,6 @@ import {
   Put,
   Query,
   Req,
-  // UploadedFile,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
