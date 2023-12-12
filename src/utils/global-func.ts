@@ -35,6 +35,26 @@ export const detectDevice = (userAgent) => {
   return { os, browser, device };
 };
 
+export function getTopKeys(
+  obj: { [key: string]: number },
+  top: number,
+): string[] {
+  const entries = Object.entries(obj);
+  entries.sort((a, b) => b[1] - a[1]);
+  const tops = entries.slice(0, top);
+  const topKeys = tops.map((v) => v[0]);
+
+  const result: any = {};
+
+  for (let index = 0; index < topKeys.length; index++) {
+    const key = topKeys[index];
+
+    result[key] = obj[key];
+  }
+
+  return result;
+}
+
 export const detectIp = (ipAddress: string) => {
   const ipRegex = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
 

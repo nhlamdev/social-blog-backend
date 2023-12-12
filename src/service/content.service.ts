@@ -5,7 +5,6 @@ import {
   SeriesEntity,
 } from '@/entities';
 import { ContentDto } from '@/model';
-// import { CategoryService, SeriesService } from '@/service';
 import { MAIL_QUEUE, MAIL_QUEUE_SUBSCRIBE_CREATE_CONTENT } from '@/constants';
 import { AccessJwtPayload } from '@/interface';
 import { IQueueMailPayload } from '@/interface/mail.interface';
@@ -15,6 +14,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
 import { Repository } from 'typeorm';
 import { CategoryService, CommentService, CommonService } from '.';
+import { getTopKeys } from '@/utils/global-func';
 
 @Injectable()
 export class ContentService {
@@ -125,17 +125,22 @@ export class ContentService {
 
     const queryResult = await queryAuthorFilter.getMany();
 
-    return queryResult.reduce((result: { [key: string]: number }, curr) => {
-      curr.tags.forEach((tag) => {
-        if (result[tag]) {
-          const newCount = result[tag] + 1;
-          result[tag] = newCount;
-        } else {
-          result = { ...result, [tag]: 1 };
-        }
-      });
-      return result;
-    }, {});
+    const tags = queryResult.reduce(
+      (result: { [key: string]: number }, curr) => {
+        curr.tags.forEach((tag) => {
+          if (result[tag]) {
+            const newCount = result[tag] + 1;
+            result[tag] = newCount;
+          } else {
+            result = { ...result, [tag]: 1 };
+          }
+        });
+        return result;
+      },
+      {},
+    );
+    // return tags;
+    return getTopKeys(tags, 10);
   }
 
   async countContentByMember(memberId: string) {
