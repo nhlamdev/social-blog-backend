@@ -5,8 +5,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-
-import { AbstractEntity } from './abstract.entity';
+import { AbstractEntity } from '@/base';
 
 @Entity('QA')
 export class QAEntity extends AbstractEntity {

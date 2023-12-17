@@ -6,3 +6,4 @@ export * from './category.entity';
 export * from './series.entity';
 export * from './comment.entity';
 export * from './notify.entity';
+export * from './contact.entity';

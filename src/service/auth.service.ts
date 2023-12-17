@@ -1,4 +1,5 @@
 import {
+  ContactEntity,
   ContentEntity,
   MemberEntity,
   SeriesEntity,
@@ -21,6 +22,8 @@ export class AuthService {
     private seriesRepository: Repository<SeriesEntity>,
     @InjectRepository(ContentEntity)
     private contentRepository: Repository<ContentEntity>,
+    @InjectRepository(ContactEntity)
+    private contactRepository: Repository<ContactEntity>,
   ) {}
 
   async checkSessionExist(session_id: string) {

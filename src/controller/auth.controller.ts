@@ -14,6 +14,7 @@ import {
   NotFoundException,
   Param,
   Patch,
+  Post,
   Put,
   Query,
   Req,
@@ -279,6 +280,14 @@ export class AuthController {
   async membersFollow(@Param('id') id: string) {
     return await this.authService.findFullInfoMemberFollow(id);
   }
+
+  @Post('contact')
+  @ApiTags('member-auth')
+  @ApiOperation({
+    summary: 'Báo cáo.',
+  })
+  @UseGuards(AuthGuard('jwt-access'))
+  async contact() {}
 
   @Put('change')
   @ApiTags('member-auth')

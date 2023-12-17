@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-import { AbstractEntity } from './abstract.entity';
+import { AbstractEntity } from '@/base';
 
 @Entity('notify')
 export class NotifyEntity extends AbstractEntity {

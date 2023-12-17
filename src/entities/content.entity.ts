@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CategoryEntity, CommentEntity, MemberEntity, SeriesEntity } from '.';
-import { AbstractEntity } from './abstract.entity';
+import { AbstractEntity } from '@/base';
 
 @Entity('content')
 export class ContentEntity extends AbstractEntity {

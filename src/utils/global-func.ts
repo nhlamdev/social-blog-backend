@@ -1,3 +1,37 @@
+import { BadRequestException, ParseUUIDPipe } from '@nestjs/common';
+import * as fs from 'fs';
+
+export const getDirPathUpload = (TableName: string) => {
+  const dirPath = 'uploads/' + TableName + getDatePath();
+  try {
+    if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
+    return dirPath;
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
+export function removeAscent(str: any) {
+  if (str === null || str === undefined) return str;
+  str = str.toLowerCase();
+  str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, 'a');
+  str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, 'e');
+  str = str.replace(/ì|í|ị|ỉ|ĩ/g, 'i');
+  str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, 'o');
+  str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, 'u');
+  str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, 'y');
+  str = str.replace(/đ/g, 'd');
+  str = str.replace(/\s+/g, '');
+  return str;
+}
+
+export const parseUUIDCustom = new ParseUUIDPipe({
+  exceptionFactory: () =>
+    new BadRequestException({
+      message: 'ID không hợp lệ',
+    }),
+});
+
 export const detectDevice = (userAgent) => {
   let os: { name: string; version: string } | null = null;
   let browser: { name: string; version: string } | null = null;
@@ -33,6 +67,23 @@ export const detectDevice = (userAgent) => {
   }
 
   return { os, browser, device };
+};
+
+export const getDirPath = (dirPath: any) => {
+  try {
+    if (!fs.existsSync(dirPath))
+      fs.promises.mkdir(dirPath, { recursive: true });
+    return dirPath;
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
+export const getDatePath = () => {
+  const toDate = new Date();
+  return (
+    toDate.getFullYear() + '' + (toDate.getMonth() + 1) + '' + toDate.getDate()
+  );
 };
 
 export function getTopKeys(

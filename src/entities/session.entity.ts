@@ -1,5 +1,5 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { AbstractEntity } from './abstract.entity';
+import { AbstractEntity } from '@/base';
 import { MemberEntity } from '.';
 
 @Entity('session')

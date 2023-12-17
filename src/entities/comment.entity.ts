@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 
 import { ContentEntity, MemberEntity } from '.';
-import { AbstractEntity } from './abstract.entity';
+import { AbstractEntity } from '@/base';
 
 @Entity('comment')
 export class CommentEntity extends AbstractEntity {

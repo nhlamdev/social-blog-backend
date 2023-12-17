@@ -1,3 +1,4 @@
+import { instanceToPlain } from 'class-transformer';
 import {
   BaseEntity,
   Column,
@@ -23,4 +24,8 @@ export abstract class AbstractEntity extends BaseEntity {
   @Column({ type: 'integer', nullable: false, select: false })
   @Index()
   index: number;
+
+  toJSON() {
+    return instanceToPlain(this);
+  }
 }

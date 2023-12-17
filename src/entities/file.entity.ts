@@ -1,20 +1,19 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { AbstractEntity } from './abstract.entity';
-
+import { AbstractEntity } from '@/base';
 @Entity('file')
 export class FileEntity extends AbstractEntity {
   @PrimaryGeneratedColumn('uuid')
   _id: string;
 
-  @Column()
+  @Column({ type: 'text', nullable: true })
   originalName: string;
 
-  @Column()
+  @Column({ type: 'text', nullable: true })
   fileName: string;
 
-  @Column()
+  @Column({ type: 'text', nullable: true })
   mimeType: string;
 
-  @Column()
+  @Column({ type: 'integer', nullable: true })
   size: number;
 }
