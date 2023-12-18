@@ -1,5 +1,6 @@
 import * as cacheKeys from '@/constants/cache-key';
 import {
+  ContactEntity,
   FileEntity,
   MemberEntity,
   NotifyEntity,
@@ -22,6 +23,8 @@ export class CommonService {
     private notifyRepository: Repository<NotifyEntity>,
     @InjectRepository(MemberEntity)
     private memberRepository: Repository<MemberEntity>,
+    @InjectRepository(ContactEntity)
+    private contactRepository: Repository<ContactEntity>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -89,15 +92,28 @@ export class CommonService {
     return result;
   }
 
-  // async status() {
-  //   const count = {
-  //     content: await this.contentService.countContent(),
-  //     series: await this.seriesService.countSeries(),
-  //     category: await this.categoryService.countCategory(),
-  //   };
+  async contacts(payload: { _skip: number; _take: number }) {
+    return await this.contactRepository.find({
+      take: payload._take,
+      skip: payload._skip,
+    });
+  }
 
-  //   return count;
-  // }
+  async saveContact(payload: {
+    memberId: string;
+    title: string;
+    description: string;
+  }) {
+    const contact = new ContactEntity();
+    contact.title = payload.title;
+    contact.description = payload.description;
+
+    this.contactRepository.save(contact);
+  }
+
+  async removeContact(id: string) {
+    this.contactRepository.delete(id);
+  }
 
   async saveNotify(payload: {
     title: string;

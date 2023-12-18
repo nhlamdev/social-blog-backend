@@ -1,6 +1,12 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-import { CommentEntity, ContentEntity, SeriesEntity, SessionEntity } from '.';
+import {
+  CommentEntity,
+  ContactEntity,
+  ContentEntity,
+  SeriesEntity,
+  SessionEntity,
+} from '.';
 import { AbstractEntity } from '@/base';
 
 @Entity('member')
@@ -48,6 +54,9 @@ export class MemberEntity extends AbstractEntity {
     onDelete: 'CASCADE',
   })
   comments: CommentEntity[];
+
+  @OneToMany(() => ContactEntity, (contact) => contact.create_by)
+  contacts: ContactEntity[];
 
   // @BeforeInsert()
   // async beforeInsert() {
