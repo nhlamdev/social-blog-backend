@@ -46,7 +46,7 @@ export class CommonController {
     return result;
   }
 
-  @Get('contact')
+  @Get('contacts')
   @ApiTags('common')
   @UseGuards(AuthGuard('jwt-access'))
   async contact(
@@ -86,7 +86,7 @@ export class CommonController {
 
       return 'send mail complete';
     } else {
-      throw new BadRequestException('mail đã được gửi vui gửi sau ít phút.');
+      throw new BadRequestException('vui lòng gửi sau ít phút.');
     }
   }
 
