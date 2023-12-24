@@ -49,7 +49,7 @@ export class CommonController {
   @Get('contacts')
   @ApiTags('common')
   @UseGuards(AuthGuard('jwt-access'))
-  async contact(
+  async contacts(
     @Req() req,
     @Query('skip') skip: string,
     @Query('take') take: string,
@@ -66,7 +66,7 @@ export class CommonController {
     return this.commonService.contacts({ _skip, _take });
   }
 
-  @Post('/make-contact')
+  @Post('make-contact')
   @ApiTags('common')
   @UseGuards(AuthGuard('jwt-access'))
   async createContact(@Req() req, @Body() payload: ContactCreteDto) {
@@ -76,7 +76,9 @@ export class CommonController {
 
     const time = new Date().getTime();
 
-    if (history <= time) {
+    console.log(history);
+
+    if (!Boolean(history) || history <= time) {
       await this.commonService.saveContact({
         memberId: jwtPayload._id,
         ...payload,
@@ -96,7 +98,7 @@ export class CommonController {
     return this.commonService.allNotify();
   }
 
-  @Get('/notifies-by-member')
+  @Get('notifies-by-member')
   @ApiTags('common')
   @UseGuards(AuthGuard('jwt-access'))
   async notifiesByMember(
@@ -111,7 +113,7 @@ export class CommonController {
     return this.commonService.notifiesByMember(jwtPayload, _last, _skip);
   }
 
-  @Patch('/notifies-seen-all')
+  @Patch('notifies-seen-all')
   @UseGuards(AuthGuard('jwt-access'))
   async makeSeenAllNotifies(@Req() req) {
     const jwtPayload: AccessJwtPayload = req.user;
@@ -144,16 +146,18 @@ export class CommonController {
     );
   }
 
-  @Delete('/contact/:id')
+  @Delete('contact/:id')
   @ApiTags('common')
   @UseGuards(AuthGuard('jwt-access'))
-  async deleteContact(@Req() req, @Param() id: string) {
+  async deleteContact(@Req() req, @Param('id') id: string) {
     const jwtPayload: AccessJwtPayload = req.user;
 
     if (!jwtPayload.role_owner) {
       throw new ForbiddenException('Bạn không có quyền xoá');
     }
 
-    this.commonService.removeContact(id);
+    console.log('id : ', id);
+
+    return this.commonService.removeContact(id);
   }
 }

@@ -60,7 +60,7 @@ export class CommentController {
 
     const isExistParent = await this.commentService.checkExistById(id);
 
-    if (isExistParent) {
+    if (!isExistParent) {
       throw new BadRequestException('bình luận mà bạn trả lời không tồn tại.');
     }
 

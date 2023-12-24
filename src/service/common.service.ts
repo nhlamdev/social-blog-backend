@@ -93,10 +93,17 @@ export class CommonService {
   }
 
   async contacts(payload: { _skip: number; _take: number }) {
-    return await this.contactRepository.find({
+    const data = await this.contactRepository.find({
       take: payload._take,
       skip: payload._skip,
     });
+
+    const count = await this.contactRepository.count({
+      take: payload._take,
+      skip: payload._skip,
+    });
+
+    return { data, count };
   }
 
   async saveContact(payload: {
