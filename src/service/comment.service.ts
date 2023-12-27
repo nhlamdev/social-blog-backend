@@ -15,6 +15,8 @@ export class CommentService {
     private readonly commentRepository: Repository<CommentEntity>,
     @InjectRepository(NotifyEntity)
     private readonly notifyRepository: Repository<NotifyEntity>,
+    @InjectRepository(ContentEntity)
+    private readonly contentRepository: Repository<ContentEntity>,
     @InjectRepository(MemberEntity)
     private readonly memberRepository: Repository<MemberEntity>,
     private readonly commonService: CommonService,
@@ -25,10 +27,16 @@ export class CommentService {
   }
 
   async commentById(id: string) {
-    return await this.commentRepository.findOne({
+    const comment = await this.commentRepository.findOne({
       where: { _id: id },
-      relations: { created_by: true },
+      relations: { created_by: true, comment_parent: true, content: true },
     });
+
+    if (comment?.content) {
+      delete comment.content.body;
+    }
+
+    return comment;
   }
 
   async countCommentByContent(content: ContentEntity) {
@@ -115,7 +123,7 @@ export class CommentService {
         url: `/content/${payload.content._id}`,
       };
 
-      this.commonService.saveNotify(notifyPayload);
+      await this.commonService.saveNotify(notifyPayload);
     }
 
     if (payload.parent) {

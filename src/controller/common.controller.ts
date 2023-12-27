@@ -76,8 +76,6 @@ export class CommonController {
 
     const time = new Date().getTime();
 
-    console.log(history);
-
     if (!Boolean(history) || history <= time) {
       await this.commonService.saveContact({
         memberId: jwtPayload._id,
