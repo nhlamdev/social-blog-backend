@@ -58,7 +58,7 @@ export class CategoryController {
   async categoryById(@Param('id') id: string) {
     const isExist = await this.categoryService.checkExistById(id);
 
-    if (isExist) {
+    if (!isExist) {
       throw new NotFoundException('Thể loại không tồn tại!.');
     }
 
