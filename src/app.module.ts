@@ -1,25 +1,30 @@
-import * as controllers from '@/controller';
-import { DbConnectModule } from '@/database.module';
-import * as entities from '@/entities';
+import { MemberService } from '@/auth/service';
+import * as config from '@/config';
+import { DbConnectModule } from '@/database/database.module';
+import * as entities from '@/database/entities';
 import * as middleware from '@/middleware';
-import * as queues from '@/queue';
-import * as services from '@/service';
-import * as strategy from '@/strategy';
-import { BullModule } from '@nestjs/bull';
-import { CacheModule } from '@nestjs/cache-manager';
-import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
+import {
+  Inject,
+  MiddlewareConsumer,
+  Module,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { Cache } from 'cache-manager';
 import { join } from 'path';
-import type { RedisClientOptions } from 'redis';
-import { WebsocketGateway } from './websocket.gateway';
-import { MAIL_QUEUE } from './constants';
+import { AuthModule } from './auth/auth.module';
+import { SharedModule } from './shared/shared.module';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: Object.entries(config).map((v) => v[1]),
+    }),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -30,36 +35,45 @@ import { MAIL_QUEUE } from './constants';
       }),
       inject: [ConfigService],
     }),
-    BullModule.registerQueue({
-      name: MAIL_QUEUE,
-      settings: {},
-      limiter: { max: 30, duration: 1000 },
-    }),
-    ConfigModule.forRoot({ isGlobal: true }),
-    CacheModule.register<RedisClientOptions>({
+    CacheModule.register({
       isGlobal: true,
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/',
     }),
-    TypeOrmModule.forFeature(Object.entries(entities).map((v) => v[1])),
-    JwtModule.register({}),
     ScheduleModule.forRoot(),
     DbConnectModule,
-  ],
-  controllers: Object.entries(controllers).map((v) => v[1]),
-  providers: [
-    WebsocketGateway,
-    ...Object.entries(queues).map((v) => v[1]),
-    ...Object.entries(services).map((v) => v[1]),
-    ...Object.entries(strategy).map((v) => v[1]),
+    SharedModule,
+    AuthModule,
   ],
 })
-export class AppModule {
+export class AppModule implements OnModuleInit {
+  constructor(
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    private readonly memberService: MemberService,
+  ) {
+    this.cacheManager.reset();
+  }
   configure(consumer: MiddlewareConsumer) {
     Object.entries(middleware).forEach((v) => {
       consumer.apply(v[1]).forRoutes('*');
     });
+  }
+  async onModuleInit() {
+    console.log('reset cache members.');
+    console.log('reset cache members done.');
+
+    console.log('start initialized cache members.');
+    const members = await this.memberService.allMembers();
+
+    const membersCache: { [key: string]: entities.MemberEntity } = {};
+
+    for (const member of members) {
+      membersCache[member._id] = member;
+    }
+
+    await this.cacheManager.set('members', membersCache, 0);
+    console.log('initialized cache members done.');
   }
 }

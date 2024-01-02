@@ -1,5 +1,6 @@
 import { instanceToPlain } from 'class-transformer';
 import {
+  AfterLoad,
   BaseEntity,
   Column,
   CreateDateColumn,
@@ -10,6 +11,8 @@ import {
 } from 'typeorm';
 
 export abstract class AbstractEntity extends BaseEntity {
+  __entity?: string;
+
   @CreateDateColumn({ type: 'timestamp', nullable: false })
   @Index()
   created_at: Date;
@@ -24,6 +27,11 @@ export abstract class AbstractEntity extends BaseEntity {
   @Column({ type: 'integer', nullable: false, select: false })
   @Index()
   index: number;
+
+  @AfterLoad()
+  setEntityName() {
+    this.__entity = this.constructor.name;
+  }
 
   toJSON() {
     return instanceToPlain(this);

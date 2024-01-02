@@ -36,15 +36,15 @@ async function bootstrap() {
     SwaggerModule.setup('api-docs', app, document);
   }
 
-  const port = process.env.SERVICE_PORT;
+  const port = process.env.APP_PORT;
 
   if (!port) {
     Logger.error(`Cannot read env port`);
   }
 
-  await app.listen(port);
-
-  Logger.warn(`The server is running on port http://localhost:${port}`);
+  await app.listen(port, () => {
+    Logger.warn(`The server is running on port http://localhost:${port}`);
+  });
 }
 
 bootstrap();
