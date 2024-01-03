@@ -1,4 +1,4 @@
-import { AbstractEntity } from '@/database/base';
+import { AbstractEntity } from '@/base';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity('file')
 export class FileEntity extends AbstractEntity {
