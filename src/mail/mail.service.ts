@@ -13,7 +13,7 @@ import SMTPTransport from 'nodemailer/lib/smtp-transport';
 @Processor('MAIL_QUEUE')
 export class MailService {
   private readonly nodemailer: typeof nodemailer = require('nodemailer');
-  private readonly templatesDir = 'templates';
+  private readonly templatesDir = __dirname + 'templates';
   private transporter: nodemailer.Transporter<SMTPTransport.SentMessageInfo>;
 
   constructor(private configService: ConfigService) {
