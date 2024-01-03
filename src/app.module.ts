@@ -1,23 +1,16 @@
-import { MemberService } from '@/auth/service';
 import * as config from '@/config';
-import { DbConnectModule } from '@/database/database.module';
-import * as entities from '@/database/entities';
+import { DbConnectModule } from '@/database.module';
 import * as middleware from '@/middleware';
-import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
-import {
-  Inject,
-  MiddlewareConsumer,
-  Module,
-  OnModuleInit,
-} from '@nestjs/common';
+import { BullModule } from '@nestjs/bull';
+import { CacheModule } from '@nestjs/cache-manager';
+import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { Cache } from 'cache-manager';
 import { join } from 'path';
-import { AuthModule } from './auth/auth.module';
+import { AuthModule } from './auth/member.module';
+import { RedisModule } from './helper/cache/redis.module';
 import { SharedModule } from './shared/shared.module';
-import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
@@ -46,34 +39,15 @@ import { BullModule } from '@nestjs/bull';
     DbConnectModule,
     SharedModule,
     AuthModule,
+    RedisModule,
   ],
 })
 export class AppModule implements OnModuleInit {
-  constructor(
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
-    private readonly memberService: MemberService,
-  ) {
-    this.cacheManager.reset();
-  }
+  constructor() {}
   configure(consumer: MiddlewareConsumer) {
     Object.entries(middleware).forEach((v) => {
       consumer.apply(v[1]).forRoutes('*');
     });
   }
-  async onModuleInit() {
-    console.log('reset cache members.');
-    console.log('reset cache members done.');
-
-    console.log('start initialized cache members.');
-    const members = await this.memberService.allMembers();
-
-    const membersCache: { [key: string]: entities.MemberEntity } = {};
-
-    for (const member of members) {
-      membersCache[member._id] = member;
-    }
-
-    await this.cacheManager.set('members', membersCache, 0);
-    console.log('initialized cache members done.');
-  }
+  async onModuleInit() {}
 }

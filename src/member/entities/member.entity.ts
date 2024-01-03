@@ -1,7 +1,11 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 import { AbstractEntity } from '@/base';
-import { CommentEntity, ContentEntity, SeriesEntity } from '.';
+import {
+  CommentEntity,
+  ContentEntity,
+  SeriesEntity,
+} from '../../post/entities';
 
 @Entity('member')
 export class MemberEntity extends AbstractEntity {

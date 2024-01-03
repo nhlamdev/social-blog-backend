@@ -1,4 +1,4 @@
-import { MemberEntity, SessionEntity } from '@/database/entities';
+import { MemberEntity, SessionEntity } from '@/post/entities';
 import { client_data } from '@/interface';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';

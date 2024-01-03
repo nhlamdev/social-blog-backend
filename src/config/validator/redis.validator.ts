@@ -2,14 +2,14 @@ import { IsInt, IsString } from 'class-validator';
 
 export class RedisEnvironmentVariablesValidator {
   @IsString()
-  EMAIL_HOST: string;
+  REDIS_HOST: string;
 
   @IsInt()
-  EMAIL_PORT: number;
+  REDIS_PORT: number;
 
   @IsString()
-  EMAIL_PASSWORD: string;
+  REDIS_PASSWORD: string;
 
   @IsString()
-  EMAIL_ACCOUNT: string;
+  REDIS_ACCOUNT: string;
 }

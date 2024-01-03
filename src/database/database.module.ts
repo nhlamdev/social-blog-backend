@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import * as entities from '@/database/entities';
 import { DataSource } from 'typeorm';
 
 @Module({
@@ -17,7 +16,8 @@ import { DataSource } from 'typeorm';
         username: configService.get('database.account'),
         password: configService.get('database.password'),
         database: configService.get('database.database'),
-        entities: Object.entries(entities).map((v) => v[1]),
+        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+        migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
         synchronize: configService.get('app.nodeEnv') !== 'production',
         autoLoadEntities: configService.get('app.nodeEnv') !== 'production',
         // logging: true,

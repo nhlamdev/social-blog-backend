@@ -1,5 +1,5 @@
+import { AbstractEntity } from '@/database/base';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { AbstractEntity } from '@/base';
 @Entity('file')
 export class FileEntity extends AbstractEntity {
   @PrimaryGeneratedColumn('uuid')

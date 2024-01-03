@@ -1,7 +1,8 @@
-import { ContentEntity, MemberEntity, SeriesEntity } from '@/database/entities';
+import { ContentEntity, MemberEntity, SeriesEntity } from '@/post/entities';
 import { AccessJwtPayload } from '@/interface';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { RedisClientType } from 'redis';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -13,6 +14,7 @@ export class MemberService {
     private seriesRepository: Repository<SeriesEntity>,
     @InjectRepository(ContentEntity)
     private contentRepository: Repository<ContentEntity>,
+    @Inject('REDIS_CLIENT') private readonly redisClient: RedisClientType,
   ) {}
 
   async allMembers() {

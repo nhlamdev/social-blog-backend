@@ -5,10 +5,8 @@ import {
   Post,
   Response,
   UploadedFile,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
@@ -19,7 +17,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
-import { FilesService } from '../service/files.service';
+import { FilesService } from './files.service';
 
 @ApiTags('Files')
 @Controller({

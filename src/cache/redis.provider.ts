@@ -7,10 +7,13 @@ export const redisProvider: Provider = {
   useFactory: (configService: ConfigService): RedisClientType => {
     const host = configService.get('redis.host');
     const port = configService.get('redis.port');
-    const account = configService.get('redis.account');
-    const password = configService.get('redis.password');
+
+    console.log(`redis://${host}:${port}`);
+    // const account = configService.get('redis.account');
+    // const password = configService.get('redis.password');
     return createClient({
-      url: `redis://${account}:${password}@${host}:${port}`,
+      url: `redis://${host}:${port}`,
     });
   },
+  inject: [ConfigService],
 };
