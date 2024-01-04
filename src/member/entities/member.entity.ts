@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-import { AbstractEntity } from '@/base';
+import { AbstractEntity } from '@/shared/base';
 import {
   CommentEntity,
   ContentEntity,

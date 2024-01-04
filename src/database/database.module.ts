@@ -36,4 +36,4 @@ import { DataSource } from 'typeorm';
     }),
   ],
 })
-export class DbConnectModule {}
+export class DatabaseModule {}

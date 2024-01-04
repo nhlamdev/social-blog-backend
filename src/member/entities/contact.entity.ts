@@ -1,4 +1,4 @@
-import { AbstractEntity } from '@/base';
+import { AbstractEntity } from '@/shared/base';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity('contact')
 export class ContactEntity extends AbstractEntity {

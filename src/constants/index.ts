@@ -1,5 +1,3 @@
-export * from './regex';
-
 export const ACCESS_TOKEN_NAME =
   'pVCvLw6fxU46dN4.OEM/qujkz4Th4H9a3uLa/agOvIQivXeHUEaWm';
 export const REFESH_TOKEN_NAME =

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
-import { BaseDTO } from '@/base';
+import { BaseDTO } from '@/shared/base';
 import { Transform, TransformFnParams } from 'class-transformer';
 
 export class ProfileDto extends BaseDTO {

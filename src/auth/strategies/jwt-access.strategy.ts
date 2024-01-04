@@ -1,6 +1,5 @@
 import { AccessJwtPayload } from '@/interface';
-import { AuthService, MemberService } from '@/auth/service';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
@@ -11,10 +10,7 @@ export class JwtAccessStrategy extends PassportStrategy(
   Strategy,
   'jwt-access',
 ) {
-  constructor(
-    private readonly memberService: MemberService,
-    private readonly authService: AuthService,
-  ) {
+  constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request) => {
@@ -27,30 +23,30 @@ export class JwtAccessStrategy extends PassportStrategy(
   }
 
   async validate(payload: AccessJwtPayload): Promise<AccessJwtPayload> {
-    const date = new Date();
+    // const date = new Date();
 
-    if (
-      date.getTime() >
-      new Date(payload.create_at).getTime() + payload.expired
-    ) {
-      throw new UnauthorizedException('Phiên đăng nhập quá hạn.');
-    }
+    // if (
+    //   date.getTime() >
+    //   new Date(payload.create_at).getTime() + payload.expired
+    // ) {
+    //   throw new UnauthorizedException('Phiên đăng nhập quá hạn.');
+    // }
 
-    const sessionExist = await this.authService.checkSessionExist(
-      payload.session_id,
-    );
+    // const sessionExist = await this.authService.checkSessionExist(
+    //   payload.session_id,
+    // );
 
-    if (!sessionExist) {
-      throw new UnauthorizedException('Phiên đăng nhập không hợp lệ.');
-    }
+    // if (!sessionExist) {
+    //   throw new UnauthorizedException('Phiên đăng nhập không hợp lệ.');
+    // }
 
-    const memberExist = await this.memberService.checkMemberExistById(
-      payload._id,
-    );
+    // const memberExist = await this.memberService.checkMemberExistById(
+    //   payload._id,
+    // );
 
-    if (!memberExist) {
-      throw new UnauthorizedException('Thành viên không tồn tại.');
-    }
+    // if (!memberExist) {
+    //   throw new UnauthorizedException('Thành viên không tồn tại.');
+    // }
 
     return payload;
   }

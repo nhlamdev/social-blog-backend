@@ -1,6 +1,5 @@
 import { RefreshJwtPayload } from '@/interface';
-import { AuthService } from '@/auth/service';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 const { REFRESH_TOKEN_NAME, REFRESH_TOKEN_SECRET } = process.env;
@@ -10,7 +9,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
   Strategy,
   'jwt-refresh',
 ) {
-  constructor(private readonly authService: AuthService) {
+  constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request) => {
@@ -23,12 +22,12 @@ export class JwtRefreshStrategy extends PassportStrategy(
   }
 
   async validate(payload: RefreshJwtPayload) {
-    const date = new Date();
+    // const date = new Date();
 
-    if (date.getTime() > new Date().getTime() + payload.expired) {
-      await this.authService.removeSession(payload.session_id);
-      throw new BadRequestException('Phiên đăng nhập quá hạn.');
-    }
+    // if (date.getTime() > new Date().getTime() + payload.expired) {
+    //   await this.authService.removeSession(payload.session_id);
+    //   throw new BadRequestException('Phiên đăng nhập quá hạn.');
+    // }
 
     return payload;
   }

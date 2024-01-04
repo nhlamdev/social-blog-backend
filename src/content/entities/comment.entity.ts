@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { AbstractEntity } from '@/base';
+import { AbstractEntity } from '@/shared/base';
 import { ContentEntity } from '.';
 
 @Entity('comment')

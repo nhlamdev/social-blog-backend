@@ -1,5 +1,4 @@
 import * as config from '@/config';
-import { DbConnectModule } from '@/database.module';
 import * as middleware from '@/middleware';
 import { BullModule } from '@nestjs/bull';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -8,9 +7,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-import { AuthModule } from './auth/member.module';
-import { RedisModule } from './helper/cache/redis.module';
-import { SharedModule } from './shared/shared.module';
+import { AuthModule } from '@/auth/auth.module';
+import { DatabaseModule } from '@/database/database.module';
 
 @Module({
   imports: [
@@ -36,10 +34,8 @@ import { SharedModule } from './shared/shared.module';
       serveRoot: '/',
     }),
     ScheduleModule.forRoot(),
-    DbConnectModule,
-    SharedModule,
     AuthModule,
-    RedisModule,
+    DatabaseModule,
   ],
 })
 export class AppModule implements OnModuleInit {
