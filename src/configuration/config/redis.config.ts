@@ -1,7 +1,7 @@
 import validateConfig from '@/utils/validate-config';
 import { registerAs } from '@nestjs/config';
-import { RedisEnvironmentVariablesValidator } from './validator/redis.validator';
-import { TypeRedisConfig } from './types/redis.type';
+import { RedisEnvironmentVariablesValidator } from '../validator/redis.validator';
+import { TypeRedisConfig } from '../types/redis.type';
 
 export const redisConfig = registerAs<TypeRedisConfig>('redis', () => {
   validateConfig(process.env, RedisEnvironmentVariablesValidator);

@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { FileEntity } from './file.entity';
 
 @Injectable()
-export class FilesService {
+export class FileService {
   constructor(
     @InjectRepository(FileEntity)
     private readonly fileRepository: Repository<FileEntity>,

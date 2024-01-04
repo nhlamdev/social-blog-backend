@@ -1,7 +1,7 @@
 import validateConfig from '@/utils/validate-config';
 import { registerAs } from '@nestjs/config';
-import { SocialEnvironmentVariablesValidator } from './validator/social.vaidator';
-import { TypeSocialConfig } from './types/social.type';
+import { SocialEnvironmentVariablesValidator } from '../validator/social.vaidator';
+import { TypeSocialConfig } from '../types/social.type';
 
 export const socialConfig = registerAs<TypeSocialConfig>('social', () => {
   validateConfig(process.env, SocialEnvironmentVariablesValidator);

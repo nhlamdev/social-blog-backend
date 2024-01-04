@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: (
+        configService: ConfigService,
+      ): TypeOrmModuleOptions | Promise<TypeOrmModuleOptions> => ({
         type: 'postgres',
         host: configService.get('database.host'),
         port: configService.get('database.port'),
@@ -33,6 +33,7 @@ import { DataSource } from 'typeorm';
         const dataSource = await new DataSource(options).initialize();
         return dataSource;
       },
+      inject: [ConfigService],
     }),
   ],
 })

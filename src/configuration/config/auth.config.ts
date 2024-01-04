@@ -1,6 +1,6 @@
 import { registerAs } from '@nestjs/config';
-import { TypeAuthConfig } from './types/auth.type';
-import { AuthEnvironmentVariablesValidator } from './validator/auth.validator';
+import { TypeAuthConfig } from '../types/auth.type';
+import { AuthEnvironmentVariablesValidator } from '../validator/auth.validator';
 import validateConfig from '@/utils/validate-config';
 
 export const AuthConfig = registerAs<TypeAuthConfig>('auth', () => {

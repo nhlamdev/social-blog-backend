@@ -1,4 +1,4 @@
-import { RefreshJwtPayload } from '@/interface';
+import { RefreshJwtPayload } from '@/types';
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';

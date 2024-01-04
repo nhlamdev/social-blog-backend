@@ -1,6 +1,6 @@
 import validateConfig from '@/utils/validate-config';
-import { TypeAppConfig } from './types/app.type';
-import { AppEnvironmentVariablesValidator } from './validator/app.validator';
+import { TypeAppConfig } from '../types/app.type';
+import { AppEnvironmentVariablesValidator } from '../validator/app.validator';
 import { registerAs } from '@nestjs/config';
 
 export const AppConfig = registerAs<TypeAppConfig>('app', () => {

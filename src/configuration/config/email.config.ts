@@ -1,7 +1,7 @@
 import validateConfig from '@/utils/validate-config';
 import { registerAs } from '@nestjs/config';
-import { TypeEmailConfig } from './types/email.type';
-import { EmailEnvironmentVariablesValidator } from './validator/email.type';
+import { TypeEmailConfig } from '../types/email.type';
+import { EmailEnvironmentVariablesValidator } from '../validator/email.type';
 
 export const emailConfig = registerAs<TypeEmailConfig>('email', () => {
   validateConfig(process.env, EmailEnvironmentVariablesValidator);

@@ -1,5 +1,6 @@
-import { IMailTemplateConfig } from '@/interface';
-import { IQueueMailPayload } from '@/interface/mail.interface';
+import { queueConfig, queueProcessors } from '@/constants/queue';
+import { IMailTemplateConfig } from '@/types';
+import { IQueueMailPayload } from '@/types/mail.interface';
 import { Process, Processor } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -9,8 +10,10 @@ import nodemailer from 'nodemailer';
 import Mail from 'nodemailer/lib/mailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 
+const processorsKey = queueProcessors.MAIL_QUEUE;
+
 @Injectable()
-@Processor('MAIL_QUEUE')
+@Processor(processorsKey)
 export class MailService {
   private readonly nodemailer: typeof nodemailer = require('nodemailer');
   private readonly templatesDir = __dirname + 'templates';
@@ -58,7 +61,7 @@ export class MailService {
     }
   }
 
-  @Process('MAIL_QUEUE_SUBSCRIBE_CREATE_CONTENT')
+  @Process(queueConfig[processorsKey].MAIL_QUEUE_SUBSCRIBE_CREATE_CONTENT)
   async sendNotifyMail(data: IQueueMailPayload) {
     this.sendMailWithTemplate({
       to: data.emailReceive,

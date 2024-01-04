@@ -1,11 +1,6 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 import { AbstractEntity } from '@/shared/base';
-import {
-  CommentEntity,
-  ContentEntity,
-  SeriesEntity,
-} from '../../post/entities';
 
 @Entity('member')
 export class MemberEntity extends AbstractEntity {
@@ -36,17 +31,6 @@ export class MemberEntity extends AbstractEntity {
 
   @Column({ type: 'text', array: true, default: [], nullable: false })
   follow_by: string[];
-
-  @OneToMany(() => ContentEntity, (content) => content.created_by)
-  contents: ContentEntity[];
-
-  @OneToMany(() => SeriesEntity, (series) => series.created_by)
-  series: SeriesEntity[];
-
-  @OneToMany(() => CommentEntity, (comment) => comment.created_by, {
-    onDelete: 'CASCADE',
-  })
-  comments: CommentEntity[];
 
   // @BeforeInsert()
   // async beforeInsert() {

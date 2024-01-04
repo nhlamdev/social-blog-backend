@@ -17,15 +17,15 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
-import { FilesService } from './files.service';
+import { FileService } from './file.service';
 
 @ApiTags('Files')
 @Controller({
   path: 'files',
   version: '1',
 })
-export class FilesController {
-  constructor(private readonly filesService: FilesService) {}
+export class FileController {
+  constructor(private readonly fileService: FileService) {}
 
   @ApiBearerAuth()
   @Post('upload')
@@ -64,7 +64,7 @@ export class FilesController {
     summary: 'Upload file.',
   })
   async uploadFile(@UploadedFile('files') files: Express.Multer.File) {
-    return this.filesService.saveFile(files);
+    return this.fileService.saveFile(files);
   }
 
   @Get(':path')

@@ -1,5 +1,11 @@
-import * as config from '@/config';
+import { AuthModule } from '@/auth/auth.module';
+import { GlobalConfigModule } from '@/configuration/config.module';
+import { ContentModule } from '@/content/content.module';
+import { DatabaseModule } from '@/database/database.module';
+import { FileModule } from '@/file/file.module';
+import { MemberModule } from '@/member/member.module';
 import * as middleware from '@/middleware';
+import { WebsocketModule } from '@/websocket/websocket.module';
 import { BullModule } from '@nestjs/bull';
 import { CacheModule } from '@nestjs/cache-manager';
 import { MiddlewareConsumer, Module, OnModuleInit } from '@nestjs/common';
@@ -7,15 +13,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-import { AuthModule } from '@/auth/auth.module';
-import { DatabaseModule } from '@/database/database.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      load: Object.entries(config).map((v) => v[1]),
-    }),
+    GlobalConfigModule,
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -34,8 +35,12 @@ import { DatabaseModule } from '@/database/database.module';
       serveRoot: '/',
     }),
     ScheduleModule.forRoot(),
-    AuthModule,
     DatabaseModule,
+    WebsocketModule,
+    MemberModule,
+    AuthModule,
+    FileModule,
+    ContentModule,
   ],
 })
 export class AppModule implements OnModuleInit {
