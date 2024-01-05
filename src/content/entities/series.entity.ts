@@ -1,4 +1,10 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  VersionColumn,
+} from 'typeorm';
 
 import { AbstractEntity } from '@/shared/base';
 import { ContentEntity } from '.';
@@ -12,7 +18,7 @@ export class SeriesEntity extends AbstractEntity {
   title: string;
 
   @Column({ type: 'varchar', length: 300, nullable: false })
-  summary: string;
+  description: string;
 
   @Column({ type: 'text', nullable: true })
   created_by: string;
