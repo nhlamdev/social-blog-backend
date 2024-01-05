@@ -11,7 +11,7 @@ export class CategoryEntity extends AbstractEntity {
   title: string;
 
   @Column({ type: 'varchar', length: 200, nullable: false })
-  summary: string;
+  description: string;
 
   @OneToMany(() => ContentEntity, (content) => content.category, {
     onDelete: 'SET NULL',

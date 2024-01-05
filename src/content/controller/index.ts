@@ -1,0 +1,4 @@
+export * from './category.controller';
+export * from './comment.controller';
+export * from './content.controller';
+export * from './series.controller';
