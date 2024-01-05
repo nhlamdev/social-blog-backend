@@ -7,9 +7,11 @@ import { Strategy } from 'passport-discord';
 export class DiscordStrategy extends PassportStrategy(Strategy, 'discord') {
   constructor(private readonly configService: ConfigService) {
     super({
-      clientID: process.env.DISCORD_CLIENT_ID,
-      clientSecret: process.env.DISCORD_CLIENT_SECRET,
-      callbackURL: `${process.env.GLOBAL_DOMAIN}/service/discord/callback`,
+      clientID: configService.getOrThrow('social.discordClientId'),
+      clientSecret: configService.getOrThrow('social.discordClientSecret'),
+      callbackURL: `${configService.getOrThrow(
+        'app.domain',
+      )}/service/discord/callback`,
       scope: ['identify', 'email'],
     });
   }

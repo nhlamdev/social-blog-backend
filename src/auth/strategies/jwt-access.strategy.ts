@@ -1,24 +1,23 @@
 import { AccessJwtPayload } from '@/types';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-
-const { ACCESS_TOKEN_NAME, ACCESS_TOKEN_SECRET } = process.env;
 
 @Injectable()
 export class JwtAccessStrategy extends PassportStrategy(
   Strategy,
   'jwt-access',
 ) {
-  constructor() {
+  constructor(configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request) => {
-          return request?.cookies[ACCESS_TOKEN_NAME];
+          return request?.cookies[configService.getOrThrow('auth.secretName')];
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: ACCESS_TOKEN_SECRET,
+      secretOrKey: configService.getOrThrow('auth.secret'),
     });
   }
 

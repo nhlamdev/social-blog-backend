@@ -14,12 +14,11 @@ import {
   ApiConsumes,
   ApiOperation,
   ApiParam,
-  ApiTags,
 } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { FileService } from './file.service';
 
-@ApiTags('Files')
+// @ApiTags('Files')
 @Controller({
   path: 'files',
   version: '1',
@@ -41,7 +40,7 @@ export class FileController {
       },
     },
   })
-  @ApiTags('member-auth')
+  // @ApiTags('member-auth')
   // @UseGuards(AuthGuard('jwt-access'))
   @UseInterceptors(
     FilesInterceptor('files', 20, {

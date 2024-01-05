@@ -28,4 +28,8 @@ export class MemberService {
   ) {
     return await this.memberRepository.update(criteria, options);
   }
+
+  async builder() {
+    return this.memberRepository.createQueryBuilder('member');
+  }
 }
