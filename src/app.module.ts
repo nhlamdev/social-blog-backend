@@ -1,26 +1,27 @@
-import { AuthModule } from '@/auth/auth.module';
+import { RedisModule } from '@/cache/redis.module';
 import { GlobalConfigModule } from '@/configuration/config.module';
-import { ContentModule } from '@/content/content.module';
+import * as controllers from '@/controller';
 import { DatabaseModule } from '@/database/database.module';
-import { FileModule } from '@/file/file.module';
-import { MemberModule } from '@/member/member.module';
+import * as entities from '@/database/entities';
 import * as middleware from '@/middleware';
+import * as services from '@/services';
+import * as strategy from '@/strategies';
 import { WebsocketModule } from '@/websocket/websocket.module';
 import { BullModule } from '@nestjs/bull';
 import { CacheModule } from '@nestjs/cache-manager';
-import {
-  Inject,
-  MiddlewareConsumer,
-  Module,
-  OnModuleInit,
-} from '@nestjs/common';
+import { Inject, MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
-import { MemberService } from '@/member/service';
 import { RedisClientType } from 'redis';
-import { RedisModule } from '@/shared/cache/redis.module';
+import {
+  cacheMemberFollows,
+  cacheMemberRole,
+  cacheMembersInfo,
+} from './cache/handlers';
 
 @Module({
   imports: [
@@ -42,62 +43,37 @@ import { RedisModule } from '@/shared/cache/redis.module';
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/',
     }),
+    JwtModule.register({}),
     ScheduleModule.forRoot(),
     RedisModule,
     DatabaseModule,
     WebsocketModule,
-    MemberModule,
-    AuthModule,
-    FileModule,
-    ContentModule,
+    TypeOrmModule.forFeature(Object.entries(entities).map((v) => v[1])),
+  ],
+  controllers: Object.entries(controllers).map((v) => v[1]),
+  providers: [
+    ...Object.entries(services).map((v) => v[1]),
+    ...Object.entries(strategy).map((v) => v[1]),
   ],
 })
-export class AppModule implements OnModuleInit {
+export class AppModule {
   constructor(
-    private readonly memberService: MemberService,
+    private readonly memberService: services.MemberService,
     @Inject('REDIS_CLIENT') private readonly redisClient: RedisClientType,
   ) {
     this.redisClient.connect();
   }
+
   configure(consumer: MiddlewareConsumer) {
     Object.entries(middleware).forEach((v) => {
       consumer.apply(v[1]).forRoutes('*');
     });
   }
+
   async onModuleInit() {
-    await this.redisClient.FLUSHDB();
-
-    const members = await this.memberService.findAll({
-      select: {
-        _id: true,
-        name: true,
-        email: true,
-        image: true,
-        follow_by: true,
-        created_at: true,
-        role_author: true,
-        role_comment: true,
-        role_owner: true,
-      },
-    });
-
-    for (const member of members) {
-      await this.redisClient.HSET(`member:${member._id}`, 'name', member.name);
-      await this.redisClient.HSET(
-        `member:${member._id}`,
-        'email',
-        member.email,
-      );
-      await this.redisClient.HSET(
-        `member:${member._id}`,
-        'image',
-        member.image,
-      );
-      await this.redisClient.HSET(
-        `member:${member._id}`,
-        'created_at',
-        member.created_at.toString(),
-      );
-    }
+    const members = await this.memberService.findAll();
+    await cacheMembersInfo(this.redisClient, members);
+    await cacheMemberFollows(this.redisClient, members);
+    await cacheMemberRole(this.redisClient, members);
   }
 }

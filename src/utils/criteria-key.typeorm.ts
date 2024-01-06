@@ -1,4 +1,4 @@
-import { MemberEntity } from '@/member/entities';
+import { MemberEntity } from '@/database/entities';
 import { FindOptionsWhere, ObjectId } from 'typeorm';
 
 export type TypeTypeOrmCriteria =
