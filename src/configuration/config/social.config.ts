@@ -1,4 +1,4 @@
-import validateConfig from '@/utils/validate-config';
+import validateConfig from '@/shared/utils/validate-config';
 import { registerAs } from '@nestjs/config';
 import { SocialEnvironmentVariablesValidator } from '../validator/social.vaidator';
 import { TypeSocialConfig } from '../types/social.type';

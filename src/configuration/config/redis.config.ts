@@ -1,4 +1,4 @@
-import validateConfig from '@/utils/validate-config';
+import validateConfig from '@/shared/utils/validate-config';
 import { registerAs } from '@nestjs/config';
 import { RedisEnvironmentVariablesValidator } from '../validator/redis.validator';
 import { TypeRedisConfig } from '../types/redis.type';

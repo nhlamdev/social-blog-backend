@@ -1,5 +1,5 @@
 import { registerAs } from '@nestjs/config';
-import validateConfig from '@/utils/validate-config';
+import validateConfig from '@/shared/utils/validate-config';
 import { TypeDatabaseConfig } from '../types/database.type';
 import { DatabaseEnvironmentVariablesValidator } from '../validator/database.validator';
 

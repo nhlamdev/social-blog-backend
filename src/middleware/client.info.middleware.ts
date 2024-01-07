@@ -1,5 +1,5 @@
-import { client_data } from '@/types/common.interface';
-import { detectDevice } from '@/utils/global-func';
+import { client_data } from '@/shared/types/common.interface';
+import { detectDevice } from '@/shared/utils/global-func';
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 
