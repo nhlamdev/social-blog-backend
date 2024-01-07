@@ -3,7 +3,7 @@ import { MemberService } from '@/module/member/member.service';
 import { ISocialPayload } from '@/shared/types';
 import { Injectable } from '@nestjs/common';
 @Injectable()
-export class AuthService {
+export class SocialService {
   constructor(private readonly memberService: MemberService) {}
   async socialVerifyExist(payload: ISocialPayload) {
     const member = await this.memberService.findOne({
