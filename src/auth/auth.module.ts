@@ -1,10 +1,10 @@
-import { RedisModule } from '@/cache/redis.module';
+import { RedisModule } from '@/helper/cache/redis.module';
+import { MemberModule } from '@/module/member/member.module';
 import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import * as controllers from './controller';
 import * as services from './services';
-import { MemberModule } from '@/module';
 
 const authServices = Object.entries(services).map((v) => v[1]);
 const authControllers = Object.entries(controllers).map((v) => v[1]);

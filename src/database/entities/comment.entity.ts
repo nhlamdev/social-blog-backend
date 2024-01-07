@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 
 import { AbstractEntity } from '@/shared/base';
-import { ContentEntity } from '@/database/entities';
+import { ContentEntity, MemberEntity } from '@/database/entities';
 
 @Entity('comment')
 export class CommentEntity extends AbstractEntity {
@@ -20,8 +20,8 @@ export class CommentEntity extends AbstractEntity {
   @Column({ type: 'text', array: true, default: [], nullable: false })
   member_like: string[];
 
-  @Column({ type: 'text', nullable: true })
-  created_by: string;
+  @ManyToOne(() => MemberEntity, (member) => member.comments)
+  created_by: MemberEntity;
 
   @ManyToOne(() => CommentEntity, (comment) => comment.replies, {
     onDelete: 'CASCADE',

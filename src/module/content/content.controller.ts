@@ -1,7 +1,7 @@
 import { CASE_SORT } from '@/constants';
 import { checkIsNumber } from '@/shared/utils/global-func';
 import { MaybeType } from '@/shared/utils/types/maybe.type';
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Delete, Get, Post, Put, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ILike, In } from 'typeorm';
 import { CategoryService } from '../category/category.service';
@@ -45,7 +45,7 @@ export class ContentController {
         title: ILike(_search),
         category: { _id: category },
         series: { _id: series },
-        created_by: author,
+        created_by: { _id: author },
         bookmark_by: In([author]),
       },
       skip: _skip,
@@ -57,6 +57,12 @@ export class ContentController {
     });
   }
 
-  @Get('/tags-by-author/:author')
-  async tagsByAuthor(@Query('author') author: string) {}
+  @Post()
+  async create() {}
+
+  @Put(':id')
+  async update() {}
+
+  @Delete(':id')
+  async delete() {}
 }

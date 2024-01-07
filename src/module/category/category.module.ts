@@ -4,7 +4,7 @@ import { CategoryService } from './category.service';
 import { ContentModule } from '../content/content.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CategoryEntity } from '@/database/entities';
-import { RedisModule } from '@/cache/redis.module';
+import { RedisModule } from '@/helper/cache/redis.module';
 
 @Module({
   imports: [

@@ -9,6 +9,7 @@ import {
 import {
   CategoryEntity,
   CommentEntity,
+  MemberEntity,
   SeriesEntity,
 } from '@/database/entities';
 
@@ -47,8 +48,8 @@ export class ContentEntity extends AbstractEntity {
   @Column({ type: 'text', array: true, default: [] })
   bookmark_by: string[];
 
-  @Column({ type: 'text', nullable: true })
-  created_by: string;
+  @ManyToOne(() => MemberEntity, (member) => member.contents)
+  created_by: MemberEntity;
 
   @OneToMany(() => CommentEntity, (tag) => tag.content, {
     onDelete: 'CASCADE',

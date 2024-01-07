@@ -3,12 +3,14 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   NotFoundException,
   Param,
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -17,6 +19,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { CategoryService } from './category.service';
 import { ContentService } from '../content/content.service';
 import { CategoryDto } from './category.dto';
+import { IAccessJwtPayload } from '@/shared/types';
 
 @ApiTags('category')
 @Controller('category')
@@ -27,7 +30,7 @@ export class CategoryController {
   ) {}
 
   @Get()
-  async all(
+  async categories(
     @Query('skip') skip?: string,
     @Query('take') take?: string,
     @Query('search') search?: string,
@@ -42,14 +45,17 @@ export class CategoryController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    return await this.categoryService.findAll({
+    const [categories, count] = await this.categoryService.findAll({
       where: { title: ILike(_search) },
       take: _take,
       skip: _skip,
+      order: { created_at: 'DESC' },
     });
+
+    return { categories, count };
   }
 
-  @Get(':id')
+  @Get('by-id/:id')
   async categoryById(@Param('id') id: string) {
     const category = await this.categoryService.findOne({ where: { _id: id } });
 
@@ -88,11 +94,27 @@ export class CategoryController {
 
   @Post()
   @UseGuards(AuthGuard('jwt-access'))
-  async create() {}
+  async create(@Req() req, @Body() body: CategoryDto) {
+    const jwtPayload: IAccessJwtPayload = req.user;
+
+    if (!jwtPayload.role.owner) {
+      throw new ForbiddenException('Bạn không có quyền hạn');
+    }
+
+    await this.categoryService.create(body);
+  }
 
   @Put(':id')
   @UseGuards(AuthGuard('jwt-access'))
-  async update(@Param('id') id: string, @Body() body: CategoryDto) {}
+  async update(@Req() req, @Param('id') id: string, @Body() body: CategoryDto) {
+    const jwtPayload: IAccessJwtPayload = req.user;
+
+    if (!jwtPayload.role.owner) {
+      throw new ForbiddenException('Bạn không có quyền hạn');
+    }
+
+    await this.categoryService.update(id, body);
+  }
 
   @Delete(':id')
   @UseGuards(AuthGuard('jwt-access'))

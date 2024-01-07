@@ -1,5 +1,6 @@
 import { AbstractEntity } from '@/shared/base';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { MemberEntity } from './member.entity';
 @Entity('contact')
 export class ContactEntity extends AbstractEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -11,6 +12,6 @@ export class ContactEntity extends AbstractEntity {
   @Column({ type: 'text', nullable: false })
   description: string;
 
-  @Column({ type: 'text', nullable: false })
-  created_by: string;
+  @ManyToOne(() => MemberEntity, (member) => member.contacts)
+  create_by: string;
 }

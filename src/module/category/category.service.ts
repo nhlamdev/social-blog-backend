@@ -20,6 +20,10 @@ export class CategoryService {
     return await this.categoryRepository.find(options);
   }
 
+  async findAllAndCount(options?: FindManyOptions<CategoryEntity>) {
+    return await this.categoryRepository.findAndCount(options);
+  }
+
   async exist(options?: FindManyOptions<CategoryEntity>) {
     return this.categoryRepository.exist(options);
   }

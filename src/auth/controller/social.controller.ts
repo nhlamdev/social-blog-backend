@@ -22,7 +22,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService, TokenService } from '../services';
 import { MaybeType } from '@/shared/utils/types/maybe.type';
 
-@ApiTags('social-authentication')
+@ApiTags('authentication')
 @Controller()
 export class SocialController {
   constructor(
@@ -164,7 +164,6 @@ export class SocialController {
   }
 
   @Get('renew-token')
-  @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-refresh'))
   async renewToken(@Req() req, @Res() res) {
     const jwtPayload: IRefreshJwtPayload = req.user;
@@ -197,7 +196,6 @@ export class SocialController {
   }
 
   @Get('all-login-status')
-  @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-access'))
   async loginStatus(@Req() req) {
     const jwtPayload: IAccessJwtPayload = req.user;
@@ -212,7 +210,6 @@ export class SocialController {
   }
 
   @Get('all-login-status-by-member/:id')
-  @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-access'))
   async loginStatusByMember(@Req() req, @Param('id') id) {
     const jwtPayload: IAccessJwtPayload = req.user;
@@ -227,7 +224,6 @@ export class SocialController {
   }
 
   @Delete('logout')
-  @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-access'))
   async login(@Req() req) {
     const jwtPayload: IAccessJwtPayload = req.user;
@@ -251,7 +247,6 @@ export class SocialController {
   }
 
   @Delete('logout-force/:token')
-  @ApiTags('member-auth')
   @UseGuards(AuthGuard('jwt-access'))
   async forceLogin(@Req() req, @Param('token') token: MaybeType<string>) {
     const jwtPayload: IAccessJwtPayload = req.user;

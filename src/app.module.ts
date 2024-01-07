@@ -1,4 +1,4 @@
-import { RedisModule } from '@/cache/redis.module';
+import { RedisModule } from '@/helper/cache/redis.module';
 import { GlobalConfigModule } from '@/configuration/config.module';
 import { DatabaseModule } from '@/database/database.module';
 import * as middleware from '@/middleware';
@@ -13,8 +13,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { RedisClientType } from 'redis';
 import { AuthModule } from './auth/auth.module';
-import * as modules from '@/module';
-
+import { RootModule } from './module/root.Module';
 @Module({
   imports: [
     GlobalConfigModule,
@@ -39,7 +38,7 @@ import * as modules from '@/module';
     ScheduleModule.forRoot(),
     RedisModule,
     AuthModule,
-    ...Object.entries(modules).map((v) => v[1]),
+    RootModule,
     DatabaseModule,
     WebsocketModule,
   ],

@@ -16,6 +16,7 @@ export class MemberService {
   constructor(
     @InjectRepository(MemberEntity)
     private memberRepository: Repository<MemberEntity>,
+
     @Inject('REDIS_CLIENT') private readonly redisClient: RedisClientType,
   ) {}
 
@@ -25,6 +26,10 @@ export class MemberService {
 
   async findAll(options?: FindManyOptions<MemberEntity>) {
     return await this.memberRepository.find(options);
+  }
+
+  async findAllAndCount(options?: FindManyOptions<MemberEntity>) {
+    return await this.memberRepository.findAndCount(options);
   }
 
   async exist(options?: FindManyOptions<MemberEntity>) {

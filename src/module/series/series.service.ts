@@ -20,6 +20,10 @@ export class SeriesService {
     return await this.seriesRepository.find(options);
   }
 
+  async findAllAndCount(options?: FindManyOptions<SeriesEntity>) {
+    return await this.seriesRepository.findAndCount(options);
+  }
+
   async exist(options?: FindManyOptions<SeriesEntity>) {
     return this.seriesRepository.exist(options);
   }

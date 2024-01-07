@@ -1,11 +1,17 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { SeriesController } from './series.controller';
 import { SeriesService } from './series.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SeriesEntity } from '@/database/entities';
+import { RedisModule } from '@/helper/cache/redis.module';
+import { ContentModule } from '../content/content.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SeriesEntity])],
+  imports: [
+    RedisModule,
+    forwardRef(() => ContentModule),
+    TypeOrmModule.forFeature([SeriesEntity]),
+  ],
   controllers: [SeriesController],
   providers: [SeriesService],
   exports: [SeriesService, TypeOrmModule.forFeature([SeriesEntity])],
