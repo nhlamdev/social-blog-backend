@@ -1,13 +1,10 @@
+import { CategoryEntity, ContentEntity } from '@/database/entities';
+import { TypeTypeOrmCriteria } from '@/shared/utils/criteria-key.typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  CategoryEntity,
-  ContentEntity,
-  SeriesEntity,
-} from '@/database/entities';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
-import { TypeTypeOrmCriteria } from '@/shared/utils/criteria-key.typeorm';
 import { ContentDto } from './content.dto';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 @Injectable()
 export class ContentService {
@@ -32,26 +29,24 @@ export class ContentService {
     return this.contentRepository.count(options);
   }
 
-  async create(
-    payload: ContentDto,
-    category: CategoryEntity,
-    series: SeriesEntity,
-  ) {
+  async create(payload: ContentDto, category: CategoryEntity) {
     const content = new ContentEntity();
 
     content.title = payload.title;
     content.body = payload.body;
     content.category = category;
-    content.series = series;
     content.complete = payload.complete;
     content.public = payload.public;
 
     return await this.contentRepository.save(content);
   }
 
-  // async update(criteria: TypeTypeOrmCriteria, payload: ContentDto) {
-  //   return await this.contentRepository.update(criteria, payload);
-  // }
+  async update(
+    criteria: TypeTypeOrmCriteria,
+    payload: QueryDeepPartialEntity<ContentEntity>,
+  ) {
+    return await this.contentRepository.update(criteria, payload);
+  }
 
   async delete(criteria: TypeTypeOrmCriteria) {
     return await this.contentRepository.delete(criteria);

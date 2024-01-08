@@ -48,9 +48,6 @@ export class ContentEntity extends AbstractEntity {
   @Column({ type: 'text', array: true, default: [] })
   bookmark_by: string[];
 
-  @ManyToOne(() => MemberEntity, (member) => member.contents)
-  created_by: MemberEntity;
-
   @OneToMany(() => CommentEntity, (tag) => tag.content, {
     onDelete: 'CASCADE',
   })
@@ -61,4 +58,7 @@ export class ContentEntity extends AbstractEntity {
 
   @ManyToOne(() => SeriesEntity, (content) => content.contents)
   series?: SeriesEntity;
+
+  @ManyToOne(() => MemberEntity, (member) => member.contents)
+  created_by: MemberEntity;
 }

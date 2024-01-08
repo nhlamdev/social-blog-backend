@@ -4,6 +4,7 @@ import { SeriesEntity } from '@/database/entities';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { SeriesDto } from './series.dto';
 import { TypeTypeOrmCriteria } from '@/shared/utils/criteria-key.typeorm';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 @Injectable()
 export class SeriesService {
@@ -40,7 +41,10 @@ export class SeriesService {
     return await this.seriesRepository.save(category);
   }
 
-  async update(criteria: TypeTypeOrmCriteria, payload: SeriesDto) {
+  async update(
+    criteria: TypeTypeOrmCriteria,
+    payload: QueryDeepPartialEntity<SeriesEntity>,
+  ) {
     return await this.seriesRepository.update(criteria, payload);
   }
 
@@ -53,6 +57,6 @@ export class SeriesService {
   }
 
   async builder() {
-    return await this.seriesRepository.createQueryBuilder('category');
+    return await this.seriesRepository.createQueryBuilder('series');
   }
 }

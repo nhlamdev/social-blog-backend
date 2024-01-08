@@ -1,7 +1,13 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 import { AbstractEntity } from '@/shared/base';
-import { ContentEntity } from '@/database/entities';
+import { ContentEntity, MemberEntity } from '@/database/entities';
 
 @Entity('series')
 export class SeriesEntity extends AbstractEntity {
@@ -14,11 +20,11 @@ export class SeriesEntity extends AbstractEntity {
   @Column({ type: 'varchar', length: 300, nullable: false })
   description: string;
 
-  @Column({ type: 'text', nullable: true })
-  created_by: string;
-
   @OneToMany(() => ContentEntity, (content) => content.series, {
     onDelete: 'SET NULL',
   })
   contents: ContentEntity[];
+
+  @ManyToOne(() => MemberEntity, (member) => member.series)
+  created_by: MemberEntity;
 }

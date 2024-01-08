@@ -8,7 +8,6 @@ import {
   Get,
   Inject,
   Param,
-  Post,
   Put,
   Query,
   Req,

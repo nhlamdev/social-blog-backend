@@ -13,5 +13,5 @@ export class ContactEntity extends AbstractEntity {
   description: string;
 
   @ManyToOne(() => MemberEntity, (member) => member.contacts)
-  create_by: string;
+  created_by: MemberEntity;
 }

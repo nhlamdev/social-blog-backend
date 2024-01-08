@@ -118,7 +118,13 @@ export class CategoryController {
 
   @Delete(':id')
   @UseGuards(AuthGuard('jwt-access'))
-  async delete(@Param('id') id: string) {
+  async delete(@Req() req, @Param('id') id: string) {
+    const jwtPayload: IAccessJwtPayload = req.user;
+
+    if (!jwtPayload.role.owner) {
+      throw new ForbiddenException('Bạn không có quyền hạn');
+    }
+
     return await this.categoryService.delete(id);
   }
 }

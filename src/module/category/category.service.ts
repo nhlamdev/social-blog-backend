@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { CategoryDto } from './category.dto';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 @Injectable()
 export class CategoryService {
@@ -40,7 +41,10 @@ export class CategoryService {
     return await this.categoryRepository.save(category);
   }
 
-  async update(criteria: TypeTypeOrmCriteria, payload: CategoryDto) {
+  async update(
+    criteria: TypeTypeOrmCriteria,
+    payload: QueryDeepPartialEntity<CategoryEntity>,
+  ) {
     return await this.categoryRepository.update(criteria, payload);
   }
 

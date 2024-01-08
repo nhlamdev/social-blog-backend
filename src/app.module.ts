@@ -14,6 +14,7 @@ import { join } from 'path';
 import { RedisClientType } from 'redis';
 import { AuthModule } from './auth/auth.module';
 import { RootModule } from './module/root.Module';
+import { FileModule } from './file/file.module';
 @Module({
   imports: [
     GlobalConfigModule,
@@ -39,6 +40,7 @@ import { RootModule } from './module/root.Module';
     RedisModule,
     AuthModule,
     RootModule,
+    FileModule,
     DatabaseModule,
     WebsocketModule,
   ],
