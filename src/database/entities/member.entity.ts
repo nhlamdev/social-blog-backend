@@ -18,10 +18,10 @@ export class MemberEntity extends AbstractEntity {
   @Column({ type: 'text', nullable: false })
   email: string;
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ type: 'boolean', default: true, nullable: false })
   role_author: boolean;
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ type: 'boolean', default: true, nullable: false })
   role_comment: boolean;
 
   @Column({ type: 'boolean', default: false })

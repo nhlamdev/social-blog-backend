@@ -36,6 +36,8 @@ export class MemberController {
     delete jwtPayload.expired;
     delete jwtPayload.refresh_token;
     delete jwtPayload.token_created_at;
+    delete jwtPayload.exp;
+    delete jwtPayload.iat;
 
     return jwtPayload;
   }
@@ -46,8 +48,8 @@ export class MemberController {
     @Query('take') take: MaybeType<string>,
     @Query('search') search: MaybeType<string>,
   ) {
-    const _take = checkIsNumber(take) ? Number(take) : null;
-    const _skip = checkIsNumber(skip) ? Number(skip) : null;
+    const _take = checkIsNumber(take) ? Number(take) : undefined;
+    const _skip = checkIsNumber(skip) ? Number(skip) : undefined;
     const _search = search
       ? `%${search
           .toLowerCase()

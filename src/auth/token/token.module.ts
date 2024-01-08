@@ -4,6 +4,7 @@ import { RedisModule } from '@/helper/cache/redis.module';
 import { JwtModule } from '@nestjs/jwt';
 import { TokenController } from './token.controller';
 import { MemberModule } from '@/module/member/member.module';
+import { JwtAccessStrategy, JwtRefreshStrategy } from '../strategies';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { MemberModule } from '@/module/member/member.module';
     JwtModule.register({}),
   ],
   controllers: [TokenController],
-  providers: [TokenService],
-  exports: [TokenService],
+  providers: [TokenService, JwtAccessStrategy, JwtRefreshStrategy],
+  exports: [TokenService, JwtAccessStrategy, JwtRefreshStrategy],
 })
 export class TokenModule {}

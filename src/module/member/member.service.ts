@@ -1,7 +1,6 @@
 import { TypeTypeOrmCriteria } from '@/shared/utils/criteria-key.typeorm';
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RedisClientType } from 'redis';
 import {
   DeepPartial,
   FindManyOptions,
@@ -16,8 +15,6 @@ export class MemberService {
   constructor(
     @InjectRepository(MemberEntity)
     private memberRepository: Repository<MemberEntity>,
-
-    @Inject('REDIS_CLIENT') private readonly redisClient: RedisClientType,
   ) {}
 
   async findOne(options?: FindOneOptions<MemberEntity>) {

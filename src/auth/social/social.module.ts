@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { TokenModule } from '../token/token.module';
 import { SocialController } from './social.controller';
 import { SocialService } from './social.service';
+import { DiscordStrategy, GithubStrategy, GoogleStrategy } from '../strategies';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { SocialService } from './social.service';
     RedisModule,
   ],
   controllers: [SocialController],
-  providers: [SocialService],
+  providers: [SocialService, GithubStrategy, GoogleStrategy, DiscordStrategy],
   exports: [SocialService],
 })
 export class SocialModule {}

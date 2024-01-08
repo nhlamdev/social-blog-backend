@@ -10,7 +10,7 @@ export class DiscordStrategy extends PassportStrategy(Strategy, 'discord') {
       clientID: configService.getOrThrow('social.discordClientId'),
       clientSecret: configService.getOrThrow('social.discordClientSecret'),
       callbackURL: `${configService.getOrThrow(
-        'app.domain',
+        'app.frontendDomain',
       )}/service/discord/callback`,
       scope: ['identify', 'email'],
     });

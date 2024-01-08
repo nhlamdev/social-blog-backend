@@ -10,7 +10,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientID: configService.getOrThrow('social.googleClientId'),
       clientSecret: configService.getOrThrow('social.googleClientSecret'),
       callbackURL: `${configService.getOrThrow(
-        'app.domain',
+        'app.frontendDomain',
       )}/service/google/callback`,
       scope: ['email', 'profile'],
     });

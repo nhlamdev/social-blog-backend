@@ -7,7 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { RedisClientType } from 'redis';
-import { v4 as uuid } from 'uuid';
+import { v4 as uuidV4 } from 'uuid';
 import {
   IAccessTokenCreate,
   IRefreshTokenCreate,
@@ -23,7 +23,7 @@ export class TokenService {
   async createRefreshToken(payload: IRefreshTokenCreate) {
     const { client, member_id, social_payload } = payload;
 
-    const randomId = uuid.v4();
+    const randomId = uuidV4();
 
     const name: string = this.configService.getOrThrow(
       'auth.refreshSecretName',
@@ -59,11 +59,11 @@ export class TokenService {
 
     const keys = Object.keys(newTokenCache);
 
-    for (const key in keys) {
+    for (const key of keys) {
       await this.redisClient.HSET(
         `token-${member_id}-${randomId}`,
         key,
-        newToken[key],
+        newTokenCache[key],
       );
     }
 

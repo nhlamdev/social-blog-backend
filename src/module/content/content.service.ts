@@ -53,6 +53,6 @@ export class ContentService {
   }
 
   async builder() {
-    return await this.contentRepository.createQueryBuilder('category');
+    return await this.contentRepository.createQueryBuilder('content');
   }
 }

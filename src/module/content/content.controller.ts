@@ -70,6 +70,7 @@ export class ContentController {
       },
       skip: _skip,
       take: _take,
+      relations: { created_by: true },
       order: {
         [`content.${keyOder === 'NAME' ? 'title' : 'created_at'}`]:
           typeOrder === 'ASC' ? 'ASC' : 'DESC',
@@ -114,6 +115,7 @@ export class ContentController {
       },
       skip: _skip,
       take: _take,
+      relations: { created_by: true },
       order: {
         [`content.${keyOder === 'NAME' ? 'title' : 'created_at'}`]:
           typeOrder === 'ASC' ? 'ASC' : 'DESC',
@@ -153,6 +155,7 @@ export class ContentController {
         public: true,
         complete: true,
       },
+      relations: { created_by: true },
       skip: _skip,
       take: _take,
       order: {
@@ -206,6 +209,12 @@ export class ContentController {
   async contentById(@Param('id') id: string) {
     const content = await this.contentService.findOne({
       where: { _id: id, public: true, complete: true },
+      relations: {
+        created_by: true,
+        series: true,
+        category: true,
+        comments: true,
+      },
     });
 
     if (!Boolean(content)) {
@@ -217,7 +226,15 @@ export class ContentController {
 
   @Get('private/by-id/:id')
   async privateContentById(@Param('id') id: string) {
-    const content = await this.contentService.findOne({ where: { _id: id } });
+    const content = await this.contentService.findOne({
+      where: { _id: id },
+      relations: {
+        created_by: true,
+        series: true,
+        category: true,
+        comments: true,
+      },
+    });
 
     if (!Boolean(content)) {
       throw new BadRequestException('Bài viết không tồn tại.');
@@ -254,6 +271,11 @@ export class ContentController {
     const contents = await this.contentService.findAll({
       take: _take,
       order: { count_view: 'DESC' },
+      relations: {
+        created_by: true,
+        series: true,
+        category: true,
+      },
     });
 
     return contents;

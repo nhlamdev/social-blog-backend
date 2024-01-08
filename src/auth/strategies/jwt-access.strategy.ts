@@ -28,7 +28,10 @@ export class JwtAccessStrategy extends PassportStrategy(
   async validate(payload: IAccessJwtPayload): Promise<IAccessJwtPayload> {
     const date = new Date();
 
-    if (date.getTime() > payload.token_created_at.getTime() + payload.expired) {
+    if (
+      date.getTime() >
+      new Date(payload.token_created_at).getTime() + Number(payload.expired)
+    ) {
       throw new UnauthorizedException('Phiên đăng nhập quá hạn.');
     }
 

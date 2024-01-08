@@ -7,6 +7,8 @@ export interface IAccessJwtPayload {
   created_at: Date;
   refresh_token: string;
   token_created_at: Date;
+  exp?: number;
+  iat?: number;
   role: {
     owner: boolean;
     comment: boolean;

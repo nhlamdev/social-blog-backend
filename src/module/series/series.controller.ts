@@ -104,7 +104,7 @@ export class SeriesController {
 
     const _take = checkIsNumber(take) ? Number(take) : null;
 
-    builder
+    return await builder
       .leftJoinAndSelect('series.contents', 'contents')
       .leftJoinAndSelect('series.created_by', 'created_by')
       .select(
