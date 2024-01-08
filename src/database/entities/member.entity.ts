@@ -5,7 +5,7 @@ import { ContentEntity } from './content.entity';
 import { SeriesEntity } from './series.entity';
 import { CommentEntity } from './comment.entity';
 import { ContactEntity } from './contact.entity';
-import { FileEntity } from '@/file/file.entity';
+import { FileEntity } from '@/database/entities/file.entity';
 
 @Entity('member')
 export class MemberEntity extends AbstractEntity {

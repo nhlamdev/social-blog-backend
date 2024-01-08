@@ -24,7 +24,6 @@ import { ContentService } from './content.service';
 import { ContentDto } from './content.dto';
 import { IAccessJwtPayload } from '@/shared/types';
 import { AuthGuard } from '@nestjs/passport';
-import { CommentService, CommentService } from '../comment/comment.service';
 
 @ApiTags('content')
 @Controller('content')
@@ -33,7 +32,6 @@ export class ContentController {
     private readonly contentService: ContentService,
     private readonly seriesService: SeriesService,
     private readonly categoryService: CategoryService,
-    private readonly commentService: CommentService,
   ) {}
 
   @Get('public')
@@ -217,8 +215,8 @@ export class ContentController {
     return content;
   }
 
-  @Get('/private/by-id/:id')
-  async pivateContentById(@Param('id') id: string) {
+  @Get('private/by-id/:id')
+  async privateContentById(@Param('id') id: string) {
     const content = await this.contentService.findOne({ where: { _id: id } });
 
     if (!Boolean(content)) {
@@ -402,7 +400,7 @@ export class ContentController {
     }
   }
 
-  @Patch(':content/:category/change-category')
+  @Patch(':content/change-category/:category')
   @UseGuards(AuthGuard('jwt-access'))
   async changeCategory(
     @Req() req,
@@ -427,9 +425,47 @@ export class ContentController {
       throw new BadRequestException('Thể loại không tồn tại.');
     }
 
-    // if (jwtPayload.role.owner || jwtPayload._id === _content.created_by._id) {
+    if (jwtPayload.role.owner || jwtPayload._id === _content.created_by._id) {
+      await this.contentService.update(_content._id, { category: _category });
+    } else {
+      throw new ForbiddenException('Bạn không có quyền thao tác');
+    }
+  }
 
-    // }
+  @Patch(':content/change-series/:category')
+  @UseGuards(AuthGuard('jwt-access'))
+  async changeSeries(
+    @Req() req,
+    @Param('content') content: string,
+    @Param('series') series: string,
+  ) {
+    const jwtPayload: IAccessJwtPayload = req.user;
+
+    const _content = await this.contentService.findOne({
+      where: { _id: content },
+      relations: { created_by: true },
+    });
+    const _series = await this.seriesService.findOne({
+      where: { _id: series },
+    });
+
+    if (!_content) {
+      throw new BadRequestException('Bài viết không tồn tại.');
+    }
+
+    if (!_series) {
+      throw new BadRequestException('Chuỗi bài viết không tồn tại.');
+    }
+
+    if (
+      jwtPayload.role.owner ||
+      (jwtPayload._id === _content.created_by._id &&
+        jwtPayload._id === _series.created_by._id)
+    ) {
+      await this.contentService.update(_content._id, { series: _series });
+    } else {
+      throw new ForbiddenException('Bạn không có quyền thao tác');
+    }
   }
 
   @Put(':id')

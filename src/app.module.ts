@@ -1,6 +1,6 @@
-import { RedisModule } from '@/helper/cache/redis.module';
 import { GlobalConfigModule } from '@/configuration/config.module';
 import { DatabaseModule } from '@/database/database.module';
+import { RedisModule } from '@/helper/cache/redis.module';
 import * as middleware from '@/middleware';
 import { WebsocketModule } from '@/websocket/websocket.module';
 import { BullModule } from '@nestjs/bull';
@@ -14,7 +14,6 @@ import { join } from 'path';
 import { RedisClientType } from 'redis';
 import { AuthModule } from './auth/auth.module';
 import { RootModule } from './module/root.Module';
-import { FileModule } from './file/file.module';
 @Module({
   imports: [
     GlobalConfigModule,
@@ -40,7 +39,6 @@ import { FileModule } from './file/file.module';
     RedisModule,
     AuthModule,
     RootModule,
-    FileModule,
     DatabaseModule,
     WebsocketModule,
   ],
