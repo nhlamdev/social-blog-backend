@@ -9,9 +9,10 @@ import {
 } from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { MemberEntity } from '../../database/entities';
+import { IBaseService } from '@/shared/base/base.service';
 
 @Injectable()
-export class MemberService {
+export class MemberService implements IBaseService<MemberEntity> {
   constructor(
     @InjectRepository(MemberEntity)
     private memberRepository: Repository<MemberEntity>,
