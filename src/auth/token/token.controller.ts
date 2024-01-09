@@ -13,8 +13,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { TokenService } from './token.service';
 import { ApiTags } from '@nestjs/swagger';
+import { TokenService } from './token.service';
 
 @ApiTags('token')
 @Controller()
@@ -23,6 +23,7 @@ export class TokenController {
     private readonly memberService: MemberService,
     private readonly tokenService: TokenService,
   ) {}
+
   @Get('renew-token')
   @UseGuards(AuthGuard('jwt-refresh'))
   async renewToken(@Req() req, @Res() res) {
@@ -71,7 +72,7 @@ export class TokenController {
 
   @Get('all-login-status-by-member/:id')
   @UseGuards(AuthGuard('jwt-access'))
-  async loginStatusByMember(@Req() req, @Param('id') id) {
+  async loginStatusByMember(@Req() req, @Param('id') id: string) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
     if (jwtPayload.role.owner) {
