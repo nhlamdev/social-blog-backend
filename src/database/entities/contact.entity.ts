@@ -12,6 +12,8 @@ export class ContactEntity extends AbstractEntity {
   @Column({ type: 'text', nullable: false })
   description: string;
 
-  @ManyToOne(() => MemberEntity, (member) => member.contacts)
+  @ManyToOne(() => MemberEntity, (member) => member.contacts, {
+    nullable: false,
+  })
   created_by: MemberEntity;
 }

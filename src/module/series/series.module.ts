@@ -7,12 +7,14 @@ import { RedisModule } from '@/helper/cache/redis.module';
 import { ContentModule } from '../content/content.module';
 import { JwtAccessStrategy } from '@/auth/strategies';
 import { TokenModule } from '@/auth/token/token.module';
+import { MemberModule } from '../member/member.module';
 
 @Module({
   imports: [
     RedisModule,
     forwardRef(() => ContentModule),
     forwardRef(() => TokenModule),
+    forwardRef(() => MemberModule),
     TypeOrmModule.forFeature([SeriesEntity]),
   ],
   controllers: [SeriesController],

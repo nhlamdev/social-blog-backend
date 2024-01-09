@@ -25,6 +25,6 @@ export class SeriesEntity extends AbstractEntity {
   })
   contents: ContentEntity[];
 
-  @ManyToOne(() => MemberEntity, (member) => member.series)
+  @ManyToOne(() => MemberEntity, (member) => member.series, { nullable: false })
   created_by: MemberEntity;
 }

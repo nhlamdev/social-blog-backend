@@ -45,12 +45,13 @@ export class CategoryController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    const [categories, count] = await this.categoryService.findAll({
-      where: { title: ILike(_search) },
-      take: _take,
-      skip: _skip,
-      order: { created_at: 'DESC' },
-    });
+    const { result: categories, count } =
+      await this.categoryService.findAllAndCount({
+        where: { title: ILike(_search) },
+        take: _take,
+        skip: _skip,
+        order: { created_at: 'DESC' },
+      });
 
     return { categories, count };
   }

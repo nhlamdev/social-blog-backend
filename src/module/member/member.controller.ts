@@ -57,13 +57,15 @@ export class MemberController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    const [members, count] = await this.memberService.findAllAndCount({
-      skip: _skip,
-      take: _take,
-      where: {
-        name: Like(`%${_search}%`),
+    const { result: members, count } = await this.memberService.findAllAndCount(
+      {
+        skip: _skip,
+        take: _take,
+        where: {
+          name: Like(`%${_search}%`),
+        },
       },
-    });
+    );
 
     return { members, count };
   }

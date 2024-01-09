@@ -38,7 +38,6 @@ export class ContentDto extends BaseDTO {
   @IsNotEmpty({ message: 'Bạn chưa nhập danh sách thẻ!.' })
   @ArrayMinSize(0, { message: 'Phải gắn ít nhất 1 thẻ!.' })
   @ArrayMaxSize(3, { message: 'Nhiều nhất chỉ được 3 thẻ!.' })
-  @Transform(({ value }: TransformFnParams) => value?.trim())
   tags: string[];
 
   @ApiProperty({ type: String })
@@ -48,11 +47,9 @@ export class ContentDto extends BaseDTO {
 
   @ApiProperty({ type: Boolean })
   @IsOptional()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
   public?: boolean;
 
   @ApiProperty({ type: Boolean })
   @IsOptional()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
   complete?: boolean;
 }

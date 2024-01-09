@@ -1,13 +1,18 @@
+import { SeriesEntity } from '@/database/entities';
+import { IBaseService } from '@/shared/base/base.service';
+import { TypeTypeOrmCriteria } from '@/shared/utils/criteria-key.typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { SeriesEntity } from '@/database/entities';
-import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
-import { SeriesDto } from './series.dto';
-import { TypeTypeOrmCriteria } from '@/shared/utils/criteria-key.typeorm';
+import {
+  DeepPartial,
+  FindManyOptions,
+  FindOneOptions,
+  Repository,
+} from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 @Injectable()
-export class SeriesService {
+export class SeriesService implements IBaseService<SeriesEntity> {
   constructor(
     @InjectRepository(SeriesEntity)
     private seriesRepository: Repository<SeriesEntity>,
@@ -22,7 +27,9 @@ export class SeriesService {
   }
 
   async findAllAndCount(options?: FindManyOptions<SeriesEntity>) {
-    return await this.seriesRepository.findAndCount(options);
+    const [result, count] = await this.seriesRepository.findAndCount(options);
+
+    return { result, count };
   }
 
   async exist(options?: FindManyOptions<SeriesEntity>) {
@@ -33,12 +40,8 @@ export class SeriesService {
     return this.seriesRepository.count(options);
   }
 
-  async create(payload: SeriesDto) {
-    const category = new SeriesEntity();
-    category.title = payload.title;
-    category.description = payload.description;
-
-    return await this.seriesRepository.save(category);
+  async create(instance: DeepPartial<SeriesEntity>) {
+    return await this.seriesRepository.save(instance);
   }
 
   async update(

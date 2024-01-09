@@ -14,7 +14,7 @@ export interface IBaseService<Entity> {
   findAll(options?: FindManyOptions<Entity>): Promise<Entity[]>;
   findAllAndCount(
     options?: FindManyOptions<Entity>,
-  ): Promise<[Entity[], number]>;
+  ): Promise<{ result: Entity[]; count: number }>;
   exist(options?: FindManyOptions<Entity>): Promise<boolean>;
   count(options?: FindManyOptions<Entity>): Promise<number>;
   create(instance: DeepPartial<Entity>): Promise<Entity>;

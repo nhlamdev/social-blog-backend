@@ -42,7 +42,7 @@ export class JwtAccessStrategy extends PassportStrategy(
     const exist = await this.tokenService.checkExistTokenInCache(token);
 
     if (!exist) {
-      throw new UnauthorizedException('Phiên đăng nhập không hợp lệ.');
+      throw new UnauthorizedException('Phiên đăng nhập không hợp lệ 1.');
     }
 
     return payload;

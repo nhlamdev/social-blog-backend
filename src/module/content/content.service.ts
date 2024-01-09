@@ -1,17 +1,33 @@
-import { CategoryEntity, ContentEntity } from '@/database/entities';
+import { ContentEntity } from '@/database/entities';
+import { IBaseService } from '@/shared/base/base.service';
 import { TypeTypeOrmCriteria } from '@/shared/utils/criteria-key.typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
-import { ContentDto } from './content.dto';
+import {
+  DeepPartial,
+  FindManyOptions,
+  FindOneOptions,
+  Repository,
+  UpdateResult,
+} from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 @Injectable()
-export class ContentService {
+export class ContentService implements IBaseService<ContentEntity> {
   constructor(
     @InjectRepository(ContentEntity)
     private contentRepository: Repository<ContentEntity>,
   ) {}
+  async findAllAndCount(
+    options?: FindManyOptions<ContentEntity>,
+  ): Promise<{ result: ContentEntity[]; count: number }> {
+    const [result, count] = await this.contentRepository.findAndCount(options);
+
+    return { result, count };
+  }
+  async softDelete?(criteria: TypeTypeOrmCriteria): Promise<UpdateResult> {
+    return this.contentRepository.softDelete(criteria);
+  }
 
   async findOne(options?: FindOneOptions<ContentEntity>) {
     return await this.contentRepository.findOne(options);
@@ -29,16 +45,8 @@ export class ContentService {
     return this.contentRepository.count(options);
   }
 
-  async create(payload: ContentDto, category: CategoryEntity) {
-    const content = new ContentEntity();
-
-    content.title = payload.title;
-    content.body = payload.body;
-    content.category = category;
-    content.complete = payload.complete;
-    content.public = payload.public;
-
-    return await this.contentRepository.save(content);
+  async create(instance: DeepPartial<ContentEntity>) {
+    return await this.contentRepository.save(instance);
   }
 
   async update(

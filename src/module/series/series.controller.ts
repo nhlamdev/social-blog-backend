@@ -21,12 +21,14 @@ import { SeriesService } from './series.service';
 import { ContentService } from '../content/content.service';
 import { SeriesDto } from './series.dto';
 import { MaybeType } from '@/shared/utils/types/maybe.type';
+import { MemberService } from '../member/member.service';
 
 @Controller('series')
 @ApiTags('series')
 export class SeriesController {
   constructor(
     private readonly seriesService: SeriesService,
+    private readonly memberService: MemberService,
     private readonly contentService: ContentService,
   ) {}
 
@@ -47,11 +49,12 @@ export class SeriesController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    const [series, count] = await this.seriesService.findAllAndCount({
+    const { result: series, count } = await this.seriesService.findAllAndCount({
       where: { title: ILike(_search), created_by: { _id: author } },
       take: _take,
       skip: _skip,
       order: { created_at: 'DESC' },
+      relations: { created_by: true },
     });
 
     return { series, count };
@@ -77,11 +80,12 @@ export class SeriesController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    const [series, count] = await this.seriesService.findAllAndCount({
+    const { result: series, count } = await this.seriesService.findAllAndCount({
       where: { title: ILike(_search), created_by: { _id: jwtPayload._id } },
       take: _take,
       skip: _skip,
       order: { created_at: 'DESC' },
+      relations: { created_by: true },
     });
 
     return { series, count };
@@ -132,7 +136,15 @@ export class SeriesController {
       throw new ForbiddenException('Bạn không có quyền hạn');
     }
 
-    return await this.seriesService.create(body);
+    const member = await this.memberService.findOne({
+      where: { _id: jwtPayload._id },
+    });
+
+    return await this.seriesService.create({
+      title: body.title,
+      description: body.description,
+      created_by: member,
+    });
   }
 
   @Put(':id')

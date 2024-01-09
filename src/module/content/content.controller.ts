@@ -24,6 +24,7 @@ import { ContentService } from './content.service';
 import { ContentDto } from './content.dto';
 import { IAccessJwtPayload } from '@/shared/types';
 import { AuthGuard } from '@nestjs/passport';
+import { MemberService } from '../member/member.service';
 
 @ApiTags('content')
 @Controller('content')
@@ -32,6 +33,7 @@ export class ContentController {
     private readonly contentService: ContentService,
     private readonly seriesService: SeriesService,
     private readonly categoryService: CategoryService,
+    private readonly memberRepository: MemberService,
   ) {}
 
   @Get('public')
@@ -104,23 +106,26 @@ export class ContentController {
       ? caseSort
       : CASE_SORT[0];
 
-    return this.contentService.findAll({
-      where: {
-        title: ILike(_search),
-        category: { _id: category },
-        series: { _id: series },
-        created_by: { _id: jwtPayload._id },
-        public: true,
-        complete: true,
-      },
-      skip: _skip,
-      take: _take,
-      relations: { created_by: true },
-      order: {
-        [`content.${keyOder === 'NAME' ? 'title' : 'created_at'}`]:
-          typeOrder === 'ASC' ? 'ASC' : 'DESC',
-      },
-    });
+    const { result: contents, count } =
+      await this.contentService.findAllAndCount({
+        where: {
+          title: ILike(_search),
+          category: { _id: category },
+          series: { _id: series },
+          created_by: { _id: jwtPayload._id },
+          public: true,
+          complete: true,
+        },
+        skip: _skip,
+        take: _take,
+        relations: { created_by: true, category: true, series: true },
+        order: {
+          [keyOder === 'NAME' ? 'title' : 'created_at']:
+            typeOrder === 'ASC' ? 'ASC' : 'DESC',
+        },
+      });
+
+    return { contents, count };
   }
 
   @Get('bookmark')
@@ -337,7 +342,19 @@ export class ContentController {
       throw new BadRequestException('Bạn chưa chọn thể loại.');
     }
 
-    await this.contentService.create(body, category);
+    const member = await this.memberRepository.findOne({
+      where: { _id: jwtPayload._id },
+    });
+
+    await this.contentService.create({
+      title: body.title,
+      body: body.body,
+      tags: body.tags,
+      public: body.public,
+      complete: body.complete,
+      category,
+      created_by: member,
+    });
   }
 
   @Patch('/:id/vote-up')

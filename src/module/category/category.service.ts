@@ -5,9 +5,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { CategoryDto } from './category.dto';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { IBaseService } from '@/shared/base/base.service';
 
 @Injectable()
-export class CategoryService {
+export class CategoryService implements IBaseService<CategoryEntity> {
   constructor(
     @InjectRepository(CategoryEntity)
     private categoryRepository: Repository<CategoryEntity>,
@@ -22,7 +23,8 @@ export class CategoryService {
   }
 
   async findAllAndCount(options?: FindManyOptions<CategoryEntity>) {
-    return await this.categoryRepository.findAndCount(options);
+    const [result, count] = await this.categoryRepository.findAndCount(options);
+    return { result, count };
   }
 
   async exist(options?: FindManyOptions<CategoryEntity>) {

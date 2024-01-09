@@ -6,11 +6,13 @@ import { SeriesModule } from '../series/series.module';
 import { ContentController } from './content.controller';
 import { ContentService } from './content.service';
 import { TokenModule } from '@/auth/token/token.module';
+import { MemberModule } from '../member/member.module';
 
 @Module({
   imports: [
     forwardRef(() => SeriesModule),
     forwardRef(() => CategoryModule),
+    forwardRef(() => MemberModule),
     forwardRef(() => TokenModule),
     TypeOrmModule.forFeature([ContentEntity]),
   ],

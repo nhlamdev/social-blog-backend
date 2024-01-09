@@ -27,7 +27,9 @@ export class MemberService implements IBaseService<MemberEntity> {
   }
 
   async findAllAndCount(options?: FindManyOptions<MemberEntity>) {
-    return await this.memberRepository.findAndCount(options);
+    const [result, count] = await this.memberRepository.findAndCount(options);
+
+    return { result, count };
   }
 
   async exist(options?: FindManyOptions<MemberEntity>) {
