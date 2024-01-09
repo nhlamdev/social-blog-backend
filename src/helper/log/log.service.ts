@@ -2,7 +2,7 @@ import { ConsoleLogger, Injectable } from '@nestjs/common';
 import * as winston from 'winston';
 
 @Injectable()
-export class AppLoggerService extends ConsoleLogger {
+export class LoggerService extends ConsoleLogger {
   private readonly _logger: winston.Logger;
 
   // constructor(private readonly _configService: GlobalConfigService) {
