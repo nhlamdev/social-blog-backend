@@ -8,17 +8,11 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import {
-  ApiBody,
-  ApiConsumes,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { FileService } from './file.service';
-import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('files')
 @Controller({
@@ -59,9 +53,6 @@ export class FileController {
       }),
     }),
   )
-  @ApiOperation({
-    summary: 'Upload file.',
-  })
   async uploadFile(@UploadedFile('files') files: Express.Multer.File) {
     return this.fileService.saveFile(files);
   }

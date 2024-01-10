@@ -33,7 +33,7 @@ export class SeriesController {
   ) {}
 
   @Get()
-  async series(
+  async publicPaginate(
     @Query('skip') skip?: MaybeType<string>,
     @Query('take') take?: MaybeType<string>,
     @Query('search') search?: MaybeType<string>,
@@ -62,7 +62,22 @@ export class SeriesController {
 
   @Get('owner')
   @UseGuards(AuthGuard('jwt-access'))
-  async seriesByOwner(
+  async public(@Req() req) {
+    const jwtPayload: IAccessJwtPayload = req.user;
+
+    const { result: series, count } = await this.seriesService.findAllAndCount({
+      where: { created_by: { _id: jwtPayload._id } },
+
+      order: { created_at: 'DESC' },
+      relations: { created_by: true },
+    });
+
+    return { series, count };
+  }
+
+  @Get('owner/paginate')
+  @UseGuards(AuthGuard('jwt-access'))
+  async privatePaginate(
     @Req() req,
     @Query('skip') skip?: MaybeType<string>,
     @Query('take') take?: MaybeType<string>,

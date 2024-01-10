@@ -62,7 +62,7 @@ export class MemberController {
         skip: _skip,
         take: _take,
         where: {
-          name: Like(`%${_search}%`),
+          name: Like(_search),
         },
       },
     );

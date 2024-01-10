@@ -1,4 +1,5 @@
-import { checkIsNumber } from '@/shared/utils/global-func';
+import { PaginationDto } from '@/shared/dto/paginate.dto';
+import { IAccessJwtPayload } from '@/shared/types';
 import {
   Body,
   Controller,
@@ -13,13 +14,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { ILike } from 'typeorm';
-import { AuthGuard } from '@nestjs/passport';
-import { CategoryService } from './category.service';
 import { ContentService } from '../content/content.service';
 import { CategoryDto } from './category.dto';
-import { IAccessJwtPayload } from '@/shared/types';
+import { CategoryService } from './category.service';
 
 @ApiTags('category')
 @Controller('category')
@@ -30,26 +30,12 @@ export class CategoryController {
   ) {}
 
   @Get()
-  async categories(
-    @Query('skip') skip?: string,
-    @Query('take') take?: string,
-    @Query('search') search?: string,
-  ) {
-    const _take = checkIsNumber(take) ? Number(take) : null;
-    const _skip = checkIsNumber(skip) ? Number(skip) : null;
-
-    const _search = search
-      ? `%${search
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')}%`
-      : '%%';
-
+  async categories(@Query() query: PaginationDto) {
     const { result: categories, count } =
       await this.categoryService.findAllAndCount({
-        where: { title: ILike(_search) },
-        take: _take,
-        skip: _skip,
+        where: { title: ILike(query.search) },
+        take: query.take,
+        skip: query.skip,
         order: { created_at: 'DESC' },
       });
 

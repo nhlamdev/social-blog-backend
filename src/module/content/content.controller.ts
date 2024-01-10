@@ -17,7 +17,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ILike, In } from 'typeorm';
+import { ILike, In, Not } from 'typeorm';
 import { CategoryService } from '../category/category.service';
 import { SeriesService } from '../series/series.service';
 import { ContentService } from './content.service';
@@ -72,7 +72,7 @@ export class ContentController {
       },
       skip: _skip,
       take: _take,
-      relations: { created_by: true },
+      relations: { created_by: true, series: true, category: true },
       order: {
         [`content.${keyOder === 'NAME' ? 'title' : 'created_at'}`]:
           typeOrder === 'ASC' ? 'ASC' : 'DESC',
@@ -82,7 +82,7 @@ export class ContentController {
 
   @Get('private')
   @UseGuards(AuthGuard('jwt-access'))
-  async all(
+  async private(
     @Req() req,
     @Query('skip') skip: MaybeType<string>,
     @Query('take') take: MaybeType<string>,
@@ -113,8 +113,6 @@ export class ContentController {
           category: { _id: category },
           series: { _id: series },
           created_by: { _id: jwtPayload._id },
-          public: true,
-          complete: true,
         },
         skip: _skip,
         take: _take,
@@ -167,6 +165,70 @@ export class ContentController {
         [`content.${keyOder === 'NAME' ? 'title' : 'created_at'}`]:
           typeOrder === 'ASC' ? 'ASC' : 'DESC',
       },
+    });
+  }
+
+  @Get('not-in-category/:category')
+  @UseGuards(AuthGuard('jwt-access'))
+  async notInCategory(
+    @Req() req,
+    @Param('category') category: string,
+    @Query('skip') skip: MaybeType<string>,
+    @Query('take') take: MaybeType<string>,
+    @Query('search') search: MaybeType<string>,
+  ) {
+    const jwtPayload: IAccessJwtPayload = req.user;
+
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    const _skip = checkIsNumber(skip) ? Number(skip) : null;
+    const _search = search
+      ? `%${search
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')}%`
+      : '%%';
+
+    return this.contentService.findAllAndCount({
+      where: {
+        title: ILike(_search),
+        category: { _id: Not(category) },
+        created_by: { _id: jwtPayload._id },
+      },
+      skip: _skip,
+      take: _take,
+      relations: { category: true },
+    });
+  }
+
+  @Get('not-in-series/:series')
+  @UseGuards(AuthGuard('jwt-access'))
+  async notInSeries(
+    @Req() req,
+    @Param('series') series: string,
+    @Query('skip') skip: MaybeType<string>,
+    @Query('take') take: MaybeType<string>,
+    @Query('search') search: MaybeType<string>,
+  ) {
+    const jwtPayload: IAccessJwtPayload = req.user;
+
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    const _skip = checkIsNumber(skip) ? Number(skip) : null;
+    const _search = search
+      ? `%${search
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')}%`
+      : '%%';
+
+    return this.contentService.findAllAndCount({
+      where: {
+        title: ILike(_search),
+        series: { _id: Not(series) },
+        created_by: { _id: jwtPayload._id },
+      },
+      skip: _skip,
+      take: _take,
+      relations: { series: true },
     });
   }
 
@@ -249,7 +311,6 @@ export class ContentController {
   }
 
   @Get('random')
-  @ApiTags('content')
   async randomContents(@Query('take') take: MaybeType<string>) {
     const _take = checkIsNumber(take) ? Number(take) : null;
 
@@ -357,7 +418,7 @@ export class ContentController {
     });
   }
 
-  @Patch('/:id/vote-up')
+  @Patch(':id/vote-up')
   @UseGuards(AuthGuard('jwt-access'))
   async upVote(@Req() req, @Param('id') id: string) {
     const jwtPayload: IAccessJwtPayload = req.user;

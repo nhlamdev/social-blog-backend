@@ -20,11 +20,6 @@ export class CommentEntity extends AbstractEntity {
   @Column({ type: 'text', array: true, default: [], nullable: false })
   member_like: string[];
 
-  @ManyToOne(() => MemberEntity, (member) => member.comments, {
-    nullable: false,
-  })
-  created_by: MemberEntity;
-
   @ManyToOne(() => CommentEntity, (comment) => comment.replies, {
     onDelete: 'CASCADE',
   })
@@ -37,4 +32,9 @@ export class CommentEntity extends AbstractEntity {
 
   @ManyToOne(() => ContentEntity, (Content) => Content.comments)
   content?: ContentEntity;
+
+  @ManyToOne(() => MemberEntity, (member) => member.comments, {
+    nullable: false,
+  })
+  created_by: MemberEntity;
 }

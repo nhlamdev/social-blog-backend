@@ -1,4 +1,5 @@
 import { BaseDTO } from '@/shared/base';
+import { PaginationDto } from '@/shared/dto/paginate.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform, TransformFnParams } from 'class-transformer';
 import {
@@ -52,4 +53,23 @@ export class ContentDto extends BaseDTO {
   @ApiProperty({ type: Boolean })
   @IsOptional()
   complete?: boolean;
+}
+
+export class ContentFindPrivateDTO extends PaginationDto {
+  @ApiProperty({ type: String })
+  category: string;
+
+  @ApiProperty({ type: String })
+  series: string;
+
+  @ApiProperty({ type: String })
+  sortCase: string;
+}
+
+export class ContentFindPublicDTO extends ContentFindPrivateDTO {
+  @ApiProperty({ type: String })
+  tag: string;
+
+  @ApiProperty({ type: String })
+  author: string;
 }

@@ -11,7 +11,7 @@ import { v4 as uuidV4 } from 'uuid';
 import {
   IAccessTokenCreate,
   IRefreshTokenCreate,
-} from '../../shared/types/token.type';
+} from '@/shared/types/token.type';
 
 @Injectable({})
 export class TokenService {
