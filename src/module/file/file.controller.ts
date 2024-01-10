@@ -5,15 +5,12 @@ import {
   Post,
   Response,
   UploadedFile,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { FileService } from './file.service';
-import { ImageInterceptor } from './file.interceptor';
 
 @ApiTags('files')
 @Controller({
@@ -30,7 +27,7 @@ export class FileController {
 
   @Post('upload')
   @ApiConsumes('multipart/form-data')
-  @UseGuards(AuthGuard('jwt-access'))
+  // @UseGuards(AuthGuard('jwt-access'))
   @ApiBody({
     schema: {
       type: 'object',
@@ -43,8 +40,6 @@ export class FileController {
     },
   })
   @UseInterceptors(
-    FileInterceptor('files'),
-    ImageInterceptor,
     FilesInterceptor('files', 20, {
       storage: diskStorage({
         destination: (req, file, next) => {
@@ -59,6 +54,9 @@ export class FileController {
           );
         },
       }),
+      fileFilter: (req, file, cb) => {
+        cb(null, true);
+      },
     }),
   )
   async uploadFile(@UploadedFile('files') files: Express.Multer.File) {

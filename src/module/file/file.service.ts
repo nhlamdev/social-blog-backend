@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FileEntity } from './file.entity';
-import sharp from 'sharp';
-import fs from 'fs';
+import * as sharp from 'sharp';
+import * as fs from 'fs';
 import { OptimizeImageConfig } from '@/constants/common/image';
 
 @Injectable()
@@ -19,21 +19,29 @@ export class FileService {
     await this.fileRepository.find();
   }
 
-  async optimize_image(f) {
-    if (!f.mimetype.startsWith('image')) {
-      const resizedImageBuffer = await sharp(f.path)
-        .resize({ width: 800, height: 600, fit: 'inside' }) // Giữ nguyên tỷ lệ aspect ratio
-        .toBuffer();
+  async optimize_image(f: any, size: number, key: string) {
+    const folderPath = `./uploads/${key}`;
 
-      fs.writeFileSync(`./uploads/${resizedFileName}`, resizedImageBuffer);
+    const resizedImageBuffer = await sharp(f.path)
+      .resize({ width: size, height: size, fit: 'inside' }) // Giữ nguyên tỷ lệ aspect ratio
+      .toBuffer();
+
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath, { recursive: true });
     }
+
+    fs.writeFileSync(`${folderPath}/${f.filename}`, resizedImageBuffer);
   }
 
   async saveFile(files) {
     const filesCreate = Object.keys(files).map(async (key) => {
       const f = files[key];
 
-      await this.optimize_image(f);
+      if (f.mimetype.startsWith('image')) {
+        this.optimizeConfig.forEach(async (config) => {
+          await this.optimize_image(f, config.size, config.key);
+        });
+      }
 
       const newFile = new FileEntity();
       newFile.mimeType = f.mimetype;
