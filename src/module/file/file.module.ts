@@ -4,6 +4,7 @@ import { FileService } from './file.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FileEntity } from './file.entity';
 import { TokenModule } from '@/auth/token/token.module';
+import { ImageInterceptorProvider } from './file.interceptor';
 
 @Module({
   imports: [
@@ -11,7 +12,7 @@ import { TokenModule } from '@/auth/token/token.module';
     forwardRef(() => TokenModule),
   ],
   controllers: [FileController],
-  providers: [FileService],
+  providers: [ImageInterceptorProvider, FileService],
   exports: [FileService, TypeOrmModule.forFeature([FileEntity])],
 })
 export class FileModule {}

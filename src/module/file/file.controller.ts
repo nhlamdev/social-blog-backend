@@ -9,10 +9,11 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { FileService } from './file.service';
+import { ImageInterceptor } from './file.interceptor';
 
 @ApiTags('files')
 @Controller({
@@ -22,8 +23,14 @@ import { FileService } from './file.service';
 export class FileController {
   constructor(private readonly fileService: FileService) {}
 
+  @Get()
+  all() {
+    return this.fileService.findAll();
+  }
+
   @Post('upload')
   @ApiConsumes('multipart/form-data')
+  @UseGuards(AuthGuard('jwt-access'))
   @ApiBody({
     schema: {
       type: 'object',
@@ -35,8 +42,9 @@ export class FileController {
       },
     },
   })
-  @UseGuards(AuthGuard('jwt-access'))
   @UseInterceptors(
+    FileInterceptor('files'),
+    ImageInterceptor,
     FilesInterceptor('files', 20, {
       storage: diskStorage({
         destination: (req, file, next) => {
