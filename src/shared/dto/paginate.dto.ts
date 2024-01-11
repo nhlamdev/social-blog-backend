@@ -1,29 +1,38 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
-import { BaseDTO } from '../base';
+import { ApiProperty } from '@nestjs/swagger';
 import { Transform, TransformFnParams } from 'class-transformer';
+import { BaseDTO } from '../base';
 import { checkIsNumber } from '../utils/global-func';
 
 export class PaginationDto extends BaseDTO {
-  @ApiProperty({ type: String, format: 'number' })
-  @IsNotEmpty({ message: 'Bạn chưa nhập tiêu đề!.' })
-  @IsString({ message: 'Tiêu đề sai kiểu dữ liệu!' })
+  @ApiProperty({
+    type: String,
+    format: 'number',
+    default: 0,
+    required: false,
+    minimum: 0,
+  })
   @Transform(({ value }: TransformFnParams) => {
+    console.log(
+      'transform : ',
+      value,
+      checkIsNumber(value?.trim()) ? Number(value?.trim()) : undefined,
+    );
     return checkIsNumber(value?.trim()) ? Number(value?.trim()) : undefined;
   })
   take?: number;
 
-  @ApiProperty({ type: String, format: 'number' })
-  @IsNotEmpty({ message: 'Bạn chưa nhập tiêu đề!.' })
-  @IsString({ message: 'Tiêu đề sai kiểu dữ liệu!' })
+  @ApiProperty({
+    type: String,
+    format: 'number',
+    required: false,
+    minimum: 0,
+  })
   @Transform(({ value }: TransformFnParams) => {
     return checkIsNumber(value?.trim()) ? Number(value?.trim()) : undefined;
   })
   skip?: number;
 
-  @ApiPropertyOptional({ type: String })
-  @IsNotEmpty({ message: 'Bạn chưa nhập tiêu đề!.' })
-  @IsString({ message: 'Tiêu đề sai kiểu dữ liệu!' })
+  @ApiProperty({ type: String, required: false })
   @Transform(({ value }: TransformFnParams) => {
     const transform = value
       ? `%${value

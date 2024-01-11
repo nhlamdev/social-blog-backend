@@ -31,6 +31,7 @@ export class CategoryController {
 
   @Get()
   async categories(@Query() query: PaginationDto) {
+    console.log('query : ', query);
     const { result: categories, count } =
       await this.categoryService.findAllAndCount({
         where: { title: ILike(query.search) },
