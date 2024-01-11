@@ -2,33 +2,32 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transform, TransformFnParams } from 'class-transformer';
 import { BaseDTO } from '../base';
 import { checkIsNumber } from '../utils/global-func';
+import { IsNotEmpty, IsNumber, IsOptional, Min } from 'class-validator';
 
 export class PaginationDto extends BaseDTO {
-  @ApiProperty({
-    type: String,
-    format: 'number',
-    default: 0,
-    required: false,
-    minimum: 0,
-  })
+  @IsOptional()
+  @ApiProperty({ type: String, format: 'number', required: false })
+  @IsNotEmpty()
+  @Min(0)
   @Transform(({ value }: TransformFnParams) => {
-    console.log(
-      'transform : ',
-      value,
-      checkIsNumber(value?.trim()) ? Number(value?.trim()) : undefined,
-    );
-    return checkIsNumber(value?.trim()) ? Number(value?.trim()) : undefined;
+    const transform = checkIsNumber(value?.trim())
+      ? Number(value?.trim())
+      : undefined;
+    return transform;
   })
   take?: number;
 
-  @ApiProperty({
-    type: String,
-    format: 'number',
-    required: false,
-    minimum: 0,
-  })
+  @IsOptional()
+  @ApiProperty({ type: String, format: 'number', required: false })
+  @IsNumber()
+  @Min(1)
   @Transform(({ value }: TransformFnParams) => {
-    return checkIsNumber(value?.trim()) ? Number(value?.trim()) : undefined;
+    const transform = checkIsNumber(value?.trim())
+      ? Number(value?.trim())
+      : value;
+
+    console.log(transform);
+    return transform;
   })
   skip?: number;
 
@@ -44,5 +43,5 @@ export class PaginationDto extends BaseDTO {
 
     return transform;
   })
-  search?: string;
+  search: string;
 }
