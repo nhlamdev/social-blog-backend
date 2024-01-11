@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { FileEntity } from './file.entity';
 import * as sharp from 'sharp';
 import * as fs from 'fs';
 import { OptimizeImageConfig } from '@/constants/common/image';
+import { FileEntity } from '@/database/entities';
 
 @Injectable()
 export class FileService {
@@ -19,35 +19,58 @@ export class FileService {
     await this.fileRepository.find();
   }
 
-  async optimize_image(f: any, size: number, key: string) {
-    const folderPath = `./uploads/${key}`;
+  async optimize_image(
+    image: sharp.Sharp,
+    options: { size: number; key: string; fileName: string },
+  ) {
+    const folderPath = `./uploads/${options.key}`;
 
-    const resizedImageBuffer = await sharp(f.path)
-      .resize({ width: size, height: size, fit: 'inside' }) // Giữ nguyên tỷ lệ aspect ratio
+    const resizedImageBuffer = await image
+      .resize({
+        width: options.size,
+        height: options.size,
+        fit: sharp.fit.inside,
+      }) // Giữ nguyên tỷ lệ aspect ratio
       .toBuffer();
 
     if (!fs.existsSync(folderPath)) {
       fs.mkdirSync(folderPath, { recursive: true });
     }
 
-    fs.writeFileSync(`${folderPath}/${f.filename}`, resizedImageBuffer);
+    fs.writeFileSync(`${folderPath}/${options.fileName}`, resizedImageBuffer);
   }
 
   async saveFile(files) {
     const filesCreate = Object.keys(files).map(async (key) => {
-      const f = files[key];
+      const file = files[key];
 
-      if (f.mimetype.startsWith('image')) {
-        this.optimizeConfig.forEach(async (config) => {
-          await this.optimize_image(f, config.size, config.key);
-        });
-      }
+      const image = await sharp(file.path);
+      const { width, height } = await image.metadata();
 
       const newFile = new FileEntity();
-      newFile.mimeType = f.mimetype;
-      newFile.originalName = f.originalname;
-      newFile.fileName = f.filename;
-      newFile.size = f.size;
+
+      const shape = { width, height };
+
+      newFile.mimeType = file.mimetype;
+      newFile.originalName = file.originalname;
+      newFile.fileName = file.filename;
+      newFile.size = file.size;
+
+      if (file.mimetype.startsWith('image')) {
+        newFile.shape = shape;
+
+        this.optimizeConfig
+          .filter((v) => {
+            return v.size < height || v.size < width;
+          })
+          .forEach(async (config) => {
+            await this.optimize_image(image, {
+              fileName: file.filename,
+              size: config.size,
+              key: config.key,
+            });
+          });
+      }
 
       return this.fileRepository.save(newFile);
     });

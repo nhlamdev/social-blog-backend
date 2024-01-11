@@ -2,9 +2,8 @@ import { Module, forwardRef } from '@nestjs/common';
 import { FileController } from './file.controller';
 import { FileService } from './file.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { FileEntity } from './file.entity';
 import { TokenModule } from '@/auth/token/token.module';
-import { ImageInterceptorProvider } from './file.interceptor';
+import { FileEntity } from '@/database/entities';
 
 @Module({
   imports: [
@@ -12,7 +11,7 @@ import { ImageInterceptorProvider } from './file.interceptor';
     forwardRef(() => TokenModule),
   ],
   controllers: [FileController],
-  providers: [ImageInterceptorProvider, FileService],
+  providers: [FileService],
   exports: [FileService, TypeOrmModule.forFeature([FileEntity])],
 })
 export class FileModule {}
