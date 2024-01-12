@@ -3,15 +3,15 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
-import { CommentEntity } from './comment.entity';
-import { MemberEntity } from '../member/member.entity';
 import { ContentEntity } from '../content/content.entity';
+import { MemberEntity } from '../member/member.entity';
+import { CommentEntity } from './comment.entity';
 
 @Injectable()
 export class CommentService {
   constructor(
     @InjectRepository(CommentEntity)
-    private commentRepository: Repository<CommentEntity>,
+    private readonly commentRepository: Repository<CommentEntity>,
   ) {}
 
   async findOne(options?: FindOneOptions<CommentEntity>) {

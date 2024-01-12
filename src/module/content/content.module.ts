@@ -8,6 +8,7 @@ import { TokenModule } from '@/auth/token/token.module';
 import { MemberModule } from '../member/member.module';
 import { ContentEntity } from './content.entity';
 import { NotificationModule } from '../notification/notification.module';
+import { MailModule } from '@/helper/mail/mail.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { NotificationModule } from '../notification/notification.module';
     forwardRef(() => MemberModule),
     forwardRef(() => TokenModule),
     forwardRef(() => NotificationModule),
+    forwardRef(() => MailModule),
     TypeOrmModule.forFeature([ContentEntity]),
   ],
   controllers: [ContentController],
