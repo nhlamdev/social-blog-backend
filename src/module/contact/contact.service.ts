@@ -1,4 +1,3 @@
-import { ContactEntity } from '@/database/entities';
 import { IBaseService } from '@/shared/base/base.service';
 import { TypeTypeOrmCriteria } from '@/shared/utils/criteria-key.typeorm';
 import { Injectable } from '@nestjs/common';
@@ -12,6 +11,7 @@ import {
   UpdateResult,
 } from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { ContactEntity } from './contact.entity';
 
 @Injectable()
 export class ContactService implements IBaseService<ContactEntity> {
@@ -53,17 +53,19 @@ export class ContactService implements IBaseService<ContactEntity> {
   }
 
   async update(
-    criteria: TypeTypeOrmCriteria,
+    criteria: TypeTypeOrmCriteria<ContactEntity>,
     options?: QueryDeepPartialEntity<ContactEntity>,
   ) {
     return await this.contactRepository.update(criteria, options);
   }
 
-  async softDelete?(criteria: TypeTypeOrmCriteria): Promise<UpdateResult> {
+  async softDelete?(
+    criteria: TypeTypeOrmCriteria<ContactEntity>,
+  ): Promise<UpdateResult> {
     return await this.contactRepository.softDelete(criteria);
   }
 
-  async delete(criteria: TypeTypeOrmCriteria) {
+  async delete(criteria: TypeTypeOrmCriteria<ContactEntity>) {
     return await this.contactRepository.delete(criteria);
   }
 }

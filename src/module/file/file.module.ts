@@ -3,7 +3,7 @@ import { FileController } from './file.controller';
 import { FileService } from './file.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TokenModule } from '@/auth/token/token.module';
-import { FileEntity } from '@/database/entities';
+import { FileEntity } from './file.entity';
 
 @Module({
   imports: [

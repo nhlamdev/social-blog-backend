@@ -6,9 +6,9 @@ import {
   FindOneOptions,
   Repository,
 } from 'typeorm';
-import { NotificationEntity } from '@/database/entities';
 import { TypeTypeOrmCriteria } from '@/shared/utils/criteria-key.typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { NotificationEntity } from './notification.entity';
 
 @Injectable()
 export class NotificationService {
@@ -42,13 +42,13 @@ export class NotificationService {
   }
 
   async update(
-    criteria: TypeTypeOrmCriteria,
+    criteria: TypeTypeOrmCriteria<NotificationEntity>,
     options?: QueryDeepPartialEntity<NotificationEntity>,
   ) {
     return await this.notifyRepository.update(criteria, options);
   }
 
-  async delete(criteria: TypeTypeOrmCriteria) {
+  async delete(criteria: TypeTypeOrmCriteria<NotificationEntity>) {
     return await this.notifyRepository.delete(criteria);
   }
 

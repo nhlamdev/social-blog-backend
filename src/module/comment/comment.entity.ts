@@ -7,8 +7,8 @@ import {
 } from 'typeorm';
 
 import { AbstractEntity } from '@/shared/base';
-import { ContentEntity, MemberEntity } from '@/database/entities';
-
+import { ContentEntity } from '../content/content.entity';
+import { MemberEntity } from '../member/member.entity';
 @Entity('comment')
 export class CommentEntity extends AbstractEntity {
   @PrimaryGeneratedColumn('uuid')

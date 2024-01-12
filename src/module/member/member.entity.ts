@@ -1,11 +1,11 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 import { AbstractEntity } from '@/shared/base';
-import { ContentEntity } from './content.entity';
-import { SeriesEntity } from './series.entity';
-import { CommentEntity } from './comment.entity';
-import { ContactEntity } from './contact.entity';
-import { FileEntity } from '@/database/entities/file.entity';
+import { ContentEntity } from '../content/content.entity';
+import { SeriesEntity } from '../series/series.entity';
+import { CommentEntity } from '../comment/comment.entity';
+import { ContactEntity } from '../contact/contact.entity';
+import { FileEntity } from '@/module/file/file.entity';
 
 @Entity('member')
 export class MemberEntity extends AbstractEntity {

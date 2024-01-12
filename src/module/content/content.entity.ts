@@ -6,12 +6,10 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import {
-  CategoryEntity,
-  CommentEntity,
-  MemberEntity,
-  SeriesEntity,
-} from '@/database/entities';
+import { CommentEntity } from '../comment/comment.entity';
+import { CategoryEntity } from '../category/category.entity';
+import { SeriesEntity } from '../series/series.entity';
+import { MemberEntity } from '../member/member.entity';
 
 @Entity('content')
 export class ContentEntity extends AbstractEntity {

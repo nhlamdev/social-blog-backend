@@ -1,4 +1,3 @@
-import { ContentEntity } from '@/database/entities';
 import { IBaseService } from '@/shared/base/base.service';
 import { TypeTypeOrmCriteria } from '@/shared/utils/criteria-key.typeorm';
 import { Injectable } from '@nestjs/common';
@@ -11,6 +10,7 @@ import {
   UpdateResult,
 } from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { ContentEntity } from './content.entity';
 
 @Injectable()
 export class ContentService implements IBaseService<ContentEntity> {
@@ -25,7 +25,9 @@ export class ContentService implements IBaseService<ContentEntity> {
 
     return { result, count };
   }
-  async softDelete?(criteria: TypeTypeOrmCriteria): Promise<UpdateResult> {
+  async softDelete?(
+    criteria: TypeTypeOrmCriteria<ContentEntity>,
+  ): Promise<UpdateResult> {
     return this.contentRepository.softDelete(criteria);
   }
 
@@ -50,13 +52,13 @@ export class ContentService implements IBaseService<ContentEntity> {
   }
 
   async update(
-    criteria: TypeTypeOrmCriteria,
+    criteria: TypeTypeOrmCriteria<ContentEntity>,
     payload: QueryDeepPartialEntity<ContentEntity>,
   ) {
     return await this.contentRepository.update(criteria, payload);
   }
 
-  async delete(criteria: TypeTypeOrmCriteria) {
+  async delete(criteria: TypeTypeOrmCriteria<ContentEntity>) {
     return await this.contentRepository.delete(criteria);
   }
 

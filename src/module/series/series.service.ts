@@ -1,4 +1,3 @@
-import { SeriesEntity } from '@/database/entities';
 import { IBaseService } from '@/shared/base/base.service';
 import { TypeTypeOrmCriteria } from '@/shared/utils/criteria-key.typeorm';
 import { Injectable } from '@nestjs/common';
@@ -10,6 +9,7 @@ import {
   Repository,
 } from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { SeriesEntity } from './series.entity';
 
 @Injectable()
 export class SeriesService implements IBaseService<SeriesEntity> {
@@ -45,17 +45,17 @@ export class SeriesService implements IBaseService<SeriesEntity> {
   }
 
   async update(
-    criteria: TypeTypeOrmCriteria,
+    criteria: TypeTypeOrmCriteria<SeriesEntity>,
     payload: QueryDeepPartialEntity<SeriesEntity>,
   ) {
     return await this.seriesRepository.update(criteria, payload);
   }
 
-  async delete(criteria: TypeTypeOrmCriteria) {
+  async delete(criteria: TypeTypeOrmCriteria<SeriesEntity>) {
     return await this.seriesRepository.delete(criteria);
   }
 
-  async softDelete(criteria: TypeTypeOrmCriteria) {
+  async softDelete(criteria: TypeTypeOrmCriteria<SeriesEntity>) {
     return await this.seriesRepository.softDelete(criteria);
   }
 

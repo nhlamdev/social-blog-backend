@@ -1,4 +1,4 @@
-import { MemberEntity } from '@/database/entities';
+import { MemberEntity } from '@/module/member/member.entity';
 import { MemberService } from '@/module/member/member.service';
 import { ISocialPayload } from '@/shared/types';
 import { Injectable } from '@nestjs/common';

@@ -1,12 +1,11 @@
-import { MemberEntity } from '@/database/entities';
 import { FindOptionsWhere, ObjectId } from 'typeorm';
 
-export type TypeTypeOrmCriteria =
+export type TypeTypeOrmCriteria<Entity> =
   | string
   | number
   | Date
   | ObjectId
-  | FindOptionsWhere<MemberEntity>
+  | FindOptionsWhere<Entity>
   | string[]
   | number[]
   | Date[]

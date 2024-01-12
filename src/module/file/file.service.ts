@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import * as sharp from 'sharp';
 import * as fs from 'fs';
 import { OptimizeImageConfig } from '@/constants/common/image';
-import { FileEntity } from '@/database/entities';
+import { FileEntity } from './file.entity';
 
 @Injectable()
 export class FileService {

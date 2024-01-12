@@ -1,4 +1,3 @@
-import { CategoryEntity } from '@/database/entities';
 import { TypeTypeOrmCriteria } from '@/shared/utils/criteria-key.typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,6 +5,7 @@ import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { CategoryDto } from './category.dto';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { IBaseService } from '@/shared/base/base.service';
+import { CategoryEntity } from './category.entity';
 
 @Injectable()
 export class CategoryService implements IBaseService<CategoryEntity> {
@@ -44,17 +44,17 @@ export class CategoryService implements IBaseService<CategoryEntity> {
   }
 
   async update(
-    criteria: TypeTypeOrmCriteria,
+    criteria: TypeTypeOrmCriteria<CategoryEntity>,
     payload: QueryDeepPartialEntity<CategoryEntity>,
   ) {
     return await this.categoryRepository.update(criteria, payload);
   }
 
-  async delete(criteria: TypeTypeOrmCriteria) {
+  async delete(criteria: TypeTypeOrmCriteria<CategoryEntity>) {
     return await this.categoryRepository.delete(criteria);
   }
 
-  async softDelete(criteria: TypeTypeOrmCriteria) {
+  async softDelete(criteria: TypeTypeOrmCriteria<CategoryEntity>) {
     return await this.categoryRepository.softDelete(criteria);
   }
 

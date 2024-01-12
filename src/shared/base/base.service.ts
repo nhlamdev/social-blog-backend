@@ -19,10 +19,10 @@ export interface IBaseService<Entity> {
   count(options?: FindManyOptions<Entity>): Promise<number>;
   create(instance: DeepPartial<Entity>): Promise<Entity>;
   update(
-    criteria: TypeTypeOrmCriteria,
+    criteria: TypeTypeOrmCriteria<Entity>,
     payload: QueryDeepPartialEntity<Entity>,
   ): Promise<UpdateResult>;
-  delete(criteria: TypeTypeOrmCriteria): Promise<DeleteResult>;
-  softDelete?(criteria: TypeTypeOrmCriteria): Promise<UpdateResult>;
+  delete(criteria: TypeTypeOrmCriteria<Entity>): Promise<DeleteResult>;
+  softDelete?(criteria: TypeTypeOrmCriteria<Entity>): Promise<UpdateResult>;
   builder(alias: string): Promise<SelectQueryBuilder<Entity>>;
 }

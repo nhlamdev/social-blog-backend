@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { ContentEntity } from '@/database/entities';
 import { AbstractEntity } from '@/shared/base';
+import { ContentEntity } from '../content/content.entity';
 
 @Entity('category')
 export class CategoryEntity extends AbstractEntity {

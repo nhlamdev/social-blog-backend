@@ -1,13 +1,11 @@
-import {
-  CommentEntity,
-  ContentEntity,
-  MemberEntity,
-} from '@/database/entities';
 import { TypeTypeOrmCriteria } from '@/shared/utils/criteria-key.typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { CommentEntity } from './comment.entity';
+import { MemberEntity } from '../member/member.entity';
+import { ContentEntity } from '../content/content.entity';
 
 @Injectable()
 export class CommentService {
@@ -58,17 +56,17 @@ export class CommentService {
   }
 
   async update(
-    criteria: TypeTypeOrmCriteria,
+    criteria: TypeTypeOrmCriteria<CommentEntity>,
     payload: QueryDeepPartialEntity<CommentEntity>,
   ) {
     return await this.commentRepository.update(criteria, payload);
   }
 
-  async delete(criteria: TypeTypeOrmCriteria) {
+  async delete(criteria: TypeTypeOrmCriteria<CommentEntity>) {
     return await this.commentRepository.delete(criteria);
   }
 
-  async softDelete(criteria: TypeTypeOrmCriteria) {
+  async softDelete(criteria: TypeTypeOrmCriteria<CommentEntity>) {
     return await this.commentRepository.softDelete(criteria);
   }
 

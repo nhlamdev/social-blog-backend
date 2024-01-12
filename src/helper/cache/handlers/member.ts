@@ -1,4 +1,4 @@
-import { MemberEntity } from '@/database/entities';
+import { MemberEntity } from '@/module/member/member.entity';
 import { RedisClientType } from 'redis';
 
 export async function cacheMembersInfo(

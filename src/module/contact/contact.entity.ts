@@ -1,6 +1,6 @@
 import { AbstractEntity } from '@/shared/base';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { MemberEntity } from './member.entity';
+import { MemberEntity } from '../member/member.entity';
 @Entity('contact')
 export class ContactEntity extends AbstractEntity {
   @PrimaryGeneratedColumn('uuid')

@@ -8,8 +8,8 @@ import {
   Repository,
 } from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
-import { MemberEntity } from '../../database/entities';
 import { IBaseService } from '@/shared/base/base.service';
+import { MemberEntity } from './member.entity';
 
 @Injectable()
 export class MemberService implements IBaseService<MemberEntity> {
@@ -45,13 +45,13 @@ export class MemberService implements IBaseService<MemberEntity> {
   }
 
   async update(
-    criteria: TypeTypeOrmCriteria,
+    criteria: TypeTypeOrmCriteria<MemberEntity>,
     options?: QueryDeepPartialEntity<MemberEntity>,
   ) {
     return await this.memberRepository.update(criteria, options);
   }
 
-  async delete(criteria: TypeTypeOrmCriteria) {
+  async delete(criteria: TypeTypeOrmCriteria<MemberEntity>) {
     return await this.memberRepository.delete(criteria);
   }
 

@@ -2,8 +2,8 @@ import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { NotificationController } from './notification.controller';
 import { NotificationService } from './notification.service';
-import { NotificationEntity } from '@/database/entities';
 import { TokenModule } from '@/auth/token/token.module';
+import { NotificationEntity } from './notification.entity';
 
 @Module({
   imports: [

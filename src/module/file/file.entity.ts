@@ -1,6 +1,6 @@
-import { MemberEntity } from '@/database/entities';
 import { AbstractEntity } from '@/shared/base';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { MemberEntity } from '../member/member.entity';
 
 @Entity('file')
 export class FileEntity extends AbstractEntity {

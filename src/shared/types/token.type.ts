@@ -1,4 +1,4 @@
-import { MemberEntity } from '@/database/entities';
+import { MemberEntity } from '@/module/member/member.entity';
 import { ISocialPayload, client_data } from '@/shared/types';
 
 export interface IRefreshTokenCreate {
