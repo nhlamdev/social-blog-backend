@@ -20,6 +20,7 @@ import { ContentService } from '../content/content.service';
 import { MaybeType } from '@/shared/utils/types/maybe.type';
 import { CommentCreteDto } from './comment.dto';
 import { MemberService } from '../member/member.service';
+import { NotificationService } from '../notification/notification.service';
 
 @ApiTags('comment')
 @Controller('comment')
@@ -28,6 +29,7 @@ export class CommentController {
     private readonly contentService: ContentService,
     private readonly commentService: CommentService,
     private readonly memberService: MemberService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   @Get('by-content/:content')
@@ -84,6 +86,7 @@ export class CommentController {
 
     const _content = await this.contentService.findOne({
       where: { _id: content },
+      relations: { created_by: true },
     });
 
     if (!jwtPayload.role.comment) {
@@ -93,6 +96,13 @@ export class CommentController {
     if (!_content || !_member) {
       throw new BadRequestException('Dữ liệu không đầy đủ.');
     }
+
+    this.notificationService.create({
+      from: jwtPayload._id,
+      to: _content.created_by._id,
+      title: 'vừa bình luận bài viết của bạn',
+      url: `/content/${_content._id}`,
+    });
 
     return await this.commentService.create({
       text: body.text,
@@ -117,6 +127,7 @@ export class CommentController {
 
     const _parent = await this.commentService.findOne({
       where: { _id: parent },
+      relations: { content: true, created_by: true },
     });
 
     if (!jwtPayload.role.comment) {
@@ -126,6 +137,13 @@ export class CommentController {
     if (!_parent || !_member) {
       throw new BadRequestException('Dữ liệu không đầy đủ.');
     }
+
+    this.notificationService.create({
+      from: jwtPayload._id,
+      to: _parent.created_by._id,
+      title: 'vừa bình luận bài viết của bạn',
+      url: `/content/${_parent.content._id}`,
+    });
 
     return await this.commentService.create({
       text: body.text,

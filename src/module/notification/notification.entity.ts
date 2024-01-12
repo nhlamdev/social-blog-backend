@@ -15,11 +15,14 @@ export class NotificationEntity extends AbstractEntity {
   @Column({ type: 'text', nullable: false })
   from: string | null;
 
+  @Column({ type: 'text', nullable: false })
+  to: string | null;
+
   @Column({ type: 'boolean', default: false, nullable: false })
   seen: boolean;
 
-  @Column({ type: 'text', nullable: false })
-  to: string;
+  @Column({ type: 'boolean', nullable: false, default: false })
+  isAll: boolean;
 
   @Column({ type: 'text', nullable: true })
   url: string | null;

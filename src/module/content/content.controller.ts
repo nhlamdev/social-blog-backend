@@ -26,7 +26,7 @@ import { IAccessJwtPayload } from '@/shared/types';
 import { AuthGuard } from '@nestjs/passport';
 import { MemberService } from '../member/member.service';
 import { NotificationService } from '../notification/notification.service';
-
+import { MailService } from '@/helper/mail/mail.service';
 @ApiTags('content')
 @Controller('content')
 export class ContentController {
@@ -35,6 +35,7 @@ export class ContentController {
     private readonly seriesService: SeriesService,
     private readonly categoryService: CategoryService,
     private readonly memberRepository: MemberService,
+    private readonly mailService: MailService,
     private readonly notificationService: NotificationService,
   ) {}
 
@@ -409,7 +410,7 @@ export class ContentController {
       where: { _id: jwtPayload._id },
     });
 
-    await this.contentService.create({
+    const content = await this.contentService.create({
       title: body.title,
       body: body.body,
       tags: body.tags,
@@ -418,6 +419,42 @@ export class ContentController {
       category,
       created_by: member,
     });
+
+    if (body.public && body.complete) {
+      const date = new Date();
+
+      const timeFormat = `${date.getHours()}:${date.getHours()} ${date.getDate()}/${
+        date.getMonth() + 1
+      }/${date.getFullYear()}`;
+
+      member.follow_by.forEach(async (m) => {
+        const follower = await this.memberRepository.findOne({
+          where: { _id: m },
+        });
+
+        this.notificationService.create({
+          title: `vừa mới đăng tải bài viết ${body.title}`,
+          from: jwtPayload._id,
+          to: m,
+          url: `/content/${content._id}`,
+        });
+
+        const subscribePayload = {
+          title: `${member.name} vừa mới đăng tải bài viết.`,
+          description: `Bài viết  ${body.title} vừa được đăng tải vào lúc ${timeFormat}`,
+          emailReceive: follower.email,
+          context: {
+            author: member.name,
+            create_time: timeFormat,
+            content_title: body.title,
+          },
+        };
+
+        this.mailService.sendNotifyMail(subscribePayload);
+      });
+    }
+
+    return content;
   }
 
   @Patch(':id/vote-up')
