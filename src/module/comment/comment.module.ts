@@ -6,6 +6,7 @@ import { ContentModule } from '../content/content.module';
 import { MemberModule } from '../member/member.module';
 import { TokenModule } from '@/auth/token/token.module';
 import { CommentEntity } from './comment.entity';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { CommentEntity } from './comment.entity';
     forwardRef(() => ContentModule),
     forwardRef(() => MemberModule),
     forwardRef(() => TokenModule),
+    forwardRef(() => NotificationModule),
   ],
   controllers: [CommentController],
   providers: [CommentService],

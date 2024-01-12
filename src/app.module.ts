@@ -11,6 +11,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { RootModule } from './module/root.Module';
+import { SharedModule } from './helper/shared.module';
 @Module({
   imports: [
     GlobalConfigModule,
@@ -31,6 +32,7 @@ import { RootModule } from './module/root.Module';
     JwtModule.register({}),
     ScheduleModule.forRoot(),
     AuthModule,
+    SharedModule,
     RootModule,
     DatabaseModule,
     WebsocketModule,
