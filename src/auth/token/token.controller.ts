@@ -1,9 +1,8 @@
 import { MemberService } from '@/module/member/member.service';
-import { IAccessJwtPayload, IRefreshJwtPayload } from '@/shared/types';
+import { IRefreshJwtPayload } from '@/shared/types';
 import {
   BadRequestException,
   Controller,
-  Delete,
   Get,
   Req,
   Res,
@@ -54,31 +53,5 @@ export class TokenController {
     });
 
     res.status(200).json({ message: 'renew success' });
-  }
-
-  @Delete('logout')
-  @UseGuards(AuthGuard('jwt-access'))
-  async login(@Req() req) {
-    const jwtPayload: IAccessJwtPayload = req.user;
-
-    const refreshToken = await this.tokenService.verifyRefreshToken(
-      jwtPayload.refresh_token,
-    );
-
-    const token = await this.tokenService.findRefreshTokenInCache({
-      key: refreshToken.key,
-      member_id: refreshToken.member_id,
-    });
-
-    if (!Boolean(token)) {
-      throw new BadRequestException('Phiên đăng nhập không hợp lệ.');
-    }
-
-    await this.tokenService.removeRefreshTokenByKeyAndMember({
-      key: token.key,
-      member_id: token.member_id,
-    });
-
-    return 'logout success';
   }
 }

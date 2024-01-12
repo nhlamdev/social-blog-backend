@@ -2,6 +2,7 @@ import { IAccessJwtPayload } from '@/shared/types';
 import { checkIsNumber } from '@/shared/utils/global-func';
 import { MaybeType } from '@/shared/utils/types/maybe.type';
 import {
+  BadRequestException,
   Controller,
   Delete,
   ForbiddenException,
@@ -121,5 +122,33 @@ export class SessionController {
         member_id: _session.created_by._id,
       });
     }
+  }
+
+  @Delete('logout')
+  @UseGuards(AuthGuard('jwt-access'))
+  async login(@Req() req) {
+    const jwtPayload: IAccessJwtPayload = req.user;
+
+    const refreshToken = await this.tokenService.verifyRefreshToken(
+      jwtPayload.refresh_token,
+    );
+
+    const token = await this.tokenService.findRefreshTokenInCache({
+      key: refreshToken.key,
+      member_id: refreshToken.member_id,
+    });
+
+    if (!Boolean(token)) {
+      throw new BadRequestException('Phiên đăng nhập không hợp lệ.');
+    }
+
+    await this.tokenService.removeRefreshTokenByKeyAndMember({
+      key: token.key,
+      member_id: token.member_id,
+    });
+
+    await this.sessionService.delete(token.session_id);
+
+    return { message: 'logout success' };
   }
 }
