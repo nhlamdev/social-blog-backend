@@ -30,7 +30,16 @@ export class CategoryController {
   ) {}
 
   @Get()
-  async categories(@Query() query: PaginationDto) {
+  async categories() {
+    const categories = await this.categoryService.findAll({
+      order: { created_at: 'DESC' },
+    });
+
+    return categories;
+  }
+
+  @Get('paginate')
+  async paginate(@Query() query: PaginationDto) {
     const { result: categories, count } =
       await this.categoryService.findAllAndCount({
         where: { title: ILike(query.search) },

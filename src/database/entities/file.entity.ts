@@ -16,7 +16,7 @@ export class FileEntity extends AbstractEntity {
   @Column({ type: 'text', nullable: false })
   mimeType: string;
 
-  @Column({ type: 'json', nullable: false })
+  @Column({ type: 'json', nullable: true })
   shape?: { width: number; height: number };
 
   @Column({ type: 'integer', nullable: false })
