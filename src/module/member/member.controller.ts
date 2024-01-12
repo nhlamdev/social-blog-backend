@@ -2,12 +2,14 @@ import { IAccessJwtPayload } from '@/shared/types';
 import { checkIsNumber } from '@/shared/utils/global-func';
 import { MaybeType } from '@/shared/utils/types/maybe.type';
 import {
+  BadRequestException,
   Body,
   Controller,
   ForbiddenException,
   Get,
   Inject,
   Param,
+  Patch,
   Put,
   Query,
   Req,
@@ -87,18 +89,48 @@ export class MemberController {
     });
   }
 
-  @Put('change-role')
+  @Patch('change-role/:member')
   @UseGuards(AuthGuard('jwt-access'))
-  async changeRole(@Req() req, @Body() body: MemberUpdateRoleDto) {
+  async changeRole(
+    @Req() req,
+    @Body() body: MemberUpdateRoleDto,
+    @Param('member') member: string,
+  ) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
     if (jwtPayload.role.owner) {
       throw new ForbiddenException('Bạn không có quyền hạn');
     }
 
-    await this.memberService.update(body.id, {
+    const exist = await this.memberService.findOne({ where: { _id: member } });
+
+    if (!exist) {
+      throw new BadRequestException('Thành viên không tồn tại.');
+    }
+
+    await this.memberService.update(member, {
       role_author: body.author,
       role_comment: body.comment,
     });
+  }
+
+  @Patch('change-follow/:author')
+  @UseGuards(AuthGuard('jwt-access'))
+  async changeFollower(@Req() req, @Param('author') author: string) {
+    const jwtPayload: IAccessJwtPayload = req.user;
+
+    const _author = await this.memberService.findOne({
+      where: { _id: author },
+    });
+
+    if (_author.follow_by.includes(jwtPayload._id)) {
+      _author.follow_by = _author.follow_by.filter((v) => {
+        v !== jwtPayload._id;
+      });
+    } else {
+      _author.follow_by.push(jwtPayload._id);
+    }
+
+    return await this.memberService.update(author, _author);
   }
 }

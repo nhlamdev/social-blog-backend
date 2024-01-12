@@ -17,9 +17,6 @@ export class MemberUpdateDto extends BaseDTO {
 }
 
 export class MemberUpdateRoleDto extends BaseDTO {
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  id: string;
-
   @Optional()
   @IsBoolean()
   @ApiProperty({ type: Boolean })

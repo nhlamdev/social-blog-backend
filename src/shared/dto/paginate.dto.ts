@@ -3,6 +3,9 @@ import { Transform, TransformFnParams } from 'class-transformer';
 import { BaseDTO } from '../base';
 import { checkIsNumber } from '../utils/global-func';
 import { IsNotEmpty, IsNumber, IsOptional, Min } from 'class-validator';
+import { searchFormatTransformer } from '../utils/transformers/serach-format.tranformer';
+import { trimTransformer } from '../utils/transformers/trim.transformer';
+import { MaybeType } from '../utils/types/maybe.type';
 
 export class PaginationDto extends BaseDTO {
   @IsOptional()
@@ -15,7 +18,7 @@ export class PaginationDto extends BaseDTO {
       : undefined;
     return transform;
   })
-  take?: number;
+  take?: MaybeType<number>;
 
   @IsOptional()
   @ApiProperty({ type: String, format: 'number', required: false })
@@ -29,19 +32,11 @@ export class PaginationDto extends BaseDTO {
     console.log(transform);
     return transform;
   })
-  skip?: number;
+  skip?: MaybeType<number>;
 
+  @IsOptional()
   @ApiProperty({ type: String, required: false })
-  @Transform(({ value }: TransformFnParams) => {
-    const transform = value
-      ? `%${value
-          .trim()
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')}%`
-      : '%%';
-
-    return transform;
-  })
-  search: string;
+  @Transform(trimTransformer)
+  @Transform(searchFormatTransformer)
+  search?: MaybeType<string>;
 }

@@ -72,7 +72,6 @@ export class CommentController {
 
   @Post('by-content/:content')
   @UseGuards(AuthGuard('jwt-access'))
-  @ApiTags('comment')
   async createComment(
     @Req() req,
     @Body() body: CommentCreteDto,
@@ -113,7 +112,6 @@ export class CommentController {
 
   @Post('by-parent/:parent')
   @UseGuards(AuthGuard('jwt-access'))
-  @ApiTags('comment')
   async createReply(
     @Req() req,
     @Body() body: CommentCreteDto,
@@ -153,7 +151,6 @@ export class CommentController {
   }
 
   @Delete(':comment')
-  @ApiTags('comment')
   @UseGuards(AuthGuard('jwt-access'))
   async deleteComment(@Param('comment') comment: string, @Req() req) {
     const jwtPayload: IAccessJwtPayload = req.user;

@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import * as sharp from 'sharp';
 import * as fs from 'fs';
 import { OptimizeImageConfig } from '@/constants/common/image';
 import { FileEntity } from './file.entity';
+import { MemberEntity } from '../member/member.entity';
 
 @Injectable()
 export class FileService {
@@ -15,8 +16,16 @@ export class FileService {
     private readonly fileRepository: Repository<FileEntity>,
   ) {}
 
-  async findAll() {
-    await this.fileRepository.find();
+  async findAll(options?: FindManyOptions<FileEntity>) {
+    return await this.fileRepository.find(options);
+  }
+
+  async findAllAndCount(
+    options?: FindManyOptions<FileEntity>,
+  ): Promise<{ result: FileEntity[]; count: number }> {
+    const [result, count] = await this.fileRepository.findAndCount(options);
+
+    return { result, count };
   }
 
   async optimize_image(
@@ -40,7 +49,7 @@ export class FileService {
     fs.writeFileSync(`${folderPath}/${options.fileName}`, resizedImageBuffer);
   }
 
-  async saveFile(files) {
+  async saveFile(files, memberCreate: MemberEntity) {
     const filesCreate = Object.keys(files).map(async (key) => {
       const file = files[key];
 
@@ -55,6 +64,7 @@ export class FileService {
       newFile.originalName = file.originalname;
       newFile.fileName = file.filename;
       newFile.size = file.size;
+      newFile.created_by = memberCreate;
 
       if (file.mimetype.startsWith('image')) {
         newFile.shape = shape;

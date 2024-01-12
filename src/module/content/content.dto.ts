@@ -1,5 +1,7 @@
 import { BaseDTO } from '@/shared/base';
 import { PaginationDto } from '@/shared/dto/paginate.dto';
+import { toBooleanTransformer } from '@/shared/utils/transformers/to-boolean.transformer';
+import { trimTransformer } from '@/shared/utils/transformers/trim.transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform, TransformFnParams } from 'class-transformer';
 import {
@@ -10,6 +12,7 @@ import {
   IsString,
   Length,
   IsOptional,
+  IsBoolean,
 } from 'class-validator';
 
 export class ContentDto extends BaseDTO {
@@ -72,4 +75,22 @@ export class ContentFindPublicDTO extends ContentFindPrivateDTO {
 
   @ApiProperty({ type: String })
   author: string;
+}
+
+export class ContentsByCategoryDto extends PaginationDto {
+  @ApiProperty({ type: String, format: 'boolean' })
+  @IsNotEmpty()
+  @IsBoolean()
+  @Transform(trimTransformer)
+  @Transform(toBooleanTransformer)
+  isOutSide: boolean;
+}
+
+export class SeriesByCategoryDto extends PaginationDto {
+  @ApiProperty({ type: String, format: 'boolean' })
+  @IsNotEmpty()
+  @Transform(trimTransformer)
+  @Transform(toBooleanTransformer)
+  @IsBoolean()
+  isOutSide: boolean;
 }

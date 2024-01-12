@@ -101,7 +101,7 @@ export class SessionController {
     return session;
   }
 
-  @Delete(':session')
+  @Delete('force/:session')
   @UseGuards(AuthGuard('jwt-access'))
   async remove(@Req() req, @Param('session') session: MaybeType<string>) {
     const jwtPayload: IAccessJwtPayload = req.user;

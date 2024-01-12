@@ -62,12 +62,11 @@ export class SeriesController {
 
   @Get('owner')
   @UseGuards(AuthGuard('jwt-access'))
-  async public(@Req() req) {
+  async owner(@Req() req) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
     const { result: series, count } = await this.seriesService.findAllAndCount({
       where: { created_by: { _id: jwtPayload._id } },
-
       order: { created_at: 'DESC' },
       relations: { created_by: true },
     });
