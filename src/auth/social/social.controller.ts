@@ -1,4 +1,3 @@
-import { MemberService } from '@/module/member/member.service';
 import { ISocialPayload, client_data } from '@/shared/types';
 import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -11,7 +10,6 @@ import { SocialService } from './social.service';
 export class SocialController {
   constructor(
     private readonly socialService: SocialService,
-    private readonly memberService: MemberService,
     private readonly tokenService: TokenService,
   ) {}
   @Get('google')

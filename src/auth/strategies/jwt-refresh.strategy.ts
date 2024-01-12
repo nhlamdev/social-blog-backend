@@ -29,9 +29,12 @@ export class JwtRefreshStrategy extends PassportStrategy(
   async validate(payload: IRefreshJwtPayload) {
     // const date = new Date();
 
-    const exist = await this.tokenService.checkExistTokenInCache(payload);
+    const token = await this.tokenService.findRefreshTokenInCache({
+      key: payload.key,
+      member_id: payload.member_id,
+    });
 
-    if (!exist) {
+    if (!Boolean(token)) {
       throw new BadRequestException('Phiên đăng nhập không hợp lệ.');
     }
 

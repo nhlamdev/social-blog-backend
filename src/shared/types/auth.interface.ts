@@ -18,6 +18,7 @@ export interface IAccessJwtPayload {
 
 export interface IRefreshJwtPayload {
   key: string;
+  session_id: string;
   member_id: string;
 }
 

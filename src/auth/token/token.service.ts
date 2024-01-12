@@ -1,29 +1,32 @@
-import {
-  IAccessJwtPayload,
-  IRefreshJwtPayload,
-  IRefreshTokenCache,
-} from '@/shared/types';
-import { Inject, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { RedisClientType } from 'redis';
-import { v4 as uuidV4 } from 'uuid';
+import { MemberService } from '@/module/member/member.service';
+import { SessionService } from '@/module/session/session.service';
+import { IAccessJwtPayload, IRefreshJwtPayload } from '@/shared/types';
 import {
   IAccessTokenCreate,
   IRefreshTokenCreate,
 } from '@/shared/types/token.type';
-
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { Cache } from 'cache-manager';
+import { v4 as uuidV4 } from 'uuid';
 @Injectable({})
 export class TokenService {
   constructor(
-    private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
-    @Inject('REDIS_CLIENT') private readonly redisClient: RedisClientType,
+    private readonly configService: ConfigService,
+    private readonly sessionService: SessionService,
+    private readonly memberService: MemberService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
-  async createRefreshToken(payload: IRefreshTokenCreate) {
+
+  async createRefreshToken(
+    payload: IRefreshTokenCreate,
+  ): Promise<{ name: string; token: string; expires: number }> {
     const { client, member_id, social_payload } = payload;
 
-    const randomId = uuidV4();
+    const randomId: string = uuidV4();
 
     const name: string = this.configService.getOrThrow(
       'auth.refreshSecretName',
@@ -40,36 +43,42 @@ export class TokenService {
       : 'unknown';
     const os = client.os ? `${client.os.name} ${client.os.version}` : 'unknown';
 
-    const newTokenCache: IRefreshTokenCache = {
-      token_key: randomId,
-      provider_id: social_payload.id,
-      provider: social_payload.provider,
-      os,
-      device,
-      browser,
-      ip,
-      member_id,
-      create_at: new Date().getTime().toString(),
-    };
+    const member = await this.memberService.findOne({
+      where: { _id: member_id },
+    });
 
-    const newToken: IRefreshJwtPayload = {
+    const session = await this.sessionService.create({
+      token_key: randomId,
+      provider_id: social_payload.provider,
+      os: os,
+      device: device,
+      browser: browser,
+      ip: ip,
+      created_by: member,
+      expires_in: Number(expires / 1000),
+    });
+
+    const newRefreshToken: IRefreshJwtPayload = {
       key: randomId,
+      session_id: session._id,
       member_id: member_id,
     };
 
-    const keys = Object.keys(newTokenCache);
+    const token = await this.jwtService.sign(newRefreshToken, {
+      secret,
+      expiresIn: expires,
+    });
 
-    for (const key of keys) {
-      await this.redisClient.HSET(
-        `token-${member_id}-${randomId}`,
-        key,
-        newTokenCache[key],
-      );
-    }
+    await this.cacheManager.set(
+      `token-${randomId}-${member_id}`,
+      newRefreshToken,
+      expires,
+    );
 
-    await this.redisClient.EXPIRE(`token-${member_id}-${randomId}`, expires);
-
-    const token = await this.jwtService.sign(newToken, { secret });
+    await this.cacheRefreshToken({
+      token: newRefreshToken,
+      expires,
+    });
 
     return { name, expires, token };
   }
@@ -104,7 +113,20 @@ export class TokenService {
     return { name, expires, token };
   }
 
-  async verifyRefreshToken(token: string) {
+  async cacheRefreshToken(payload: {
+    token: IRefreshJwtPayload;
+    expires: number;
+  }) {
+    const { token, expires } = payload;
+
+    await this.cacheManager.set(
+      `token-${token.key}-${token.member_id}`,
+      token,
+      expires,
+    );
+  }
+
+  async verifyRefreshToken(token: string): Promise<IRefreshJwtPayload> {
     const secret: string = this.configService.getOrThrow('auth.refreshSecret');
     const tokenVerify: IRefreshJwtPayload = await this.jwtService.verifyAsync(
       token,
@@ -116,70 +138,21 @@ export class TokenService {
     return tokenVerify;
   }
 
-  async checkExistTokenInCache(payload: { key: string; member_id: string }) {
+  async findRefreshTokenInCache(payload: {
+    key: string;
+    member_id: string;
+  }): Promise<IRefreshJwtPayload> {
     const { key, member_id } = payload;
 
-    const exist = await this.redisClient.EXISTS(`token-${member_id}-${key}`);
-    return Boolean(exist);
+    return await this.cacheManager.get(`token-${key}-${member_id}`);
   }
 
-  async allTokenStatus() {
-    const keys = await this.redisClient.KEYS('token-*');
+  async removeRefreshTokenByKeyAndMember(payload: {
+    key: string;
+    member_id: string;
+  }) {
+    const { key, member_id } = payload;
 
-    const tokens = await Promise.all(
-      keys.map(async (key) => {
-        const value = await this.redisClient.HGETALL(key);
-        return value as any;
-      }),
-    );
-
-    return tokens as IRefreshTokenCache[];
-  }
-
-  async tokenStatusByMember(member_id: string) {
-    const keys = await this.redisClient.KEYS(`*${member_id}*`);
-
-    const tokens = await Promise.all(
-      keys.map(async (key) => {
-        const value = await this.redisClient.HGETALL(key);
-        return value as any;
-      }),
-    );
-
-    return tokens as IRefreshTokenCache[];
-  }
-
-  async tokenStatusByKey(key: string) {
-    const keys = await this.redisClient.KEYS(`*${key}`);
-
-    const tokens = await Promise.all(
-      keys.map(async (key) => {
-        const value = await this.redisClient.HGETALL(key);
-        return value as any;
-      }),
-    );
-
-    return tokens as IRefreshTokenCache[];
-  }
-
-  async tokenStatusByKeyAndMember(member_id: string, key: string) {
-    const keys = await this.redisClient.KEYS(`*${member_id}-${key}`);
-
-    const tokens = await Promise.all(
-      keys.map(async (key) => {
-        const value = await this.redisClient.HGETALL(key);
-        return value as any;
-      }),
-    );
-
-    return tokens as IRefreshTokenCache[];
-  }
-
-  async removeTokenByKeyAndMember(member_id: string, key: string) {
-    const tokens = await this.tokenStatusByKeyAndMember(member_id, key);
-
-    for (const token of tokens) {
-      await this.redisClient.DEL(token.token_key);
-    }
+    return await this.cacheManager.del(`token-${key}-${member_id}`);
   }
 }

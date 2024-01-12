@@ -35,14 +35,17 @@ export class JwtAccessStrategy extends PassportStrategy(
       throw new UnauthorizedException('Phiên đăng nhập quá hạn.');
     }
 
-    const token = await this.tokenService.verifyRefreshToken(
+    const refreshToken = await this.tokenService.verifyRefreshToken(
       payload.refresh_token,
     );
 
-    const exist = await this.tokenService.checkExistTokenInCache(token);
+    const token = await this.tokenService.findRefreshTokenInCache({
+      key: refreshToken.key,
+      member_id: refreshToken.member_id,
+    });
 
-    if (!exist) {
-      throw new UnauthorizedException('Phiên đăng nhập không hợp lệ 1.');
+    if (!Boolean(token)) {
+      throw new UnauthorizedException('Phiên đăng nhập không hợp lệ.');
     }
 
     return payload;

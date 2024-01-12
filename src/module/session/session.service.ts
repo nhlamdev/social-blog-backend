@@ -10,12 +10,14 @@ import {
 } from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { SessionEntity } from './session.entity';
+import { TokenService } from '@/auth/token/token.service';
 
 @Injectable()
 export class SessionService implements IBaseService<SessionEntity> {
   constructor(
     @InjectRepository(SessionEntity)
     private seriesRepository: Repository<SessionEntity>,
+    private tokenService: TokenService,
   ) {}
 
   async findOne(options?: FindOneOptions<SessionEntity>) {

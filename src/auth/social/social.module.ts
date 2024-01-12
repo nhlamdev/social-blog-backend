@@ -1,4 +1,3 @@
-import { RedisModule } from '@/helper/cache/redis.module';
 import { MemberModule } from '@/module/member/member.module';
 import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
@@ -12,7 +11,6 @@ import { DiscordStrategy, GithubStrategy, GoogleStrategy } from '../strategies';
     forwardRef(() => MemberModule),
     forwardRef(() => TokenModule),
     JwtModule.register({}),
-    RedisModule,
   ],
   controllers: [SocialController],
   providers: [SocialService, GithubStrategy, GoogleStrategy, DiscordStrategy],

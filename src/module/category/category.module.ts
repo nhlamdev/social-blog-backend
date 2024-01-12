@@ -1,5 +1,4 @@
 import { TokenModule } from '@/auth/token/token.module';
-import { RedisModule } from '@/helper/cache/redis.module';
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ContentModule } from '../content/content.module';
@@ -9,7 +8,6 @@ import { CategoryEntity } from './category.entity';
 
 @Module({
   imports: [
-    RedisModule,
     forwardRef(() => ContentModule),
     forwardRef(() => TokenModule),
     TypeOrmModule.forFeature([CategoryEntity]),

@@ -2,7 +2,6 @@ import { Module, forwardRef } from '@nestjs/common';
 import { SeriesController } from './series.controller';
 import { SeriesService } from './series.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RedisModule } from '@/helper/cache/redis.module';
 import { ContentModule } from '../content/content.module';
 import { JwtAccessStrategy } from '@/auth/strategies';
 import { TokenModule } from '@/auth/token/token.module';
@@ -11,7 +10,6 @@ import { SeriesEntity } from './series.entity';
 
 @Module({
   imports: [
-    RedisModule,
     forwardRef(() => ContentModule),
     forwardRef(() => TokenModule),
     forwardRef(() => MemberModule),
