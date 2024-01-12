@@ -7,6 +7,7 @@ import { ContentService } from './content.service';
 import { TokenModule } from '@/auth/token/token.module';
 import { MemberModule } from '../member/member.module';
 import { ContentEntity } from './content.entity';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ContentEntity } from './content.entity';
     forwardRef(() => CategoryModule),
     forwardRef(() => MemberModule),
     forwardRef(() => TokenModule),
+    forwardRef(() => NotificationModule),
     TypeOrmModule.forFeature([ContentEntity]),
   ],
   controllers: [ContentController],

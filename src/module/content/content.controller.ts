@@ -25,6 +25,7 @@ import { ContentDto } from './content.dto';
 import { IAccessJwtPayload } from '@/shared/types';
 import { AuthGuard } from '@nestjs/passport';
 import { MemberService } from '../member/member.service';
+import { NotificationService } from '../notification/notification.service';
 
 @ApiTags('content')
 @Controller('content')
@@ -34,6 +35,7 @@ export class ContentController {
     private readonly seriesService: SeriesService,
     private readonly categoryService: CategoryService,
     private readonly memberRepository: MemberService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   @Get('public')

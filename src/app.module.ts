@@ -7,6 +7,7 @@ import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { RootModule } from './module/root.Module';
@@ -21,6 +22,12 @@ import { RootModule } from './module/root.Module';
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/',
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
     JwtModule.register({}),
     ScheduleModule.forRoot(),
     AuthModule,
