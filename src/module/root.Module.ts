@@ -7,9 +7,11 @@ import { SeriesModule } from './series/series.module';
 import { CommentModule } from './comment/comment.module';
 import { NotificationModule } from './notification/notification.module';
 import { FileModule } from './file/file.module';
+import { SessionModule } from './session/session.module';
 
 const modules = [
   MemberModule,
+  SessionModule,
   ContactModule,
   ContentModule,
   CategoryModule,

@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { CategoryDto } from './category.dto';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
-import { IBaseService } from '@/shared/base/base.service';
+import { IBaseService } from '@/shared/base/IBase.service';
 import { CategoryEntity } from './category.entity';
 
 @Injectable()

@@ -6,8 +6,8 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TokenService } from '../token/token.service';
 import { SocialService } from './social.service';
 
-@ApiTags('authentication')
 @Controller()
+@ApiTags('authentication')
 export class SocialController {
   constructor(
     private readonly socialService: SocialService,

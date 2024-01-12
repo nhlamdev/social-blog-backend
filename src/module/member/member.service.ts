@@ -8,7 +8,7 @@ import {
   Repository,
 } from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
-import { IBaseService } from '@/shared/base/base.service';
+import { IBaseService } from '@/shared/base/IBase.service';
 import { MemberEntity } from './member.entity';
 
 @Injectable()

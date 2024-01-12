@@ -6,6 +6,7 @@ import { SeriesEntity } from '../series/series.entity';
 import { CommentEntity } from '../comment/comment.entity';
 import { ContactEntity } from '../contact/contact.entity';
 import { FileEntity } from '@/module/file/file.entity';
+import { SessionEntity } from '../session/session.entity';
 
 @Entity('member')
 export class MemberEntity extends AbstractEntity {
@@ -47,6 +48,11 @@ export class MemberEntity extends AbstractEntity {
     onDelete: 'CASCADE',
   })
   comments: CommentEntity[];
+
+  @OneToMany(() => CommentEntity, (comment) => comment.created_by, {
+    onDelete: 'CASCADE',
+  })
+  sessions: SessionEntity[];
 
   @OneToMany(() => FileEntity, (comment) => comment.created_by, {
     onDelete: 'CASCADE',

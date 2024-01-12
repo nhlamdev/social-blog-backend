@@ -9,53 +9,53 @@ import {
   Repository,
 } from 'typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
-import { SeriesEntity } from './series.entity';
+import { SessionEntity } from './session.entity';
 
 @Injectable()
-export class SeriesService implements IBaseService<SeriesEntity> {
+export class SessionService implements IBaseService<SessionEntity> {
   constructor(
-    @InjectRepository(SeriesEntity)
-    private seriesRepository: Repository<SeriesEntity>,
+    @InjectRepository(SessionEntity)
+    private seriesRepository: Repository<SessionEntity>,
   ) {}
 
-  async findOne(options?: FindOneOptions<SeriesEntity>) {
+  async findOne(options?: FindOneOptions<SessionEntity>) {
     return await this.seriesRepository.findOne(options);
   }
 
-  async findAll(options?: FindManyOptions<SeriesEntity>) {
+  async findAll(options?: FindManyOptions<SessionEntity>) {
     return await this.seriesRepository.find(options);
   }
 
-  async findAllAndCount(options?: FindManyOptions<SeriesEntity>) {
+  async findAllAndCount(options?: FindManyOptions<SessionEntity>) {
     const [result, count] = await this.seriesRepository.findAndCount(options);
 
     return { result, count };
   }
 
-  async exist(options?: FindManyOptions<SeriesEntity>) {
+  async exist(options?: FindManyOptions<SessionEntity>) {
     return this.seriesRepository.exist(options);
   }
 
-  async count(options?: FindManyOptions<SeriesEntity>) {
+  async count(options?: FindManyOptions<SessionEntity>) {
     return this.seriesRepository.count(options);
   }
 
-  async create(instance: DeepPartial<SeriesEntity>) {
+  async create(instance: DeepPartial<SessionEntity>) {
     return await this.seriesRepository.save(instance);
   }
 
   async update(
-    criteria: TypeTypeOrmCriteria<SeriesEntity>,
-    payload: QueryDeepPartialEntity<SeriesEntity>,
+    criteria: TypeTypeOrmCriteria<SessionEntity>,
+    payload: QueryDeepPartialEntity<SessionEntity>,
   ) {
     return await this.seriesRepository.update(criteria, payload);
   }
 
-  async delete(criteria: TypeTypeOrmCriteria<SeriesEntity>) {
+  async delete(criteria: TypeTypeOrmCriteria<SessionEntity>) {
     return await this.seriesRepository.delete(criteria);
   }
 
-  async softDelete(criteria: TypeTypeOrmCriteria<SeriesEntity>) {
+  async softDelete(criteria: TypeTypeOrmCriteria<SessionEntity>) {
     return await this.seriesRepository.softDelete(criteria);
   }
 

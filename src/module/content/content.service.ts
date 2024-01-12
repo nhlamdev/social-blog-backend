@@ -1,4 +1,4 @@
-import { IBaseService } from '@/shared/base/base.service';
+import { IBaseService } from '@/shared/base/IBase.service';
 import { TypeTypeOrmCriteria } from '@/shared/utils/criteria-key.typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
