@@ -7,7 +7,7 @@ export class SessionEntity extends AbstractEntity {
   @PrimaryGeneratedColumn('uuid')
   _id: string;
 
-  @Column({ type: 'string', nullable: false })
+  @Column({ type: 'text', nullable: false })
   token_key: string;
 
   @Column({ type: 'text', nullable: false })

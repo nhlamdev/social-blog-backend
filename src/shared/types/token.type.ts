@@ -9,5 +9,5 @@ export interface IRefreshTokenCreate {
 
 export interface IAccessTokenCreate {
   member: MemberEntity;
-  token_refresh_id: string;
+  token_refresh_key: string;
 }

@@ -30,18 +30,15 @@ export class JwtAccessStrategy extends PassportStrategy(
 
     if (
       date.getTime() >
-      new Date(payload.token_created_at).getTime() + Number(payload.expired)
+      new Date(payload.token_created_at).getTime() +
+        Number(payload.expired) * 1000
     ) {
       throw new UnauthorizedException('Phiên đăng nhập quá hạn.');
     }
 
-    const refreshToken = await this.tokenService.verifyRefreshToken(
-      payload.refresh_token,
-    );
-
     const token = await this.tokenService.findRefreshTokenInCache({
-      key: refreshToken.key,
-      member_id: refreshToken.member_id,
+      key: payload.token_refresh_key,
+      member_id: payload._id,
     });
 
     if (!Boolean(token)) {

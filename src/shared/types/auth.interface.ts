@@ -5,7 +5,7 @@ export interface IAccessJwtPayload {
   image: string;
   expired: number;
   created_at: Date;
-  refresh_token: string;
+  token_refresh_key: string;
   token_created_at: Date;
   exp?: number;
   iat?: number;

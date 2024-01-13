@@ -38,17 +38,17 @@ export class TokenController {
       where: { _id: jwtPayload.member_id },
     });
 
-    if (Boolean(member)) {
+    if (!Boolean(member)) {
       throw new BadRequestException('Thành viên không tồn tại.');
     }
 
     const accessTokenGenerator = await this.tokenService.createAccessToken({
       member: member,
-      token_refresh_id: jwtPayload.key,
+      token_refresh_key: jwtPayload.key,
     });
 
     res.cookie(accessTokenGenerator.name, accessTokenGenerator.token, {
-      maxAge: accessTokenGenerator.expires,
+      maxAge: accessTokenGenerator.expires * 1000,
       httpOnly: false,
     });
 

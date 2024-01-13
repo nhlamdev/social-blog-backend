@@ -39,15 +39,15 @@ export class SocialController {
 
       const accessTokenGenerator = await this.tokenService.createAccessToken({
         member: member,
-        token_refresh_id: refreshTokenGenerator.token,
+        token_refresh_key: refreshTokenGenerator.key,
       });
 
       res.cookie(accessTokenGenerator.name, accessTokenGenerator.token, {
-        maxAge: accessTokenGenerator.expires,
+        maxAge: accessTokenGenerator.expires * 1000,
         httpOnly: false,
       });
       res.cookie(refreshTokenGenerator.name, refreshTokenGenerator.token, {
-        maxAge: refreshTokenGenerator.expires,
+        maxAge: refreshTokenGenerator.expires * 1000,
         httpOnly: false,
       });
       res.redirect('/');
@@ -83,15 +83,15 @@ export class SocialController {
 
       const accessTokenGenerator = await this.tokenService.createAccessToken({
         member: member,
-        token_refresh_id: refreshTokenGenerator.token,
+        token_refresh_key: refreshTokenGenerator.key,
       });
 
       res.cookie(accessTokenGenerator.name, accessTokenGenerator.token, {
-        maxAge: accessTokenGenerator.expires,
+        maxAge: accessTokenGenerator.expires * 1000,
         httpOnly: false,
       });
       res.cookie(refreshTokenGenerator.name, refreshTokenGenerator.token, {
-        maxAge: refreshTokenGenerator.expires,
+        maxAge: refreshTokenGenerator.expires * 1000,
         httpOnly: false,
       });
       res.redirect('/');
@@ -127,15 +127,15 @@ export class SocialController {
 
       const accessTokenGenerator = await this.tokenService.createAccessToken({
         member: member,
-        token_refresh_id: refreshTokenGenerator.token,
+        token_refresh_key: refreshTokenGenerator.key,
       });
 
       res.cookie(accessTokenGenerator.name, accessTokenGenerator.token, {
-        maxAge: accessTokenGenerator.expires,
+        maxAge: accessTokenGenerator.expires * 1000,
         httpOnly: false,
       });
       res.cookie(refreshTokenGenerator.name, refreshTokenGenerator.token, {
-        maxAge: refreshTokenGenerator.expires,
+        maxAge: refreshTokenGenerator.expires * 1000,
         httpOnly: false,
       });
       res.redirect('/');

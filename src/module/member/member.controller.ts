@@ -7,7 +7,6 @@ import {
   Controller,
   ForbiddenException,
   Get,
-  Inject,
   Param,
   Patch,
   Put,
@@ -17,7 +16,6 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
-import { RedisClientType } from 'redis';
 import { Like } from 'typeorm';
 import { MemberUpdateDto, MemberUpdateRoleDto } from './member.dto';
 import { MemberService } from './member.service';
@@ -25,10 +23,7 @@ import { MemberService } from './member.service';
 @ApiTags('member')
 @Controller('member')
 export class MemberController {
-  constructor(
-    private readonly memberService: MemberService,
-    @Inject('REDIS_CLIENT') private readonly redisClient: RedisClientType,
-  ) {}
+  constructor(private readonly memberService: MemberService) {}
 
   @Get('profile')
   @UseGuards(AuthGuard('jwt-access'))
@@ -36,7 +31,7 @@ export class MemberController {
     const jwtPayload: IAccessJwtPayload = req.user;
 
     delete jwtPayload.expired;
-    delete jwtPayload.refresh_token;
+    delete jwtPayload.token_refresh_key;
     delete jwtPayload.token_created_at;
     delete jwtPayload.exp;
     delete jwtPayload.iat;
@@ -45,11 +40,47 @@ export class MemberController {
   }
 
   @Get()
-  async members(
+  async authors(
     @Query('skip') skip: MaybeType<string>,
     @Query('take') take: MaybeType<string>,
     @Query('search') search: MaybeType<string>,
   ) {
+    const _take = checkIsNumber(take) ? Number(take) : undefined;
+    const _skip = checkIsNumber(skip) ? Number(skip) : undefined;
+    const _search = search
+      ? `%${search
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')}%`
+      : '%%';
+
+    const { result: members, count } = await this.memberService.findAllAndCount(
+      {
+        skip: _skip,
+        take: _take,
+        where: {
+          name: Like(_search),
+        },
+      },
+    );
+
+    return { members, count };
+  }
+
+  @Get('owner')
+  @UseGuards(AuthGuard('jwt-access'))
+  async members(
+    @Req() req,
+    @Query('skip') skip: MaybeType<string>,
+    @Query('take') take: MaybeType<string>,
+    @Query('search') search: MaybeType<string>,
+  ) {
+    const jwtPayload: IAccessJwtPayload = req.user;
+
+    if (!jwtPayload.role.owner) {
+      throw new ForbiddenException('Bạn không có quyền hạn thao tác');
+    }
+
     const _take = checkIsNumber(take) ? Number(take) : undefined;
     const _skip = checkIsNumber(skip) ? Number(skip) : undefined;
     const _search = search

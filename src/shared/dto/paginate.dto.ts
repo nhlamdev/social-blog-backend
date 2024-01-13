@@ -10,6 +10,19 @@ import { MaybeType } from '../utils/types/maybe.type';
 export class PaginationDto extends BaseDTO {
   @IsOptional()
   @ApiProperty({ type: String, format: 'number', required: false })
+  @IsNumber()
+  @Min(0)
+  @Transform(({ value }: TransformFnParams) => {
+    const transform = checkIsNumber(value?.trim())
+      ? Number(value?.trim())
+      : value;
+
+    return transform;
+  })
+  skip?: MaybeType<number>;
+
+  @IsOptional()
+  @ApiProperty({ type: String, format: 'number', required: false })
   @IsNotEmpty()
   @Min(0)
   @Transform(({ value }: TransformFnParams) => {
@@ -19,20 +32,6 @@ export class PaginationDto extends BaseDTO {
     return transform;
   })
   take?: MaybeType<number>;
-
-  @IsOptional()
-  @ApiProperty({ type: String, format: 'number', required: false })
-  @IsNumber()
-  @Min(1)
-  @Transform(({ value }: TransformFnParams) => {
-    const transform = checkIsNumber(value?.trim())
-      ? Number(value?.trim())
-      : value;
-
-    console.log(transform);
-    return transform;
-  })
-  skip?: MaybeType<number>;
 
   @IsOptional()
   @ApiProperty({ type: String, required: false })

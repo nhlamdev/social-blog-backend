@@ -89,6 +89,38 @@ export class ContentController {
     });
   }
 
+  @Get('bookmark')
+  @UseGuards(AuthGuard('jwt-access'))
+  async myBookmark(
+    @Req() req,
+    @Query('skip') skip: MaybeType<string>,
+    @Query('take') take: MaybeType<string>,
+    @Query('search') search: MaybeType<string>,
+  ) {
+    const jwtPayload: IAccessJwtPayload = req.user;
+
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    const _skip = checkIsNumber(skip) ? Number(skip) : null;
+    const _search = search
+      ? `%${search
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')}%`
+      : '%%';
+
+    return this.contentService.findAll({
+      where: {
+        title: ILike(_search),
+        bookmark_by: In([jwtPayload._id]),
+        public: true,
+        complete: true,
+      },
+      skip: _skip,
+      take: _take,
+      relations: { created_by: true, series: true, category: true },
+    });
+  }
+
   @Get('private')
   @UseGuards(AuthGuard('jwt-access'))
   async private(
@@ -525,6 +557,22 @@ export class ContentController {
         bookmark_by: [...bookmark_by, jwtPayload._id],
       });
     }
+  }
+
+  @Patch('id:/watch')
+  @UseGuards(AuthGuard('jwt-access'))
+  async watch(@Req() req, @Param('id') id: string) {
+    const jwtPayload: IAccessJwtPayload = req.user;
+
+    const content = await this.contentService.findOne({ where: { _id: id } });
+
+    if (content.watches.includes(jwtPayload._id)) {
+      return;
+    }
+
+    content.watches = [...content.watches, jwtPayload._id];
+
+    return await this.contentService.update(id, content);
   }
 
   @Patch(':content/change-category/:category')

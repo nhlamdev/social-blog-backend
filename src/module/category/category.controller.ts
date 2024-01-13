@@ -42,13 +42,42 @@ export class CategoryController {
   async paginate(@Query() query: PaginationDto) {
     const { result: categories, count } =
       await this.categoryService.findAllAndCount({
-        where: { title: ILike(query.search) },
+        where: { title: query.search ? ILike(query.search) : undefined },
         take: query.take,
         skip: query.skip,
         order: { created_at: 'DESC' },
       });
 
     return { categories, count };
+  }
+
+  @Get('owner/paginate')
+  @UseGuards(AuthGuard('jwt-access'))
+  async ownerPaginate(@Req() req, @Query() query: PaginationDto) {
+    const jwtPayload: IAccessJwtPayload = req.user;
+
+    if (!jwtPayload.role.owner) {
+      throw new ForbiddenException('Bạn không có quyền thao tác');
+    }
+
+    const { result: categories, count } =
+      await this.categoryService.findAllAndCount({
+        where: { title: query.search ? ILike(query.search) : undefined },
+        take: query.take,
+        skip: query.skip,
+        order: { created_at: 'DESC' },
+      });
+
+    const categoriesWithCountContent = categories.map(async (c) => {
+      const count = await this.contentService.count({
+        where: { category: { _id: c._id } },
+        relations: { category: true },
+      });
+
+      return { ...c, contents: count };
+    });
+
+    return { categories: categoriesWithCountContent, count };
   }
 
   @Get('by-id/:id')

@@ -129,13 +129,9 @@ export class SessionController {
   async login(@Req() req) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const refreshToken = await this.tokenService.verifyRefreshToken(
-      jwtPayload.refresh_token,
-    );
-
     const token = await this.tokenService.findRefreshTokenInCache({
-      key: refreshToken.key,
-      member_id: refreshToken.member_id,
+      key: jwtPayload.token_refresh_key,
+      member_id: jwtPayload._id,
     });
 
     if (!Boolean(token)) {

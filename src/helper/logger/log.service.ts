@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { ConsoleLogger, Injectable } from '@nestjs/common';
 import * as winston from 'winston';
 import { Environment } from '@/configuration/validator/app.validator';
-import DailyRotateFile from 'winston-daily-rotate-file';
+import * as DailyRotateFile from 'winston-daily-rotate-file';
 
 @Injectable()
 export class LoggerService extends ConsoleLogger {

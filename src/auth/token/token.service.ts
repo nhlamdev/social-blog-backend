@@ -23,7 +23,7 @@ export class TokenService {
 
   async createRefreshToken(
     payload: IRefreshTokenCreate,
-  ): Promise<{ name: string; token: string; expires: number }> {
+  ): Promise<{ key: string; name: string; token: string; expires: number }> {
     const { client, member_id, social_payload } = payload;
 
     const randomId: string = uuidV4();
@@ -49,13 +49,14 @@ export class TokenService {
 
     const session = await this.sessionService.create({
       token_key: randomId,
-      provider_id: social_payload.provider,
+      provider_id: social_payload.id,
+      provider: social_payload.provider,
       os: os,
       device: device,
       browser: browser,
       ip: ip,
       created_by: member,
-      expires_in: Number(expires / 1000),
+      expires_in: expires,
     });
 
     const newRefreshToken: IRefreshJwtPayload = {
@@ -66,7 +67,7 @@ export class TokenService {
 
     const token = await this.jwtService.sign(newRefreshToken, {
       secret,
-      expiresIn: expires,
+      expiresIn: expires * 1000,
     });
 
     await this.cacheManager.set(
@@ -80,11 +81,11 @@ export class TokenService {
       expires,
     });
 
-    return { name, expires, token };
+    return { key: randomId, name, expires, token };
   }
 
   async createAccessToken(payload: IAccessTokenCreate) {
-    const { member, token_refresh_id } = payload;
+    const { member, token_refresh_key } = payload;
     const name: string = this.configService.getOrThrow('auth.secretName');
     const secret: string = this.configService.getOrThrow('auth.secret');
     const expires: number = this.configService.getOrThrow('auth.expires');
@@ -95,7 +96,7 @@ export class TokenService {
       email: member.email,
       image: member.image,
       expired: expires,
-      refresh_token: token_refresh_id,
+      token_refresh_key: token_refresh_key,
       created_at: member.created_at,
       token_created_at: new Date(),
       role: {
@@ -107,7 +108,7 @@ export class TokenService {
 
     const token = await this.jwtService.sign(newToken, {
       secret,
-      expiresIn: expires,
+      expiresIn: expires * 1000,
     });
 
     return { name, expires, token };
