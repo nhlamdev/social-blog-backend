@@ -57,7 +57,16 @@ export class SeriesController {
       relations: { created_by: true },
     });
 
-    return { series, count };
+    const seriesWithCountContent = await Promise.all(
+      series.map(async (s) => {
+        const count_contents = await this.contentService.count({
+          where: { series: { _id: s._id } },
+        });
+        return { ...s, count_contents };
+      }),
+    );
+
+    return { series: seriesWithCountContent, count };
   }
 
   @Get('owner')
@@ -135,7 +144,10 @@ export class SeriesController {
 
   @Get('by-id/:id')
   async seriesById(@Param('id') id: string) {
-    const series = await this.seriesService.findOne({ where: { _id: id } });
+    const series = await this.seriesService.findOne({
+      where: { _id: id },
+      relations: { created_by: true },
+    });
 
     if (!Boolean(series)) {
       throw new NotFoundException('Chuỗi bài viết không tồn tại!.');

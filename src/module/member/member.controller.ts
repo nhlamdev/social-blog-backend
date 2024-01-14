@@ -19,11 +19,17 @@ import { ApiTags } from '@nestjs/swagger';
 import { Like } from 'typeorm';
 import { MemberUpdateDto, MemberUpdateRoleDto } from './member.dto';
 import { MemberService } from './member.service';
+import { SeriesService } from '../series/series.service';
+import { ContentService } from '../content/content.service';
 
 @ApiTags('member')
 @Controller('member')
 export class MemberController {
-  constructor(private readonly memberService: MemberService) {}
+  constructor(
+    private readonly memberService: MemberService,
+    private readonly seriesService: SeriesService,
+    private readonly contentService: ContentService,
+  ) {}
 
   @Get('profile')
   @UseGuards(AuthGuard('jwt-access'))
@@ -39,7 +45,7 @@ export class MemberController {
     return jwtPayload;
   }
 
-  @Get()
+  @Get('author')
   async authors(
     @Query('skip') skip: MaybeType<string>,
     @Query('take') take: MaybeType<string>,
@@ -64,12 +70,28 @@ export class MemberController {
       },
     );
 
-    return { members, count };
+    const membersWithCountStatus = await Promise.all(
+      members.map(async (member) => {
+        const content_count = await this.contentService.count({
+          where: { created_by: { _id: member._id } },
+          relations: { created_by: true },
+        });
+
+        const series_count = await this.seriesService.count({
+          where: { created_by: { _id: member._id } },
+          relations: { created_by: true },
+        });
+
+        return { ...member, series_count, content_count };
+      }),
+    );
+
+    return { members: membersWithCountStatus, count };
   }
 
   @Get('owner')
   @UseGuards(AuthGuard('jwt-access'))
-  async members(
+  async ownerMmembers(
     @Req() req,
     @Query('skip') skip: MaybeType<string>,
     @Query('take') take: MaybeType<string>,

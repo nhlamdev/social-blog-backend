@@ -9,12 +9,14 @@ import { MemberModule } from '../member/member.module';
 import { ContentEntity } from './content.entity';
 import { NotificationModule } from '../notification/notification.module';
 import { MailModule } from '@/helper/mail/mail.module';
+import { CommentModule } from '../comment/comment.module';
 
 @Module({
   imports: [
     forwardRef(() => SeriesModule),
     forwardRef(() => CategoryModule),
     forwardRef(() => MemberModule),
+    forwardRef(() => CommentModule),
     forwardRef(() => TokenModule),
     forwardRef(() => NotificationModule),
     forwardRef(() => MailModule),

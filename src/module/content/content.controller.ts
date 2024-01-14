@@ -1,4 +1,6 @@
 import { CASE_SORT } from '@/constants';
+import { MailService } from '@/helper/mail/mail.service';
+import { IAccessJwtPayload } from '@/shared/types';
 import { checkIsNumber } from '@/shared/utils/global-func';
 import { MaybeType } from '@/shared/utils/types/maybe.type';
 import {
@@ -16,21 +18,20 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { ILike, In, IsNull, Not } from 'typeorm';
 import { CategoryService } from '../category/category.service';
+import { MemberService } from '../member/member.service';
+import { NotificationService } from '../notification/notification.service';
 import { SeriesService } from '../series/series.service';
-import { ContentService } from './content.service';
 import {
   ContentDto,
   ContentsByCategoryDto,
   SeriesByCategoryDto,
 } from './content.dto';
-import { IAccessJwtPayload } from '@/shared/types';
-import { AuthGuard } from '@nestjs/passport';
-import { MemberService } from '../member/member.service';
-import { NotificationService } from '../notification/notification.service';
-import { MailService } from '@/helper/mail/mail.service';
+import { ContentService } from './content.service';
+import { CommentService } from '../comment/comment.service';
 @ApiTags('content')
 @Controller('content')
 export class ContentController {
@@ -38,6 +39,7 @@ export class ContentController {
     private readonly contentService: ContentService,
     private readonly seriesService: SeriesService,
     private readonly categoryService: CategoryService,
+    private readonly commentService: CommentService,
     private readonly memberRepository: MemberService,
     private readonly mailService: MailService,
     private readonly notificationService: NotificationService,
@@ -65,28 +67,43 @@ export class ContentController {
       : '%%';
 
     const [keyOder, typeOrder] = CASE_SORT.includes(caseSort)
-      ? caseSort
-      : CASE_SORT[0];
+      ? caseSort.split('_')
+      : CASE_SORT[0].split('_');
 
-    return this.contentService.findAll({
-      where: {
-        title: ILike(_search),
-        category: { _id: category },
-        series: { _id: series },
-        tags: tag ? In([tag]) : undefined,
-        created_by: { _id: author },
-        bookmark_by: bookmark ? In([bookmark]) : undefined,
-        public: true,
-        complete: true,
-      },
-      skip: _skip,
-      take: _take,
-      relations: { created_by: true, series: true, category: true },
-      order: {
-        [`content.${keyOder === 'NAME' ? 'title' : 'created_at'}`]:
-          typeOrder === 'ASC' ? 'ASC' : 'DESC',
-      },
-    });
+    const order = {
+      [keyOder === 'NAME' ? 'title' : 'created_at']:
+        typeOrder === 'ASC' ? 'ASC' : 'DESC',
+    };
+
+    const { result: contents, count } =
+      await this.contentService.findAllAndCount({
+        where: {
+          title: ILike(_search),
+          category: { _id: category },
+          series: { _id: series },
+          tags: tag ? In([tag]) : undefined,
+          created_by: { _id: author },
+          bookmark_by: bookmark ? In([bookmark]) : undefined,
+          public: true,
+          complete: true,
+        },
+        skip: _skip,
+        take: _take,
+        relations: { created_by: true, series: true, category: true },
+        order: order,
+      });
+
+    const contentsWithCountContent = await Promise.all(
+      contents.map(async (content) => {
+        const count_comments = await this.commentService.count({
+          where: { content: { _id: content._id } },
+          relations: { content: true },
+        });
+        return { ...content, count_comments };
+      }),
+    );
+
+    return { contents: contentsWithCountContent, count };
   }
 
   @Get('bookmark')
@@ -344,8 +361,7 @@ export class ContentController {
   @Get('random')
   async randomContents(@Query('take') take: MaybeType<string>) {
     const _take = checkIsNumber(take) ? Number(take) : null;
-
-    const builder = await this.categoryService.builder();
+    const builder = await this.contentService.builder();
 
     const contents = builder
       .leftJoinAndSelect('content.category', 'category')
