@@ -574,7 +574,7 @@ export class ContentController {
 
     if (bookmark_by.includes(jwtPayload._id)) {
       await this.contentService.update(content._id, {
-        bookmark_by: bookmark_by.filter((v) => v === jwtPayload._id),
+        bookmark_by: bookmark_by.filter((v) => v !== jwtPayload._id),
       });
     } else {
       await this.contentService.update(content._id, {
@@ -583,7 +583,7 @@ export class ContentController {
     }
   }
 
-  @Patch('id:/watch')
+  @Patch(':id/watch')
   @UseGuards(AuthGuard('jwt-access'))
   async watch(@Req() req, @Param('id') id: string) {
     const jwtPayload: IAccessJwtPayload = req.user;
@@ -591,12 +591,12 @@ export class ContentController {
     const content = await this.contentService.findOne({ where: { _id: id } });
 
     if (content.watches.includes(jwtPayload._id)) {
-      return;
+      return '';
     }
 
-    content.watches = [...content.watches, jwtPayload._id];
+    const watches = [...content.watches, jwtPayload._id];
 
-    return await this.contentService.update(id, content);
+    return await this.contentService.update(id, { watches });
   }
 
   @Patch(':content/change-category/:category')
