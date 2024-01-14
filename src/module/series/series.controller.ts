@@ -71,7 +71,22 @@ export class SeriesController {
       relations: { created_by: true },
     });
 
-    return { series, count };
+    const seriesWithCountContent = await Promise.all(
+      series.map(async (series) => {
+        const count = await this.contentService.count({
+          where: {
+            series: { _id: series._id },
+            public: true,
+            complete: true,
+          },
+          relations: { series: true },
+        });
+
+        return { ...seriesWithCountContent, contentCount: count };
+      }),
+    );
+
+    return { series: Promise.all(seriesWithCountContent), count };
   }
 
   @Get('owner/paginate')
@@ -102,7 +117,20 @@ export class SeriesController {
       relations: { created_by: true },
     });
 
-    return { series, count };
+    const seriesWithCountContent = series.map(async (series) => {
+      const count = await this.contentService.count({
+        where: {
+          series: { _id: series._id },
+          public: true,
+          complete: true,
+        },
+        relations: { series: true },
+      });
+
+      return { ...series, contentCount: count };
+    });
+
+    return { series: await Promise.all(seriesWithCountContent), count };
   }
 
   @Get('by-id/:id')

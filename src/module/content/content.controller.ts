@@ -17,7 +17,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ILike, In, Not } from 'typeorm';
+import { ILike, In, IsNull, Not } from 'typeorm';
 import { CategoryService } from '../category/category.service';
 import { SeriesService } from '../series/series.service';
 import { ContentService } from './content.service';
@@ -218,18 +218,20 @@ export class ContentController {
   ) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const { isOutSide, skip, take, search } = query;
+    const { outside, skip, take, search } = query;
 
-    return this.contentService.findAllAndCount({
+    const { result, count } = await this.contentService.findAllAndCount({
       where: {
         title: search ? ILike(search) : undefined,
-        category: { _id: isOutSide ? category : Not(category) },
+        category: { _id: outside ? Not(category) : category },
         created_by: { _id: jwtPayload._id },
       },
       skip: skip,
       take: take,
       relations: { category: true },
     });
+
+    return { contents: result, count };
   }
 
   @Get('by-series/:series')
@@ -241,18 +243,24 @@ export class ContentController {
   ) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const { isOutSide, search, skip, take } = query;
+    const { outside, search, skip, take } = query;
 
-    return this.contentService.findAllAndCount({
-      where: {
-        title: search ? ILike(search) : undefined,
-        series: { _id: isOutSide ? series : Not(series) },
-        created_by: { _id: jwtPayload._id },
-      },
+    const { result, count } = await this.contentService.findAllAndCount({
+      where: [
+        {
+          title: search ? ILike(search) : undefined,
+          series: outside
+            ? [{ _id: Not(series) }, { _id: IsNull() }]
+            : { _id: series },
+          created_by: { _id: jwtPayload._id },
+        },
+      ],
       skip: skip,
       take: take,
       relations: { series: true },
     });
+
+    return { contents: result, count };
   }
 
   @Get('tags-and-count')
@@ -607,7 +615,7 @@ export class ContentController {
     }
   }
 
-  @Patch(':content/change-series/:category')
+  @Patch(':content/change-series/:series')
   @UseGuards(AuthGuard('jwt-access'))
   async changeSeries(
     @Req() req,
@@ -618,7 +626,7 @@ export class ContentController {
 
     const _content = await this.contentService.findOne({
       where: { _id: content },
-      relations: { created_by: true },
+      relations: { created_by: true, series: true },
     });
     const _series = await this.seriesService.findOne({
       where: { _id: series },
@@ -633,13 +641,19 @@ export class ContentController {
     }
 
     if (
-      jwtPayload.role.owner ||
-      (jwtPayload._id === _content.created_by._id &&
-        jwtPayload._id === _series.created_by._id)
+      !(
+        jwtPayload.role.owner ||
+        (jwtPayload._id === _content.created_by._id &&
+          jwtPayload._id === _series.created_by._id)
+      )
     ) {
-      await this.contentService.update(_content._id, { series: _series });
-    } else {
       throw new ForbiddenException('Bạn không có quyền thao tác');
+    }
+
+    if (_content?.series?._id === series) {
+      await this.contentService.update(_content._id, { series: null });
+    } else {
+      await this.contentService.update(_content._id, { series: _series });
     }
   }
 

@@ -114,7 +114,7 @@ export class MemberController {
   async update(@Req() req, @Body() body: MemberUpdateDto) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    await this.memberService.update(jwtPayload._id, {
+    return await this.memberService.update(jwtPayload._id, {
       name: body.name,
       image: body.image,
     });
@@ -129,7 +129,7 @@ export class MemberController {
   ) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    if (jwtPayload.role.owner) {
+    if (!jwtPayload.role.owner) {
       throw new ForbiddenException('Bạn không có quyền hạn');
     }
 

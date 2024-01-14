@@ -5,6 +5,7 @@ import { Transform, TransformFnParams } from 'class-transformer';
 import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
 
 export class MemberUpdateDto extends BaseDTO {
+  @Optional()
   @ApiProperty({ type: String })
   @IsNotEmpty({ message: 'Bạn chưa nhập tiêu đề!.' })
   @IsString({ message: 'Tiêu đề sai kiểu dữ liệu!' })
@@ -13,6 +14,9 @@ export class MemberUpdateDto extends BaseDTO {
 
   @Optional()
   @ApiProperty({ type: String })
+  @IsNotEmpty({ message: 'Bạn chưa nhập ảnh!.' })
+  @IsString({ message: 'Ảnh sai kiểu dữ liệu!' })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
   image: string;
 }
 

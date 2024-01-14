@@ -83,14 +83,14 @@ export class ContentsByCategoryDto extends PaginationDto {
   @IsBoolean()
   @Transform(trimTransformer)
   @Transform(toBooleanTransformer)
-  isOutSide: boolean;
+  outside: boolean;
 }
 
 export class SeriesByCategoryDto extends PaginationDto {
   @ApiProperty({ type: String, format: 'boolean' })
   @IsNotEmpty()
+  @IsBoolean()
   @Transform(trimTransformer)
   @Transform(toBooleanTransformer)
-  @IsBoolean()
-  isOutSide: boolean;
+  outside: boolean;
 }

@@ -5,7 +5,6 @@ export const toBooleanTransformer = (
   params: TransformFnParams,
 ): MaybeType<boolean> => {
   const { value } = params;
-
   if (value === 'true') {
     return true;
   }
@@ -14,5 +13,5 @@ export const toBooleanTransformer = (
     return false;
   }
 
-  return undefined;
+  return false;
 };

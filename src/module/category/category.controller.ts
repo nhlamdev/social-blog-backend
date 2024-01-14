@@ -77,7 +77,7 @@ export class CategoryController {
       return { ...c, contents: count };
     });
 
-    return { categories: categoriesWithCountContent, count };
+    return { categories: await Promise.all(categoriesWithCountContent), count };
   }
 
   @Get('by-id/:id')
