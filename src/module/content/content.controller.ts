@@ -16,12 +16,14 @@ import {
   Put,
   Query,
   Req,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { ILike, In, IsNull, Not } from 'typeorm';
 import { CategoryService } from '../category/category.service';
+import { CommentService } from '../comment/comment.service';
 import { MemberService } from '../member/member.service';
 import { NotificationService } from '../notification/notification.service';
 import { SeriesService } from '../series/series.service';
@@ -31,7 +33,6 @@ import {
   SeriesByCategoryDto,
 } from './content.dto';
 import { ContentService } from './content.service';
-import { CommentService } from '../comment/comment.service';
 @ApiTags('content')
 @Controller('content')
 export class ContentController {
@@ -52,10 +53,8 @@ export class ContentController {
     @Query('search') search: MaybeType<string>,
     @Query('category') category: MaybeType<string>,
     @Query('series') series: MaybeType<string>,
-    @Query('tag') tag: MaybeType<string>,
     @Query('sortCase') caseSort: MaybeType<string>,
     @Query('author') author: MaybeType<string>,
-    @Query('bookmark') bookmark: MaybeType<string>,
   ) {
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
@@ -81,9 +80,7 @@ export class ContentController {
           title: ILike(_search),
           category: { _id: category },
           series: { _id: series },
-          tags: tag ? In([tag]) : undefined,
           created_by: { _id: author },
-          bookmark_by: bookmark ? In([bookmark]) : undefined,
           public: true,
           complete: true,
         },
@@ -125,17 +122,62 @@ export class ContentController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    return this.contentService.findAll({
-      where: {
-        title: ILike(_search),
-        bookmark_by: In([jwtPayload._id]),
-        public: true,
-        complete: true,
-      },
-      skip: _skip,
-      take: _take,
-      relations: { created_by: true, series: true, category: true },
-    });
+    const builder = await this.contentService.builder();
+    const contents = await builder
+      .leftJoinAndSelect('content.category', 'category')
+      .leftJoinAndSelect('content.series', 'series')
+      .leftJoinAndSelect('content.created_by', 'created_by')
+      .where('LOWER(content.title) LIKE :search ', {
+        search: _search,
+      })
+      .andWhere('content.bookmark_by @> ARRAY[:...members]', {
+        members: [jwtPayload._id],
+      })
+      .andWhere('content.public = true AND content.complete = true ')
+      .take(_take)
+      .skip(_skip)
+      .getMany();
+
+    const count = await builder.getCount();
+
+    return { contents, count };
+  }
+
+  @Get('by-tag/:tag')
+  async byTag(
+    @Param('tag') tag: string,
+    @Query('skip') skip: MaybeType<string>,
+    @Query('take') take: MaybeType<string>,
+    @Query('search') search: MaybeType<string>,
+  ) {
+    const _take = checkIsNumber(take) ? Number(take) : null;
+    const _skip = checkIsNumber(skip) ? Number(skip) : null;
+    const _search = search
+      ? `%${search
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')}%`
+      : '%%';
+
+    const builder = await this.contentService.builder();
+    const contents = await builder
+      .leftJoinAndSelect('content.category', 'category')
+      .leftJoinAndSelect('content.series', 'series')
+      .leftJoinAndSelect('content.created_by', 'created_by')
+      .where('LOWER(content.title) LIKE :search ', {
+        search: _search,
+      })
+      .andWhere('content.tags @> ARRAY[:...members]', {
+        members: [tag],
+      })
+      .andWhere('content.public = true AND content.complete = true ')
+      .take(_take)
+      .skip(_skip)
+      .getMany();
+
+    const count = await builder.getCount();
+
+    return { contents, count };
   }
 
   @Get('private')
@@ -336,11 +378,18 @@ export class ContentController {
       throw new BadRequestException('Bài viết không tồn tại.');
     }
 
+    await this.contentService.update(content._id, {
+      count_view: content.count_view + 1,
+    });
+
     return content;
   }
 
   @Get('private/by-id/:id')
-  async privateContentById(@Param('id') id: string) {
+  @UseGuards(AuthGuard('jwt-access'))
+  async privateContentById(@Req() req, @Param('id') id: string) {
+    const jwtPayload: IAccessJwtPayload = req.user;
+
     const content = await this.contentService.findOne({
       where: { _id: id },
       relations: {
@@ -353,6 +402,10 @@ export class ContentController {
 
     if (!Boolean(content)) {
       throw new BadRequestException('Bài viết không tồn tại.');
+    }
+
+    if (jwtPayload._id !== content.created_by._id && !jwtPayload.role.owner) {
+      throw new UnauthorizedException('Bạn không có quyền xem bài viết này.');
     }
 
     return content;
