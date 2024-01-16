@@ -13,11 +13,15 @@ import { MaybeType } from '@/shared/utils/types/maybe.type';
 import { checkIsNumber } from '@/shared/utils/global-func';
 import { AuthGuard } from '@nestjs/passport';
 import { IAccessJwtPayload } from '@/shared/types';
+import { MemberService } from '../member/member.service';
 
 @Controller('notification')
 @ApiTags('notification')
 export class NotificationController {
-  constructor(private readonly notificationService: NotificationService) {}
+  constructor(
+    private readonly notificationService: NotificationService,
+    private readonly memberService: MemberService,
+  ) {}
   @Get()
   @UseGuards(AuthGuard('jwt-access'))
   async notifies(
@@ -64,11 +68,27 @@ export class NotificationController {
       skip: _skip,
     });
 
+    const notifiesWithMemberInfo = notifies.map(async (notify) => {
+      const receiver = await this.memberService.findOne({
+        where: { _id: notify.to },
+      });
+
+      const sender = await this.memberService.findOne({
+        where: { _id: notify.from },
+      });
+
+      return {
+        ...notify,
+        from: sender,
+        to: receiver,
+      };
+    });
+
     const unSeen = await this.notificationService.count({
       where: { to: jwtPayload._id, seen: false },
     });
 
-    return { notifies, unSeen };
+    return { notifies: await Promise.all(notifiesWithMemberInfo), unSeen };
   }
 
   @Patch('notifies-seen-all')

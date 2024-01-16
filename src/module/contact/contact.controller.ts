@@ -37,6 +37,8 @@ export class ContactController {
       throw new ForbiddenException('Bạn không có quyền thao tác');
     }
 
+    console.log(query);
+
     const { result, count } = await this.contactService.findAllAndCount({
       where: { title: ILike(query.search) },
       take: query.take,

@@ -48,7 +48,18 @@ export class CommentController {
       relations: { content: true, created_by: true },
     });
 
-    return { comments, count };
+    const commentWithCountReplies = comments.map(async (comment) => {
+      const count_replies = await this.commentService.count({
+        where: { comment_parent: { _id: comment._id } },
+      });
+
+      return {
+        ...comment,
+        count_replies,
+      };
+    });
+
+    return { comments: await Promise.all(commentWithCountReplies), count };
   }
 
   @Get('by-parent/:parent')
@@ -157,6 +168,7 @@ export class CommentController {
 
     const _comment = await this.commentService.findOne({
       where: { _id: comment },
+      relations: { created_by: true },
     });
 
     if (!Boolean(comment)) {

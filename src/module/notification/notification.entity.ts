@@ -9,7 +9,7 @@ export class NotificationEntity extends AbstractEntity {
   @Column({ type: 'text', nullable: false })
   title: string;
 
-  @Column({ type: 'text', nullable: false })
+  @Column({ type: 'text', nullable: true })
   description: string | null;
 
   @Column({ type: 'text', nullable: false })

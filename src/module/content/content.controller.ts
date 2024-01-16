@@ -138,9 +138,18 @@ export class ContentController {
       .skip(_skip)
       .getMany();
 
+    const contentsWithCountComment = contents.map(async (content) => {
+      const count_comments = await this.commentService.count({
+        where: { content: { _id: content._id } },
+        relations: { content: true },
+      });
+
+      return { ...content, count_comments };
+    });
+
     const count = await builder.getCount();
 
-    return { contents, count };
+    return { contents: await Promise.all(contentsWithCountComment), count };
   }
 
   @Get('by-tag/:tag')

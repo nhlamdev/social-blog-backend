@@ -79,7 +79,7 @@ export class SessionController {
         take: _take,
         where: { created_by: { _id: jwtPayload._id } },
         relations: { created_by: true },
-        order: { created_by: 'DESC' },
+        order: { created_at: 'DESC' },
       });
 
     return { sessions, count };
