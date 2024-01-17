@@ -7,6 +7,7 @@ import {
   Controller,
   ForbiddenException,
   Get,
+  NotFoundException,
   Param,
   Patch,
   Put,
@@ -17,10 +18,10 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { Like } from 'typeorm';
+import { ContentService } from '../content/content.service';
+import { SeriesService } from '../series/series.service';
 import { MemberUpdateDto, MemberUpdateRoleDto } from './member.dto';
 import { MemberService } from './member.service';
-import { SeriesService } from '../series/series.service';
-import { ContentService } from '../content/content.service';
 
 @ApiTags('member')
 @Controller('member')
@@ -128,7 +129,32 @@ export class MemberController {
   @Get('by-id/:id')
   async author(@Param('id') id: string) {
     const member = await this.memberService.findOne({ where: { _id: id } });
+
+    if (!Boolean(member)) {
+      throw new NotFoundException('Không tìm thấy thành viên');
+    }
+
     return member;
+  }
+
+  @Get('followers/:author')
+  async memberFollowerAuthor(@Param('author') author: string) {
+    const _author = await this.memberService.findOne({
+      select: { follow_by: true },
+      where: { _id: author },
+    });
+
+    const followers = await Promise.all(
+      _author.follow_by
+        .map((follower) => {
+          return this.memberService.findOne({
+            where: { _id: follower },
+          });
+        })
+        .filter((follower) => Boolean(follower)),
+    );
+
+    return followers;
   }
 
   @Put('update')
