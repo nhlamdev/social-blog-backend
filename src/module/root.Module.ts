@@ -8,6 +8,7 @@ import { CommentModule } from './comment/comment.module';
 import { NotificationModule } from './notification/notification.module';
 import { FileModule } from './file/file.module';
 import { SessionModule } from './session/session.module';
+import { QAModule } from './QA/QA.module';
 
 const modules = [
   MemberModule,
@@ -18,6 +19,7 @@ const modules = [
   SeriesModule,
   CommentModule,
   NotificationModule,
+  QAModule,
   FileModule,
 ];
 

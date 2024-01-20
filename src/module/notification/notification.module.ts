@@ -14,6 +14,9 @@ import { MemberModule } from '../member/member.module';
   ],
   controllers: [NotificationController],
   providers: [NotificationService],
-  exports: [NotificationService],
+  exports: [
+    NotificationService,
+    TypeOrmModule.forFeature([NotificationEntity]),
+  ],
 })
 export class NotificationModule {}
