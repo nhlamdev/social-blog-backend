@@ -202,14 +202,16 @@ export class MemberController {
       where: { _id: author },
     });
 
-    if (_author.follow_by.includes(jwtPayload._id)) {
-      _author.follow_by = _author.follow_by.filter((v) => {
+    let followers = _author.follow_by;
+
+    if (followers.includes(jwtPayload._id)) {
+      followers = followers.filter((v) => {
         v !== jwtPayload._id;
       });
     } else {
-      _author.follow_by.push(jwtPayload._id);
+      followers.push(jwtPayload._id);
     }
 
-    return await this.memberService.update(author, _author);
+    return await this.memberService.update(author, { follow_by: followers });
   }
 }

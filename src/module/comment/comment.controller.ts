@@ -46,6 +46,7 @@ export class CommentController {
       skip: _skip,
       take: _take,
       relations: { content: true, created_by: true },
+      order: { created_at: 'DESC' },
     });
 
     const commentWithCountReplies = comments.map(async (comment) => {
@@ -63,19 +64,11 @@ export class CommentController {
   }
 
   @Get('by-parent/:parent')
-  async commentByParent(
-    @Param('parent') parent: string,
-    @Query('skip') skip: MaybeType<string>,
-    @Query('take') take: MaybeType<string>,
-  ) {
-    const _take = checkIsNumber(take) ? Number(take) : undefined;
-    const _skip = checkIsNumber(skip) ? Number(skip) : undefined;
-
+  async commentByParent(@Param('parent') parent: string) {
     const [comments, count] = await this.commentService.findAllAndCount({
       where: { comment_parent: { _id: parent } },
-      skip: _skip,
-      take: _take,
       relations: { comment_parent: true, created_by: true },
+      order: { created_at: 'DESC' },
     });
 
     return { comments, count };
