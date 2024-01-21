@@ -25,15 +25,27 @@ export class SessionModule implements OnModuleInit {
 
   async onModuleInit() {
     console.log('start cache session');
-    const sessions = await this.sessionService.findAll({
-      relations: { created_by: true },
+
+    const currentTime = new Date().getTime();
+
+    const sessions = (
+      await this.sessionService.findAll({
+        relations: { created_by: true },
+      })
+    ).filter((session) => {
+      return (
+        new Date(session.created_at).getTime() + session.expires_in >
+        currentTime
+      );
     });
+
     for (const session of sessions) {
       const token: IRefreshJwtPayload = {
         key: session.token_key,
         member_id: session.created_by._id,
         session_id: session._id,
       };
+
       await this.tokenService.cacheRefreshToken({
         token,
         expires: session.expires_in,

@@ -17,6 +17,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { MemberService } from '../member/member.service';
 import { SessionService } from './session.service';
 import { TokenService } from '@/auth/token/token.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Controller('session')
 @ApiTags('session')
@@ -146,5 +147,27 @@ export class SessionController {
     await this.sessionService.delete(token.session_id);
 
     return { message: 'logout success' };
+  }
+
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async handleCron() {
+    const sessions = await this.sessionService.findAll({
+      select: { _id: true, expires_in: true, created_at: true },
+    });
+
+    const currentTime = new Date().getTime();
+
+    const sessionsExpr = sessions.filter((session) => {
+      return (
+        new Date(session.created_at).getTime() + session.expires_in <
+        currentTime
+      );
+    });
+
+    if (sessionsExpr.length > 0) {
+      await this.sessionService.delete(
+        sessionsExpr.map((sessions) => sessions._id),
+      );
+    }
   }
 }

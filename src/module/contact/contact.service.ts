@@ -49,7 +49,7 @@ export class ContactService implements IBaseService<ContactEntity> {
   }
 
   async create(instance: DeepPartial<ContactEntity>): Promise<ContactEntity> {
-    return await this.contactRepository.create(instance);
+    return await this.contactRepository.save(instance);
   }
 
   async update(
