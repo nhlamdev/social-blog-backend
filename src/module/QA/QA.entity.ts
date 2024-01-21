@@ -7,11 +7,15 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { MemberEntity } from '../member/member.entity';
+import { FileEntity } from '../file/file.entity';
 
 @Entity('question_answer')
 export class QAEntity extends AbstractEntity {
   @PrimaryGeneratedColumn('uuid')
   _id: string;
+
+  @Column({ type: 'text', nullable: false })
+  title: string;
 
   @Column({ type: 'text', nullable: false })
   body: string;
@@ -44,6 +48,11 @@ export class QAEntity extends AbstractEntity {
     onDelete: 'CASCADE',
   })
   answers: QAEntity[];
+
+  @OneToMany(() => FileEntity, (file) => file.qa, {
+    onDelete: 'CASCADE',
+  })
+  files: FileEntity[];
 
   @ManyToOne(() => MemberEntity)
   created_by: MemberEntity;
