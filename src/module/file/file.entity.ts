@@ -20,8 +20,11 @@ export class FileEntity extends AbstractEntity {
   @Column({ type: 'json', nullable: true })
   shape?: { width: number; height: number };
 
-  @Column({ type: 'integer', nullable: false })
+  @Column({ type: 'boolean', nullable: false })
   size: number;
+
+  @Column({ type: 'boolean', nullable: true, default: false })
+  resized: boolean;
 
   @ManyToOne(() => QAEntity, (member) => member.files)
   qa: QAEntity;
