@@ -159,7 +159,7 @@ export class SessionController {
 
     const sessionsExpr = sessions.filter((session) => {
       return (
-        new Date(session.created_at).getTime() + session.expires_in <
+        new Date(session.created_at).getTime() + session.expires_in * 1000 <
         currentTime
       );
     });
