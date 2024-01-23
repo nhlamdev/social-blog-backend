@@ -1,5 +1,6 @@
 import { MemberService } from './../member/member.service';
 import {
+  Body,
   Controller,
   ForbiddenException,
   Get,
@@ -21,6 +22,7 @@ import { IAccessJwtPayload } from '@/shared/types';
 import { MaybeType } from '@/shared/utils/types/maybe.type';
 import { checkIsNumber } from '@/shared/utils/global-func';
 import { ILike } from 'typeorm';
+import { UploadFileDto } from './file.dto';
 
 @ApiTags('files')
 @Controller({
@@ -131,6 +133,7 @@ export class FileController {
   )
   async uploadFile(
     @Req() req,
+    @Body() body: UploadFileDto,
     @UploadedFile('files') files: Express.Multer.File,
   ) {
     const jwtPayload: IAccessJwtPayload = req.user;

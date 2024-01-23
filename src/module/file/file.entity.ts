@@ -3,6 +3,8 @@ import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { MemberEntity } from '../member/member.entity';
 import { QAEntity } from '../QA/QA.entity';
 
+type TypeSizedImage = 'original' | 'big' | 'normal' | 'small' | 'thumbnail';
+
 @Entity('file')
 export class FileEntity extends AbstractEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -20,11 +22,11 @@ export class FileEntity extends AbstractEntity {
   @Column({ type: 'json', nullable: true })
   shape?: { width: number; height: number };
 
-  @Column({ type: 'boolean', nullable: false })
+  @Column({ type: 'number', nullable: false })
   size: number;
 
-  @Column({ type: 'boolean', nullable: true, default: false })
-  resized: boolean;
+  @Column({ type: 'text', array: true, nullable: false, default: [] })
+  size_allowed?: TypeSizedImage[];
 
   @ManyToOne(() => QAEntity, (member) => member.files)
   qa: QAEntity;

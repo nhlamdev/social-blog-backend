@@ -69,17 +69,22 @@ export class FileService {
       if (file.mimetype.startsWith('image')) {
         newFile.shape = shape;
 
-        this.optimizeConfig
-          .filter((v) => {
-            return v.size < height || v.size < width;
-          })
-          .forEach(async (config) => {
-            await this.optimize_image(image, {
-              fileName: file.filename,
-              size: config.size,
-              key: config.key,
-            });
+        const size_allowed = this.optimizeConfig.filter((v) => {
+          return v.size < height || v.size < width;
+        });
+
+        newFile.size_allowed = [
+          'original',
+          ...size_allowed.map((v) => v.key as any),
+        ];
+
+        size_allowed.forEach(async (config) => {
+          await this.optimize_image(image, {
+            fileName: file.filename,
+            size: config.size,
+            key: config.key,
           });
+        });
       }
 
       return this.fileRepository.save(newFile);
