@@ -22,7 +22,7 @@ export class FileEntity extends AbstractEntity {
   @Column({ type: 'json', nullable: true })
   shape?: { width: number; height: number };
 
-  @Column({ type: 'number', nullable: false })
+  @Column({ type: 'integer', nullable: false })
   size: number;
 
   @Column({ type: 'text', array: true, nullable: false, default: [] })

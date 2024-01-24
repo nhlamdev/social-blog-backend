@@ -1,4 +1,4 @@
-import { IBaseService } from '@/shared/base/IBase.service';
+import { IBaseRepository } from '@/shared/base/IBase.repository';
 import { Injectable } from '@nestjs/common';
 import { CategoryEntity } from './category.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,7 +8,7 @@ import { TypeTypeOrmCriteria } from '@/shared/utils/criteria-key.typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 @Injectable()
-export class CategoryRepository implements IBaseService<CategoryEntity> {
+export class CategoryRepository implements IBaseRepository<CategoryEntity> {
   constructor(
     @InjectRepository(CategoryEntity)
     private categoryRepository: Repository<CategoryEntity>,

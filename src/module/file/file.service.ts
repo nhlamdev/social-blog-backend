@@ -1,32 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, Repository } from 'typeorm';
-import * as sharp from 'sharp';
-import * as fs from 'fs';
 import { OptimizeImageConfig } from '@/constants/common/image';
-import { FileEntity } from './file.entity';
+import { Injectable } from '@nestjs/common';
+import * as fs from 'fs';
+import * as sharp from 'sharp';
 import { MemberEntity } from '../member/member.entity';
+import { FileEntity } from './file.entity';
+import { FileRepository } from './file.repository';
 
 @Injectable()
-export class FileService {
+export class FileService extends FileRepository {
   private optimizeConfig = OptimizeImageConfig;
-
-  constructor(
-    @InjectRepository(FileEntity)
-    private readonly fileRepository: Repository<FileEntity>,
-  ) {}
-
-  async findAll(options?: FindManyOptions<FileEntity>) {
-    return await this.fileRepository.find(options);
-  }
-
-  async findAllAndCount(
-    options?: FindManyOptions<FileEntity>,
-  ): Promise<{ result: FileEntity[]; count: number }> {
-    const [result, count] = await this.fileRepository.findAndCount(options);
-
-    return { result, count };
-  }
 
   async optimize_image(
     image: sharp.Sharp,
@@ -87,7 +69,7 @@ export class FileService {
         });
       }
 
-      return this.fileRepository.save(newFile);
+      return this.create(newFile);
     });
     return Promise.all(filesCreate);
   }

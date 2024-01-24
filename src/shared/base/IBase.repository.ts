@@ -9,7 +9,7 @@ import {
 import { TypeTypeOrmCriteria } from '../utils/criteria-key.typeorm';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
-export interface IBaseService<Entity> {
+export interface IBaseRepository<Entity> {
   findOne(options?: FindOneOptions<Entity>): Promise<Entity>;
   findAll(options?: FindManyOptions<Entity>): Promise<Entity[]>;
   findAllAndCount(
