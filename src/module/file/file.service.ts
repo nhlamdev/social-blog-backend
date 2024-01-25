@@ -21,7 +21,8 @@ export class FileService extends FileRepository {
         width: options.size,
         height: options.size,
         fit: sharp.fit.inside,
-      }) // Giữ nguyên tỷ lệ aspect ratio
+      })
+      .webp()
       .toBuffer();
 
     if (!fs.existsSync(folderPath)) {
@@ -31,16 +32,11 @@ export class FileService extends FileRepository {
     fs.writeFileSync(`${folderPath}/${options.fileName}`, resizedImageBuffer);
   }
 
-  async saveFile(files, memberCreate: MemberEntity) {
+  async saveFile(files, memberCreate: MemberEntity, isResize: boolean) {
     const filesCreate = Object.keys(files).map(async (key) => {
       const file = files[key];
 
-      const image = await sharp(file.path);
-      const { width, height } = await image.metadata();
-
       const newFile = new FileEntity();
-
-      const shape = { width, height };
 
       newFile.mimeType = file.mimetype;
       newFile.originalName = file.originalname;
@@ -49,28 +45,35 @@ export class FileService extends FileRepository {
       newFile.created_by = memberCreate;
 
       if (file.mimetype.startsWith('image')) {
+        const image = await sharp(file.path);
+        const { width, height } = await image.metadata();
+        const shape = { width, height };
+
         newFile.shape = shape;
 
-        const size_allowed = this.optimizeConfig.filter((v) => {
-          return v.size < height || v.size < width;
-        });
-
-        newFile.size_allowed = [
-          'original',
-          ...size_allowed.map((v) => v.key as any),
-        ];
-
-        size_allowed.forEach(async (config) => {
-          await this.optimize_image(image, {
-            fileName: file.filename,
-            size: config.size,
-            key: config.key,
+        if (isResize) {
+          const size_allowed = this.optimizeConfig.filter((v) => {
+            return v.size < height || v.size < width;
           });
-        });
+
+          newFile.size_allowed = [
+            'original',
+            ...size_allowed.map((v) => v.key as any),
+          ];
+
+          size_allowed.forEach(async (config) => {
+            await this.optimize_image(image, {
+              fileName: file.filename,
+              size: config.size,
+              key: config.key,
+            });
+          });
+        }
       }
 
       return this.create(newFile);
     });
+
     return Promise.all(filesCreate);
   }
 }

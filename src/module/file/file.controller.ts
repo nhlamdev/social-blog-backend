@@ -138,11 +138,13 @@ export class FileController {
   ) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
+    const { isResize } = body;
+
     const member = await this.memberService.findOne({
       where: { _id: jwtPayload._id },
     });
 
-    return this.fileService.saveFile(files, member);
+    return this.fileService.saveFile(files, member, isResize);
   }
 
   @Get(':path')
