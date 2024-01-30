@@ -15,7 +15,6 @@ import { SharedModule } from './helper/shared.module';
 @Module({
   imports: [
     GlobalConfigModule,
-
     CacheModule.register({
       isGlobal: true,
     }),

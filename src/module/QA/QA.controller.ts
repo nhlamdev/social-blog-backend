@@ -1,5 +1,6 @@
 import { checkIsNumber } from '@/shared/utils/global-func';
 import {
+  BadRequestException,
   Controller,
   Delete,
   ForbiddenException,
@@ -114,8 +115,44 @@ export class QAController {
   async createAnswer() {}
 
   @Delete('by-question/:question')
-  async removeQuestion() {}
+  @UseGuards(AuthGuard('jwt-access'))
+  async removeQuestion(@Req() req, @Param('answer') question: string) {
+    const jwtPayload: IAccessJwtPayload = req.user;
+    const _question = await this.qaService.findOne({
+      where: { _id: question },
+      relations: {
+        created_by: true,
+      },
+    });
+
+    if (!Boolean(_question)) {
+      throw new BadRequestException('Dữ liệu không tồn tại.');
+    }
+
+    if (_question.created_by._id !== jwtPayload._id && !jwtPayload.role.owner) {
+      throw new ForbiddenException('Bạn không có quyền thao tác.');
+    }
+
+    await this.qaService.delete(question);
+  }
 
   @Delete('by-answer/:answer')
-  async removeAnswer() {}
+  @UseGuards(AuthGuard('jwt-access'))
+  async removeAnswer(@Req() req, @Param('answer') answer: string) {
+    const jwtPayload: IAccessJwtPayload = req.user;
+    const _answer = await this.qaService.findOne({
+      where: { _id: answer },
+      relations: { created_by: true, question: true },
+    });
+
+    if (!Boolean(_answer)) {
+      throw new BadRequestException('Dữ liệu không tồn tại.');
+    }
+
+    if (_answer.created_by._id !== jwtPayload._id && !jwtPayload.role.owner) {
+      throw new ForbiddenException('Bạn không có quyền thao tác.');
+    }
+
+    return this.qaService.delete(answer);
+  }
 }
