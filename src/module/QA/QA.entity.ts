@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { MemberEntity } from '../member/member.entity';
 import { FileEntity } from '../file/file.entity';
+import { CategoryEntity } from '../category/category.entity';
 
 @Entity('question_answer')
 export class QAEntity extends AbstractEntity {
@@ -19,6 +20,9 @@ export class QAEntity extends AbstractEntity {
 
   @Column({ type: 'text', nullable: false })
   body: string;
+
+  @ManyToOne(() => CategoryEntity, (category) => category.qa)
+  category: CategoryEntity;
 
   @Column({ type: 'text', array: true, nullable: false })
   tags: string[];
