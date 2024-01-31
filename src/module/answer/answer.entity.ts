@@ -26,9 +26,6 @@ export class AnswerEntity extends AbstractEntity {
   @Column({ type: 'text', array: true, nullable: false, default: [] })
   files: string[];
 
-  @Column({ type: 'boolean', nullable: false, default: true })
-  verify: boolean;
-
   @ManyToOne(() => QuestionEntity, (question) => question.answers, {
     onDelete: 'CASCADE',
     nullable: false,

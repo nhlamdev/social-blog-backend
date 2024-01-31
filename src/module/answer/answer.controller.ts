@@ -16,6 +16,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { AnswerService } from './answer.service';
 import { QuestionService } from '../question/question.service';
+import { CreateAnswerDto } from './answer.dto';
 
 @Controller('answer')
 @ApiTags('answer')
@@ -88,7 +89,7 @@ export class AnswerController {
   @Post('by-parent/:parent')
   async postByParent(
     @Req() req,
-    @Body() body: any,
+    @Body() body: CreateAnswerDto,
     @Param('parent') parent: string,
   ) {
     const jwtPayload: IAccessJwtPayload = req.user;
