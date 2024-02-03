@@ -7,7 +7,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { AnswerEntity } from '../answer/answer.entity';
-import { CategoryEntity } from '../category/category.entity';
 import { MemberEntity } from '../member/member.entity';
 
 @Entity('question')
@@ -20,9 +19,6 @@ export class QuestionEntity extends AbstractEntity {
 
   @Column({ type: 'text', nullable: false })
   body: string;
-
-  @ManyToOne(() => CategoryEntity, (category) => category.qa)
-  category: CategoryEntity;
 
   @Column({ type: 'text', array: true, nullable: false })
   tags: string[];

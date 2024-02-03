@@ -82,7 +82,7 @@ export class QuestionController {
       title: body.title,
       body: body.body,
       tags: body.tags,
-      category: body,
+      // category: body.category,
       files: body.files,
       created_by: { _id: jwtPayload._id },
     });
