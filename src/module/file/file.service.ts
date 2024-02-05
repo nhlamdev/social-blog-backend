@@ -4,11 +4,26 @@ import * as fs from 'fs';
 import * as sharp from 'sharp';
 import { MemberEntity } from '../member/member.entity';
 import { FileEntity } from './file.entity';
-import { FileRepository } from './file.repository';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import * as minio from 'minio';
 
 @Injectable()
-export class FileService extends FileRepository {
-  private optimizeConfig = OptimizeImageConfig;
+export class FileService {
+  private readonly optimizeConfig = OptimizeImageConfig;
+
+  private readonly minio = new minio.Client({
+    endPoint: process.env.MINIO_ENDPOINT as string,
+    port: parseInt(process.env.MINIO_PORT || '9000'),
+    useSSL: process.env.MINIO_USE_SSL === 'true',
+    accessKey: process.env.MINIO_ACCESS_KEY as string,
+    secretKey: process.env.MINIO_SECRET_KEY as string,
+  });
+
+  constructor(
+    @InjectRepository(FileEntity)
+    public readonly repository: Repository<FileEntity>,
+  ) {}
 
   async optimize_image(
     image: sharp.Sharp,
@@ -71,7 +86,7 @@ export class FileService extends FileRepository {
         }
       }
 
-      return this.create(newFile);
+      return this.repository.save(newFile);
     });
 
     return Promise.all(filesCreate);

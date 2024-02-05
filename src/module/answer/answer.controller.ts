@@ -28,15 +28,13 @@ export class AnswerController {
 
   @Get('by-question/:question')
   async getByQuestion(@Param('question') question: string) {
-    const { count, result: answers } = await this.answerService.findAllAndCount(
-      {
-        where: { question: { _id: question } },
-        relations: {
-          question: true,
-          created_by: true,
-        },
+    const [answers, count] = await this.answerService.repository.findAndCount({
+      where: { question: { _id: question } },
+      relations: {
+        question: true,
+        created_by: true,
       },
-    );
+    });
 
     return { count, answers };
   }
@@ -44,15 +42,13 @@ export class AnswerController {
   @Get('by-parent/:parent')
   @UseGuards(AuthGuard('jwt-access'))
   async getByParent(@Param('parent') parent: string) {
-    const { count, result: answers } = await this.answerService.findAllAndCount(
-      {
-        where: { answer_parent: { _id: parent } },
-        relations: {
-          answer_parent: true,
-          created_by: true,
-        },
+    const [answers, count] = await this.answerService.repository.findAndCount({
+      where: { answer_parent: { _id: parent } },
+      relations: {
+        answer_parent: true,
+        created_by: true,
       },
-    );
+    });
 
     return { count, answers };
   }
@@ -66,7 +62,7 @@ export class AnswerController {
   ) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const _question = await this.questionService.findOne({
+    const _question = await this.questionService.repository.findOne({
       where: {
         _id: question,
         created_by: { _id: jwtPayload._id },
@@ -78,7 +74,7 @@ export class AnswerController {
       throw new BadRequestException('Câu hỏi không tồn tại');
     }
 
-    await this.answerService.create({
+    await this.answerService.repository.save({
       content: body.content,
       files: body.files,
       question: _question,
@@ -94,7 +90,7 @@ export class AnswerController {
   ) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const _parent = await this.answerService.findOne({
+    const _parent = await this.answerService.repository.findOne({
       where: {
         _id: parent,
         created_by: { _id: jwtPayload._id },
@@ -106,7 +102,7 @@ export class AnswerController {
       throw new BadRequestException('Câu hỏi không tồn tại');
     }
 
-    await this.answerService.create({
+    await this.answerService.repository.save({
       content: body.content,
       files: body.files,
       answer_parent: _parent,
@@ -120,7 +116,7 @@ export class AnswerController {
   async upVote(@Req() req, @Param('answer') answer: string) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const _answer = await this.answerService.findOne({
+    const _answer = await this.answerService.repository.findOne({
       where: { _id: answer },
     });
 
@@ -131,12 +127,12 @@ export class AnswerController {
     const { member_down_vote, member_up_vote } = _answer;
 
     if (member_up_vote.includes(jwtPayload._id)) {
-      await this.answerService.update(answer, {
+      await this.answerService.repository.update(answer, {
         member_up_vote: member_up_vote.filter((v) => v !== jwtPayload._id),
         member_down_vote: member_down_vote.filter((v) => v !== jwtPayload._id),
       });
     } else {
-      await this.answerService.update(answer, {
+      await this.answerService.repository.update(answer, {
         member_up_vote: [...member_up_vote, jwtPayload._id],
         member_down_vote: member_down_vote.filter((v) => v !== jwtPayload._id),
       });
@@ -148,7 +144,7 @@ export class AnswerController {
   async downVote(@Req() req, @Param('answer') answer: string) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const _answer = await this.answerService.findOne({
+    const _answer = await this.answerService.repository.findOne({
       where: { _id: answer },
     });
 
@@ -159,12 +155,12 @@ export class AnswerController {
     const { member_down_vote, member_up_vote } = _answer;
 
     if (member_down_vote.includes(jwtPayload._id)) {
-      await this.answerService.update(_answer._id, {
+      await this.answerService.repository.update(_answer._id, {
         member_up_vote: member_up_vote.filter((v) => v !== jwtPayload._id),
         member_down_vote: member_down_vote.filter((v) => v !== jwtPayload._id),
       });
     } else {
-      await this.answerService.update(_answer._id, {
+      await this.answerService.repository.update(_answer._id, {
         member_up_vote: member_up_vote.filter((v) => v !== jwtPayload._id),
         member_down_vote: [...member_down_vote, jwtPayload._id],
       });
@@ -175,7 +171,7 @@ export class AnswerController {
   @UseGuards(AuthGuard('jwt-access'))
   async removeQuestion(@Req() req, @Param('id') id: string) {
     const jwtPayload: IAccessJwtPayload = req.user;
-    const _question = await this.answerService.findOne({
+    const _question = await this.answerService.repository.findOne({
       where: { _id: id },
       relations: {
         created_by: true,
@@ -190,6 +186,6 @@ export class AnswerController {
       throw new ForbiddenException('Bạn không có quyền thao tác.');
     }
 
-    await this.answerService.delete(id);
+    await this.answerService.repository.delete(id);
   }
 }

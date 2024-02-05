@@ -37,13 +37,15 @@ export class ContactController {
       throw new ForbiddenException('Bạn không có quyền thao tác');
     }
 
-    const { result, count } = await this.contactService.findAllAndCount({
-      where: { title: query.search ? ILike(query.search) : undefined },
-      take: query.take,
-      skip: query.skip,
-    });
+    const [contacts, count] = await this.contactService.repository.findAndCount(
+      {
+        where: { title: query.search ? ILike(query.search) : undefined },
+        take: query.take,
+        skip: query.skip,
+      },
+    );
 
-    return { contacts: result, count };
+    return { contacts, count };
   }
 
   @Post()
@@ -51,7 +53,7 @@ export class ContactController {
   async create(@Req() req, @Body() body: ContactDto) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const member = await this.memberService.findOne({
+    const member = await this.memberService.repository.findOne({
       where: { _id: jwtPayload._id },
     });
 
@@ -59,7 +61,7 @@ export class ContactController {
       throw new BadRequestException('Thành viên không tồn tại');
     }
 
-    return await this.contactService.create({
+    return await this.contactService.repository.save({
       title: body.title,
       description: body.description,
       created_by: member,
@@ -75,6 +77,6 @@ export class ContactController {
       throw new ForbiddenException('Bạn không có quyền thao tác');
     }
 
-    return await this.contactService.delete(contact);
+    return await this.contactService.repository.delete(contact);
   }
 }

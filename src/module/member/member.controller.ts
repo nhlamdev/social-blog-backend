@@ -61,24 +61,22 @@ export class MemberController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    const { result: members, count } = await this.memberService.findAllAndCount(
-      {
-        skip: _skip,
-        take: _take,
-        where: {
-          name: Like(_search),
-        },
+    const [members, count] = await this.memberService.repository.findAndCount({
+      skip: _skip,
+      take: _take,
+      where: {
+        name: Like(_search),
       },
-    );
+    });
 
     const membersWithCountStatus = await Promise.all(
       members.map(async (member) => {
-        const content_count = await this.contentService.count({
+        const content_count = await this.contentService.repository.count({
           where: { created_by: { _id: member._id } },
           relations: { created_by: true },
         });
 
-        const series_count = await this.seriesService.count({
+        const series_count = await this.seriesService.repository.count({
           where: { created_by: { _id: member._id } },
           relations: { created_by: true },
         });
@@ -113,22 +111,22 @@ export class MemberController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    const { result: members, count } = await this.memberService.findAllAndCount(
-      {
-        skip: _skip,
-        take: _take,
-        where: {
-          name: Like(_search),
-        },
+    const [members, count] = await this.memberService.repository.findAndCount({
+      skip: _skip,
+      take: _take,
+      where: {
+        name: Like(_search),
       },
-    );
+    });
 
     return { members, count };
   }
 
   @Get('by-id/:id')
   async author(@Param('id') id: string) {
-    const member = await this.memberService.findOne({ where: { _id: id } });
+    const member = await this.memberService.repository.findOne({
+      where: { _id: id },
+    });
 
     if (!Boolean(member)) {
       throw new NotFoundException('Không tìm thấy thành viên');
@@ -139,7 +137,7 @@ export class MemberController {
 
   @Get('followers/:author')
   async memberFollowerAuthor(@Param('author') author: string) {
-    const _author = await this.memberService.findOne({
+    const _author = await this.memberService.repository.findOne({
       select: { follow_by: true },
       where: { _id: author },
     });
@@ -147,7 +145,7 @@ export class MemberController {
     const followers = await Promise.all(
       _author.follow_by
         .map((follower) => {
-          return this.memberService.findOne({
+          return this.memberService.repository.findOne({
             where: { _id: follower },
           });
         })
@@ -162,7 +160,7 @@ export class MemberController {
   async update(@Req() req, @Body() body: MemberUpdateDto) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    return await this.memberService.update(jwtPayload._id, {
+    return await this.memberService.repository.update(jwtPayload._id, {
       name: body.name,
       image: body.image,
     });
@@ -181,13 +179,15 @@ export class MemberController {
       throw new ForbiddenException('Bạn không có quyền hạn');
     }
 
-    const exist = await this.memberService.findOne({ where: { _id: member } });
+    const exist = await this.memberService.repository.findOne({
+      where: { _id: member },
+    });
 
     if (!exist) {
       throw new BadRequestException('Thành viên không tồn tại.');
     }
 
-    await this.memberService.update(member, {
+    await this.memberService.repository.update(member, {
       role_author: body.author,
       role_comment: body.comment,
     });
@@ -198,7 +198,7 @@ export class MemberController {
   async changeFollower(@Req() req, @Param('author') author: string) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const _author = await this.memberService.findOne({
+    const _author = await this.memberService.repository.findOne({
       where: { _id: author },
     });
 
@@ -212,6 +212,8 @@ export class MemberController {
       followers.push(jwtPayload._id);
     }
 
-    return await this.memberService.update(author, { follow_by: followers });
+    return await this.memberService.repository.update(author, {
+      follow_by: followers,
+    });
   }
 }

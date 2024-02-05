@@ -6,7 +6,7 @@ import { Injectable } from '@nestjs/common';
 export class SocialService {
   constructor(private readonly memberService: MemberService) {}
   async socialVerifyExist(payload: ISocialPayload) {
-    const member = await this.memberService.findOne({
+    const member = await this.memberService.repository.findOne({
       where: { email: payload.email },
     });
 
@@ -16,7 +16,7 @@ export class SocialService {
       const newMember = new MemberEntity();
       newMember.name = payload.name;
       newMember.email = payload.email;
-      return await this.memberService.create(newMember);
+      return await this.memberService.repository.save(newMember);
     }
   }
 }

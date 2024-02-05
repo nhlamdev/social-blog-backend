@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { SeriesRepository } from './series.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { SeriesEntity } from './series.entity';
 
 @Injectable()
-export class SeriesService extends SeriesRepository {}
+export class SeriesService {
+  constructor(
+    @InjectRepository(SeriesEntity)
+    public readonly repository: Repository<SeriesEntity>,
+  ) {}
+}

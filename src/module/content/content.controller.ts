@@ -74,8 +74,8 @@ export class ContentController {
         typeOrder === 'ASC' ? 'ASC' : 'DESC',
     };
 
-    const { result: contents, count } =
-      await this.contentService.findAllAndCount({
+    const [contents, count] = await this.contentService.repository.findAndCount(
+      {
         where: {
           title: ILike(_search),
           category: { _id: category },
@@ -88,11 +88,12 @@ export class ContentController {
         take: _take,
         relations: { created_by: true, series: true, category: true },
         order: order,
-      });
+      },
+    );
 
     const contentsWithCountContent = await Promise.all(
       contents.map(async (content) => {
-        const count_comments = await this.commentService.count({
+        const count_comments = await this.commentService.repository.count({
           where: { content: { _id: content._id } },
           relations: { content: true },
         });
@@ -122,7 +123,8 @@ export class ContentController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    const builder = await this.contentService.builder();
+    const builder =
+      await this.contentService.repository.createQueryBuilder('content');
     const contents = await builder
       .leftJoinAndSelect('content.category', 'category')
       .leftJoinAndSelect('content.series', 'series')
@@ -139,7 +141,7 @@ export class ContentController {
       .getMany();
 
     const contentsWithCountComment = contents.map(async (content) => {
-      const count_comments = await this.commentService.count({
+      const count_comments = await this.commentService.repository.count({
         where: { content: { _id: content._id } },
         relations: { content: true },
       });
@@ -168,7 +170,8 @@ export class ContentController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    const builder = await this.contentService.builder();
+    const builder =
+      await this.contentService.repository.createQueryBuilder('content');
     const contents = await builder
       .leftJoinAndSelect('content.category', 'category')
       .leftJoinAndSelect('content.series', 'series')
@@ -215,22 +218,21 @@ export class ContentController {
       ? caseSort
       : CASE_SORT[0];
 
-    const { result: contents, count } =
-      await this.contentService.findAllAndCount({
-        where: {
-          title: ILike(_search),
-          category: { _id: category },
-          series: { _id: series },
-          created_by: { _id: jwtPayload._id },
-        },
-        skip: _skip,
-        take: _take,
-        relations: { created_by: true, category: true, series: true },
-        order: {
-          [keyOder === 'NAME' ? 'title' : 'created_at']:
-            typeOrder === 'ASC' ? 'ASC' : 'DESC',
-        },
-      });
+    const [contents, count] = await this.contentService.repository.find({
+      where: {
+        title: ILike(_search),
+        category: { _id: category },
+        series: { _id: series },
+        created_by: { _id: jwtPayload._id },
+      },
+      skip: _skip,
+      take: _take,
+      relations: { created_by: true, category: true, series: true },
+      order: {
+        [keyOder === 'NAME' ? 'title' : 'created_at']:
+          typeOrder === 'ASC' ? 'ASC' : 'DESC',
+      },
+    });
 
     return { contents, count };
   }
@@ -259,7 +261,7 @@ export class ContentController {
       ? caseSort
       : CASE_SORT[0];
 
-    return this.contentService.findAll({
+    return this.contentService.repository.find({
       where: {
         title: ILike(_search),
         created_by: { _id: jwtPayload._id },
@@ -288,18 +290,20 @@ export class ContentController {
 
     const { outside, skip, take, search } = query;
 
-    const { result, count } = await this.contentService.findAllAndCount({
-      where: {
-        title: search ? ILike(search) : undefined,
-        category: { _id: outside ? Not(category) : category },
-        created_by: { _id: jwtPayload._id },
+    const [contents, count] = await this.contentService.repository.findAndCount(
+      {
+        where: {
+          title: search ? ILike(search) : undefined,
+          category: { _id: outside ? Not(category) : category },
+          created_by: { _id: jwtPayload._id },
+        },
+        skip: skip,
+        take: take,
+        relations: { category: true },
       },
-      skip: skip,
-      take: take,
-      relations: { category: true },
-    });
+    );
 
-    return { contents: result, count };
+    return { contents, count };
   }
 
   @Get('by-series/:series')
@@ -313,22 +317,24 @@ export class ContentController {
 
     const { outside, search, skip, take } = query;
 
-    const { result, count } = await this.contentService.findAllAndCount({
-      where: [
-        {
-          title: search ? ILike(search) : undefined,
-          series: outside
-            ? [{ _id: Not(series) }, { _id: IsNull() }]
-            : { _id: series },
-          created_by: { _id: jwtPayload._id },
-        },
-      ],
-      skip: skip,
-      take: take,
-      relations: { series: true },
-    });
+    const [contents, count] = await this.contentService.repository.findAndCount(
+      {
+        where: [
+          {
+            title: search ? ILike(search) : undefined,
+            series: outside
+              ? [{ _id: Not(series) }, { _id: IsNull() }]
+              : { _id: series },
+            created_by: { _id: jwtPayload._id },
+          },
+        ],
+        skip: skip,
+        take: take,
+        relations: { series: true },
+      },
+    );
 
-    return { contents: result, count };
+    return { contents, count };
   }
 
   @Get('tags-and-count')
@@ -339,7 +345,7 @@ export class ContentController {
     const _take = checkIsNumber(take) ? Number(take) : null;
 
     const tagsSelect = (
-      await this.contentService.findAll({
+      await this.contentService.repository.find({
         select: { tags: true },
         where: { complete: true, public: true, created_by: { _id: author } },
       })
@@ -373,7 +379,7 @@ export class ContentController {
 
   @Get('by-id/:id')
   async contentById(@Param('id') id: string) {
-    const content = await this.contentService.findOne({
+    const content = await this.contentService.repository.findOne({
       where: { _id: id, public: true, complete: true },
       relations: {
         created_by: true,
@@ -387,7 +393,7 @@ export class ContentController {
       throw new BadRequestException('Bài viết không tồn tại.');
     }
 
-    await this.contentService.update(content._id, {
+    await this.contentService.repository.update(content._id, {
       count_view: content.count_view + 1,
     });
 
@@ -399,7 +405,7 @@ export class ContentController {
   async privateContentById(@Req() req, @Param('id') id: string) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const content = await this.contentService.findOne({
+    const content = await this.contentService.repository.findOne({
       where: { _id: id },
       relations: {
         created_by: true,
@@ -423,7 +429,8 @@ export class ContentController {
   @Get('random')
   async randomContents(@Query('take') take: MaybeType<string>) {
     const _take = checkIsNumber(take) ? Number(take) : null;
-    const builder = await this.contentService.builder();
+    const builder =
+      await this.contentService.repository.createQueryBuilder('content');
 
     const contents = builder
       .leftJoinAndSelect('content.category', 'category')
@@ -443,7 +450,7 @@ export class ContentController {
   async moreComment(@Query('take') take: MaybeType<string>) {
     const _take = checkIsNumber(take) ? Number(take) : undefined;
 
-    const contents = await this.contentService.findAll({
+    const contents = await this.contentService.repository.find({
       take: _take,
       order: { count_view: 'DESC' },
       relations: {
@@ -460,7 +467,8 @@ export class ContentController {
   async moreViews(@Query('take') take: MaybeType<string>) {
     const _take = checkIsNumber(take) ? Number(take) : undefined;
 
-    const builder = await this.contentService.builder();
+    const builder =
+      await this.contentService.repository.createQueryBuilder('content');
 
     const contents = await builder
       .leftJoinAndSelect('content.comments', 'comments')
@@ -504,7 +512,7 @@ export class ContentController {
     if (!jwtPayload.role.author && !jwtPayload.role.owner) {
       throw new ForbiddenException('Bạn không có quyền hạn');
     }
-    const category = await this.categoryService.findOne({
+    const category = await this.categoryService.repository.findOne({
       where: { _id: body.category },
     });
 
@@ -512,11 +520,11 @@ export class ContentController {
       throw new BadRequestException('Bạn chưa chọn thể loại.');
     }
 
-    const member = await this.memberRepository.findOne({
+    const member = await this.memberRepository.repository.findOne({
       where: { _id: jwtPayload._id },
     });
 
-    const content = await this.contentService.create({
+    const content = await this.contentService.repository.save({
       title: body.title,
       body: body.body,
       tags: body.tags,
@@ -534,11 +542,11 @@ export class ContentController {
       }/${date.getFullYear()}`;
 
       member.follow_by.forEach(async (m) => {
-        const follower = await this.memberRepository.findOne({
+        const follower = await this.memberRepository.repository.findOne({
           where: { _id: m },
         });
 
-        this.notificationService.create({
+        this.notificationService.repository.save({
           title: `vừa mới đăng tải bài viết ${body.title}`,
           from: jwtPayload._id,
           to: m,
@@ -568,7 +576,7 @@ export class ContentController {
   async upVote(@Req() req, @Param('id') id: string) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const content = await this.contentService.findOne({
+    const content = await this.contentService.repository.findOne({
       where: { _id: id, complete: true, public: true },
     });
 
@@ -579,12 +587,12 @@ export class ContentController {
     const { member_down_vote, member_up_vote } = content;
 
     if (member_up_vote.includes(jwtPayload._id)) {
-      await this.contentService.update(content._id, {
+      await this.contentService.repository.update(content._id, {
         member_up_vote: member_up_vote.filter((v) => v !== jwtPayload._id),
         member_down_vote: member_down_vote.filter((v) => v !== jwtPayload._id),
       });
     } else {
-      await this.contentService.update(content._id, {
+      await this.contentService.repository.update(content._id, {
         member_up_vote: [...member_up_vote, jwtPayload._id],
         member_down_vote: member_down_vote.filter((v) => v !== jwtPayload._id),
       });
@@ -596,7 +604,7 @@ export class ContentController {
   async downVote(@Req() req, @Param('id') id: string) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const content = await this.contentService.findOne({
+    const content = await this.contentService.repository.findOne({
       where: { _id: id, complete: true, public: true },
     });
 
@@ -607,12 +615,12 @@ export class ContentController {
     const { member_down_vote, member_up_vote } = content;
 
     if (member_down_vote.includes(jwtPayload._id)) {
-      await this.contentService.update(content._id, {
+      await this.contentService.repository.update(content._id, {
         member_up_vote: member_up_vote.filter((v) => v !== jwtPayload._id),
         member_down_vote: member_down_vote.filter((v) => v !== jwtPayload._id),
       });
     } else {
-      await this.contentService.update(content._id, {
+      await this.contentService.repository.update(content._id, {
         member_up_vote: member_up_vote.filter((v) => v !== jwtPayload._id),
         member_down_vote: [...member_down_vote, jwtPayload._id],
       });
@@ -624,7 +632,7 @@ export class ContentController {
   async bookmarkAction(@Req() req, @Param('id') id: string) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const content = await this.contentService.findOne({
+    const content = await this.contentService.repository.findOne({
       where: { _id: id, complete: true, public: true },
     });
 
@@ -635,11 +643,11 @@ export class ContentController {
     const { bookmark_by } = content;
 
     if (bookmark_by.includes(jwtPayload._id)) {
-      await this.contentService.update(content._id, {
+      await this.contentService.repository.update(content._id, {
         bookmark_by: bookmark_by.filter((v) => v !== jwtPayload._id),
       });
     } else {
-      await this.contentService.update(content._id, {
+      await this.contentService.repository.update(content._id, {
         bookmark_by: [...bookmark_by, jwtPayload._id],
       });
     }
@@ -650,7 +658,9 @@ export class ContentController {
   async watch(@Req() req, @Param('id') id: string) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const content = await this.contentService.findOne({ where: { _id: id } });
+    const content = await this.contentService.repository.findOne({
+      where: { _id: id },
+    });
 
     if (content.watches.includes(jwtPayload._id)) {
       return '';
@@ -658,7 +668,7 @@ export class ContentController {
 
     const watches = [...content.watches, jwtPayload._id];
 
-    return await this.contentService.update(id, { watches });
+    return await this.contentService.repository.update(id, { watches });
   }
 
   @Patch(':content/change-category/:category')
@@ -670,11 +680,11 @@ export class ContentController {
   ) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const _content = await this.contentService.findOne({
+    const _content = await this.contentService.repository.findOne({
       where: { _id: content },
       relations: { created_by: true },
     });
-    const _category = await this.categoryService.findOne({
+    const _category = await this.categoryService.repository.findOne({
       where: { _id: category },
     });
 
@@ -687,7 +697,9 @@ export class ContentController {
     }
 
     if (jwtPayload.role.owner || jwtPayload._id === _content.created_by._id) {
-      await this.contentService.update(_content._id, { category: _category });
+      await this.contentService.repository.update(_content._id, {
+        category: _category,
+      });
     } else {
       throw new ForbiddenException('Bạn không có quyền thao tác');
     }
@@ -702,11 +714,11 @@ export class ContentController {
   ) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const _content = await this.contentService.findOne({
+    const _content = await this.contentService.repository.findOne({
       where: { _id: content },
       relations: { created_by: true, series: true },
     });
-    const _series = await this.seriesService.findOne({
+    const _series = await this.seriesService.repository.findOne({
       where: { _id: series },
     });
 
@@ -729,9 +741,13 @@ export class ContentController {
     }
 
     if (_content?.series?._id === series) {
-      await this.contentService.update(_content._id, { series: null });
+      await this.contentService.repository.update(_content._id, {
+        series: null,
+      });
     } else {
-      await this.contentService.update(_content._id, { series: _series });
+      await this.contentService.repository.update(_content._id, {
+        series: _series,
+      });
     }
   }
 
@@ -740,7 +756,9 @@ export class ContentController {
   async update(@Req() req, @Param('id') id: string, @Body() body: ContentDto) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const content = await this.contentService.findOne({ where: { _id: id } });
+    const content = await this.contentService.repository.findOne({
+      where: { _id: id },
+    });
 
     if (
       !(
@@ -751,20 +769,20 @@ export class ContentController {
       throw new ForbiddenException('Bạn không có quyền hạn');
     }
 
-    await this.contentService.update(id, {
+    await this.contentService.repository.update(id, {
       title: body.title,
       body: body.body,
       tags: body.tags,
     });
 
     if (typeof body.public === 'boolean') {
-      await this.contentService.update(id, {
+      await this.contentService.repository.update(id, {
         public: body.public,
       });
     }
 
     if (typeof body.complete === 'boolean') {
-      await this.contentService.update(id, {
+      await this.contentService.repository.update(id, {
         complete: body.complete,
       });
     }
@@ -775,13 +793,15 @@ export class ContentController {
   async delete(@Req() req, @Param('id') id: string) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const content = await this.contentService.findOne({ where: { _id: id } });
+    const content = await this.contentService.repository.findOne({
+      where: { _id: id },
+    });
 
     if (
       jwtPayload.role.owner ||
       (jwtPayload.role.author && content.created_by._id === jwtPayload._id)
     ) {
-      await this.contentService.delete(id);
+      await this.contentService.repository.delete(id);
     } else {
       throw new ForbiddenException('Bạn không có quyền hạn');
     }

@@ -49,7 +49,7 @@ export class SeriesController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    const { result: series, count } = await this.seriesService.findAllAndCount({
+    const [series, count] = await this.seriesService.repository.findAndCount({
       where: { title: ILike(_search), created_by: { _id: author } },
       take: _take,
       skip: _skip,
@@ -59,7 +59,7 @@ export class SeriesController {
 
     const seriesWithCountContent = await Promise.all(
       series.map(async (s) => {
-        const count_contents = await this.contentService.count({
+        const count_contents = await this.contentService.repository.count({
           where: { series: { _id: s._id } },
         });
         return { ...s, count_contents };
@@ -74,7 +74,7 @@ export class SeriesController {
   async owner(@Req() req) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const { result: series, count } = await this.seriesService.findAllAndCount({
+    const [series, count] = await this.seriesService.repository.findAndCount({
       where: { created_by: { _id: jwtPayload._id } },
       order: { created_at: 'DESC' },
       relations: { created_by: true },
@@ -82,7 +82,7 @@ export class SeriesController {
 
     const seriesWithCountContent = await Promise.all(
       series.map(async (series) => {
-        const count = await this.contentService.count({
+        const count = await this.contentService.repository.count({
           where: {
             series: { _id: series._id },
             public: true,
@@ -118,7 +118,7 @@ export class SeriesController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    const { result: series, count } = await this.seriesService.findAllAndCount({
+    const [series, count] = await this.seriesService.repository.findAndCount({
       where: { title: ILike(_search), created_by: { _id: jwtPayload._id } },
       take: _take,
       skip: _skip,
@@ -127,7 +127,7 @@ export class SeriesController {
     });
 
     const seriesWithCountContent = series.map(async (series) => {
-      const count = await this.contentService.count({
+      const count = await this.contentService.repository.count({
         where: {
           series: { _id: series._id },
           public: true,
@@ -144,7 +144,7 @@ export class SeriesController {
 
   @Get('by-id/:id')
   async seriesById(@Param('id') id: string) {
-    const series = await this.seriesService.findOne({
+    const series = await this.seriesService.repository.findOne({
       where: { _id: id },
       relations: { created_by: true },
     });
@@ -158,7 +158,8 @@ export class SeriesController {
 
   @Get('more-avg-views-content')
   async seriesMoreAvgViewContent(@Query('take') take: MaybeType<string>) {
-    const builder = await this.seriesService.builder();
+    const builder =
+      await this.seriesService.repository.createQueryBuilder('series');
 
     const _take = checkIsNumber(take) ? Number(take) : null;
 
@@ -190,11 +191,11 @@ export class SeriesController {
       throw new ForbiddenException('Bạn không có quyền hạn');
     }
 
-    const member = await this.memberService.findOne({
+    const member = await this.memberService.repository.findOne({
       where: { _id: jwtPayload._id },
     });
 
-    return await this.seriesService.create({
+    return await this.seriesService.repository.save({
       title: body.title,
       description: body.description,
       created_by: member,
@@ -206,13 +207,15 @@ export class SeriesController {
   async update(@Req() req, @Param('id') id: string, @Body() body: SeriesDto) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const series = await this.seriesService.findOne({ where: { _id: id } });
+    const series = await this.seriesService.repository.findOne({
+      where: { _id: id },
+    });
 
     if (
       jwtPayload.role.owner ||
       (jwtPayload.role.author && series.created_by._id === jwtPayload._id)
     ) {
-      await this.seriesService.update(id, body);
+      await this.seriesService.repository.update(id, body);
     } else {
       throw new ForbiddenException('Bạn không có quyền hạn');
     }
@@ -223,13 +226,15 @@ export class SeriesController {
   async delete(@Req() req, @Param('id') id: string) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const series = await this.seriesService.findOne({ where: { _id: id } });
+    const series = await this.seriesService.repository.findOne({
+      where: { _id: id },
+    });
 
     if (
       jwtPayload.role.owner ||
       (jwtPayload.role.author && series.created_by._id === jwtPayload._id)
     ) {
-      await this.seriesService.delete(id);
+      await this.seriesService.repository.delete(id);
     } else {
       throw new ForbiddenException('Bạn không có quyền hạn');
     }

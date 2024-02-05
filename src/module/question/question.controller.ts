@@ -44,8 +44,8 @@ export class QuestionController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    const { result: questions, count } =
-      await this.questionService.findAllAndCount({
+    const [questions, count] =
+      await this.questionService.repository.findAndCount({
         where: { title: _search },
         take: _take,
         skip: _skip,
@@ -57,7 +57,7 @@ export class QuestionController {
 
   @Get('by-id/:question')
   async targetQuestion(@Param('question') question: string) {
-    const _question = await this.questionService.findOne({
+    const _question = await this.questionService.repository.findOne({
       where: { _id: question },
       relations: { created_by: true, files: true },
     });
@@ -66,7 +66,7 @@ export class QuestionController {
       throw new Error('Không tìm thấy dữ liệu.');
     }
 
-    await this.questionService.update(question, {
+    await this.questionService.repository.update(question, {
       count_view: _question.count_view + 1,
     });
 
@@ -78,7 +78,7 @@ export class QuestionController {
   async createQuestion(@Req() req, @Body() body: CreateQuestionDto) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    await this.questionService.create({
+    await this.questionService.repository.save({
       title: body.title,
       body: body.body,
       tags: body.tags,
@@ -97,7 +97,7 @@ export class QuestionController {
   ) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const _question = await this.questionService.findOne({
+    const _question = await this.questionService.repository.findOne({
       where: { _id: question },
       relations: { created_by: true },
     });
@@ -113,7 +113,9 @@ export class QuestionController {
       throw new ForbiddenException('Bạn không có quyền thao tác');
     }
 
-    await this.questionService.update(question, { closed: body.closed });
+    await this.questionService.repository.update(question, {
+      closed: body.closed,
+    });
   }
 
   @Patch(':question/vote-up')
@@ -121,7 +123,7 @@ export class QuestionController {
   async upVote(@Req() req, @Param('question') question: string) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const _question = await this.questionService.findOne({
+    const _question = await this.questionService.repository.findOne({
       where: { _id: question },
     });
 
@@ -132,12 +134,12 @@ export class QuestionController {
     const { member_down_vote, member_up_vote } = _question;
 
     if (member_up_vote.includes(jwtPayload._id)) {
-      await this.questionService.update(question, {
+      await this.questionService.repository.update(question, {
         member_up_vote: member_up_vote.filter((v) => v !== jwtPayload._id),
         member_down_vote: member_down_vote.filter((v) => v !== jwtPayload._id),
       });
     } else {
-      await this.questionService.update(question, {
+      await this.questionService.repository.update(question, {
         member_up_vote: [...member_up_vote, jwtPayload._id],
         member_down_vote: member_down_vote.filter((v) => v !== jwtPayload._id),
       });
@@ -149,7 +151,7 @@ export class QuestionController {
   async downVote(@Req() req, @Param('question') question: string) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const _question = await this.questionService.findOne({
+    const _question = await this.questionService.repository.findOne({
       where: { _id: question },
     });
 
@@ -160,12 +162,12 @@ export class QuestionController {
     const { member_down_vote, member_up_vote } = _question;
 
     if (member_down_vote.includes(jwtPayload._id)) {
-      await this.questionService.update(_question._id, {
+      await this.questionService.repository.update(_question._id, {
         member_up_vote: member_up_vote.filter((v) => v !== jwtPayload._id),
         member_down_vote: member_down_vote.filter((v) => v !== jwtPayload._id),
       });
     } else {
-      await this.questionService.update(_question._id, {
+      await this.questionService.repository.update(_question._id, {
         member_up_vote: member_up_vote.filter((v) => v !== jwtPayload._id),
         member_down_vote: [...member_down_vote, jwtPayload._id],
       });
@@ -176,7 +178,7 @@ export class QuestionController {
   @UseGuards(AuthGuard('jwt-access'))
   async removeQuestion(@Req() req, @Param('id') id: string) {
     const jwtPayload: IAccessJwtPayload = req.user;
-    const _question = await this.questionService.findOne({
+    const _question = await this.questionService.repository.findOne({
       where: { _id: id },
       relations: {
         created_by: true,
@@ -191,6 +193,6 @@ export class QuestionController {
       throw new ForbiddenException('Bạn không có quyền thao tác.');
     }
 
-    await this.questionService.delete(id);
+    await this.questionService.repository.delete(id);
   }
 }

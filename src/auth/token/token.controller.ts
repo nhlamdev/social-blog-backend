@@ -34,7 +34,7 @@ export class TokenController {
       throw new BadRequestException('Phiên đăng nhập không hợp lệ.');
     }
 
-    const member = await this.memberService.findOne({
+    const member = await this.memberService.repository.findOne({
       where: { _id: jwtPayload.member_id },
     });
 

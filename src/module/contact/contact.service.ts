@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { contactRepository } from './contact.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ContactEntity } from './contact.entity';
 
 @Injectable()
-export class ContactService extends contactRepository {}
+export class ContactService {
+  constructor(
+    @InjectRepository(ContactEntity)
+    public readonly repository: Repository<ContactEntity>,
+  ) {}
+}

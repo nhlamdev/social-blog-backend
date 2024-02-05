@@ -41,16 +41,18 @@ export class CommentController {
     const _take = checkIsNumber(take) ? Number(take) : undefined;
     const _skip = checkIsNumber(skip) ? Number(skip) : undefined;
 
-    const [comments, count] = await this.commentService.findAllAndCount({
-      where: { content: { _id: content } },
-      skip: _skip,
-      take: _take,
-      relations: { content: true, created_by: true },
-      order: { created_at: 'DESC' },
-    });
+    const [comments, count] = await this.commentService.repository.findAndCount(
+      {
+        where: { content: { _id: content } },
+        skip: _skip,
+        take: _take,
+        relations: { content: true, created_by: true },
+        order: { created_at: 'DESC' },
+      },
+    );
 
     const commentWithCountReplies = comments.map(async (comment) => {
-      const count_replies = await this.commentService.count({
+      const count_replies = await this.commentService.repository.count({
         where: { comment_parent: { _id: comment._id } },
       });
 
@@ -65,11 +67,13 @@ export class CommentController {
 
   @Get('by-parent/:parent')
   async commentByParent(@Param('parent') parent: string) {
-    const [comments, count] = await this.commentService.findAllAndCount({
-      where: { comment_parent: { _id: parent } },
-      relations: { comment_parent: true, created_by: true },
-      order: { created_at: 'DESC' },
-    });
+    const [comments, count] = await this.commentService.repository.findAndCount(
+      {
+        where: { comment_parent: { _id: parent } },
+        relations: { comment_parent: true, created_by: true },
+        order: { created_at: 'DESC' },
+      },
+    );
 
     return { comments, count };
   }
@@ -83,11 +87,11 @@ export class CommentController {
   ) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const _member = await this.memberService.findOne({
+    const _member = await this.memberService.repository.findOne({
       where: { _id: jwtPayload._id },
     });
 
-    const _content = await this.contentService.findOne({
+    const _content = await this.contentService.repository.findOne({
       where: { _id: content },
       relations: { created_by: true },
     });
@@ -100,14 +104,14 @@ export class CommentController {
       throw new BadRequestException('Dữ liệu không đầy đủ.');
     }
 
-    this.notificationService.create({
+    this.notificationService.repository.save({
       from: jwtPayload._id,
       to: _content.created_by._id,
       title: 'vừa bình luận bài viết của bạn',
       url: `/content/${_content._id}`,
     });
 
-    return await this.commentService.create({
+    return await this.commentService.repository.save({
       text: body.text,
       member: _member,
       content: _content,
@@ -123,11 +127,11 @@ export class CommentController {
   ) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const _member = await this.memberService.findOne({
+    const _member = await this.memberService.repository.findOne({
       where: { _id: jwtPayload._id },
     });
 
-    const _parent = await this.commentService.findOne({
+    const _parent = await this.commentService.repository.findOne({
       where: { _id: parent },
       relations: { content: true, created_by: true },
     });
@@ -140,14 +144,14 @@ export class CommentController {
       throw new BadRequestException('Dữ liệu không đầy đủ.');
     }
 
-    this.notificationService.create({
+    this.notificationService.repository.save({
       from: jwtPayload._id,
       to: _parent.created_by._id,
       title: 'vừa bình luận bài viết của bạn',
       url: `/content/${_parent.content._id}`,
     });
 
-    return await this.commentService.create({
+    return await this.commentService.repository.save({
       text: body.text,
       member: _member,
       parent: _parent,
@@ -159,7 +163,7 @@ export class CommentController {
   async deleteComment(@Param('comment') comment: string, @Req() req) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const _comment = await this.commentService.findOne({
+    const _comment = await this.commentService.repository.findOne({
       where: { _id: comment },
       relations: { created_by: true },
     });
@@ -172,6 +176,6 @@ export class CommentController {
       throw new ForbiddenException('Bạn không có quyền xoá bình luận này!');
     }
 
-    return await this.commentService.delete(_comment._id);
+    return await this.commentService.repository.delete(_comment._id);
   }
 }

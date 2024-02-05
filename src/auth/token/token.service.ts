@@ -43,11 +43,11 @@ export class TokenService {
       : 'unknown';
     const os = client.os ? `${client.os.name} ${client.os.version}` : 'unknown';
 
-    const member = await this.memberService.findOne({
+    const member = await this.memberService.repository.findOne({
       where: { _id: member_id },
     });
 
-    const session = await this.sessionService.create({
+    const session = await this.sessionService.repository.save({
       token_key: randomId,
       provider_id: social_payload.id,
       provider: social_payload.provider,

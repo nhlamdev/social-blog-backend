@@ -42,7 +42,9 @@ export class SessionController {
       throw new ForbiddenException('Bạn không có quyền hạn.');
     }
 
-    const _member = await this.memberService.exist({ where: { _id: member } });
+    const _member = await this.memberService.repository.exists({
+      where: { _id: member },
+    });
 
     if (!_member) {
       throw new ForbiddenException('thành viên cần tìm không tồn tại.');
@@ -50,14 +52,15 @@ export class SessionController {
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
 
-    const { result: sessions, count } =
-      await this.sessionService.findAllAndCount({
+    const [sessions, count] = await this.sessionService.repository.findAndCount(
+      {
         skip: _skip,
         take: _take,
         where: { created_by: { _id: member } },
         relations: { created_by: true },
         order: { created_by: 'DESC' },
-      });
+      },
+    );
 
     return { sessions, count };
   }
@@ -74,14 +77,15 @@ export class SessionController {
     const _take = checkIsNumber(take) ? Number(take) : null;
     const _skip = checkIsNumber(skip) ? Number(skip) : null;
 
-    const { result: sessions, count } =
-      await this.sessionService.findAllAndCount({
+    const [sessions, count] = await this.sessionService.repository.findAndCount(
+      {
         skip: _skip,
         take: _take,
         where: { created_by: { _id: jwtPayload._id } },
         relations: { created_by: true },
         order: { created_at: 'DESC' },
-      });
+      },
+    );
 
     return { sessions, count };
   }
@@ -90,7 +94,7 @@ export class SessionController {
   @UseGuards(AuthGuard('jwt-access'))
   async byMember(@Req() req, @Param('skip') id: MaybeType<string>) {
     const jwtPayload: IAccessJwtPayload = req.user;
-    const session = await this.sessionService.findOne({
+    const session = await this.sessionService.repository.findOne({
       where: { _id: id },
       relations: { created_by: true },
     });
@@ -107,7 +111,7 @@ export class SessionController {
   async remove(@Req() req, @Param('session') session: MaybeType<string>) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const _session = await this.sessionService.findOne({
+    const _session = await this.sessionService.repository.findOne({
       where: { _id: session },
       relations: { created_by: true },
     });
@@ -117,7 +121,7 @@ export class SessionController {
     }
 
     if (jwtPayload.role.owner && _session.created_by._id === jwtPayload._id) {
-      await this.sessionService.delete(session);
+      await this.sessionService.repository.delete(session);
       await this.tokenService.removeRefreshTokenByKeyAndMember({
         key: _session.token_key,
         member_id: _session.created_by._id,
@@ -144,14 +148,14 @@ export class SessionController {
       member_id: token.member_id,
     });
 
-    await this.sessionService.delete(token.session_id);
+    await this.sessionService.repository.delete(token.session_id);
 
     return { message: 'logout success' };
   }
 
   @Cron(CronExpression.EVERY_5_MINUTES)
   async handleCron() {
-    const sessions = await this.sessionService.findAll({
+    const sessions = await this.sessionService.repository.find({
       select: { _id: true, expires_in: true, created_at: true },
     });
 
@@ -165,7 +169,7 @@ export class SessionController {
     });
 
     if (sessionsExpr.length > 0) {
-      await this.sessionService.delete(
+      await this.sessionService.repository.delete(
         sessionsExpr.map((sessions) => sessions._id),
       );
     }

@@ -58,14 +58,14 @@ export class FileController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    const { result, count } = await this.fileService.findAllAndCount({
+    const [files, count] = await this.fileService.repository.find({
       where: { fileName: ILike(_search) },
       take: _take,
       skip: _skip,
       order: { created_by: 'DESC' },
     });
 
-    return { files: result, count };
+    return { files, count };
   }
 
   @Get('by-created-member')
@@ -87,14 +87,14 @@ export class FileController {
           .replace(/[\u0300-\u036f]/g, '')}%`
       : '%%';
 
-    const { result, count } = await this.fileService.findAllAndCount({
+    const [files, count] = await this.fileService.repository.find({
       where: { fileName: ILike(_search), created_by: { _id: jwtPayload._id } },
       take: _take,
       skip: _skip,
       order: { created_by: 'DESC' },
     });
 
-    return { files: result, count };
+    return { files, count };
   }
 
   @Post('upload')
@@ -140,7 +140,7 @@ export class FileController {
 
     const { isResize } = body;
 
-    const member = await this.memberService.findOne({
+    const member = await this.memberService.repository.findOne({
       where: { _id: jwtPayload._id },
     });
 

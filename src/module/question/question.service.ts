@@ -1,3 +1,10 @@
-import { QuestionRepository } from './question.repository';
+import { Repository } from 'typeorm';
+import { QuestionEntity } from './question.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
-export class QuestionService extends QuestionRepository {}
+export class QuestionService {
+  constructor(
+    @InjectRepository(QuestionEntity)
+    public readonly repository: Repository<QuestionEntity>,
+  ) {}
+}

@@ -29,7 +29,7 @@ export class SessionModule implements OnModuleInit {
     const currentTime = new Date().getTime();
 
     const sessions = (
-      await this.sessionService.findAll({
+      await this.sessionService.repository.find({
         relations: { created_by: true },
       })
     ).filter((session) => {

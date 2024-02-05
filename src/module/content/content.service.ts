@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { contentRepository } from './content.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ContentEntity } from './content.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
-export class ContentService extends contentRepository {}
+export class ContentService {
+  constructor(
+    @InjectRepository(ContentEntity)
+    public readonly repository: Repository<ContentEntity>,
+  ) {}
+}

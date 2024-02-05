@@ -31,7 +31,7 @@ export class CategoryController {
 
   @Get()
   async categories() {
-    const categories = await this.categoryService.findAll({
+    const categories = await this.categoryService.repository.find({
       order: { created_at: 'DESC' },
     });
 
@@ -40,8 +40,8 @@ export class CategoryController {
 
   @Get('paginate')
   async paginate(@Query() query: PaginationDto) {
-    const { result: categories, count } =
-      await this.categoryService.findAllAndCount({
+    const [categories, count] =
+      await this.categoryService.repository.findAndCount({
         where: { title: query.search ? ILike(query.search) : undefined },
         take: query.take,
         skip: query.skip,
@@ -60,8 +60,8 @@ export class CategoryController {
       throw new ForbiddenException('Bạn không có quyền thao tác');
     }
 
-    const { result: categories, count } =
-      await this.categoryService.findAllAndCount({
+    const [categories, count] =
+      await this.categoryService.repository.findAndCount({
         where: { title: query.search ? ILike(query.search) : undefined },
         take: query.take,
         skip: query.skip,
@@ -69,7 +69,7 @@ export class CategoryController {
       });
 
     const categoriesWithCountContent = categories.map(async (c) => {
-      const count = await this.contentService.count({
+      const count = await this.contentService.repository.count({
         where: { category: { _id: c._id } },
         relations: { category: true },
       });
@@ -82,7 +82,9 @@ export class CategoryController {
 
   @Get('by-id/:id')
   async categoryById(@Param('id') id: string) {
-    const category = await this.categoryService.findOne({ where: { _id: id } });
+    const category = await this.categoryService.repository.findOne({
+      where: { _id: id },
+    });
 
     if (!Boolean(category)) {
       throw new NotFoundException('Thể loại không tồn tại!.');
@@ -93,13 +95,13 @@ export class CategoryController {
 
   @Get('more-contents')
   async topCategoryMorePublicContents() {
-    const categories = await this.categoryService.findAll({
+    const categories = await this.categoryService.repository.find({
       select: { _id: true, title: true, created_at: true },
     });
 
     const categoriesWithCountContent = await Promise.all(
       categories.map(async (category) => {
-        const count = await this.contentService.count({
+        const count = await this.contentService.repository.count({
           where: {
             category: { _id: category._id },
             public: true,
@@ -126,7 +128,7 @@ export class CategoryController {
       throw new ForbiddenException('Bạn không có quyền hạn');
     }
 
-    await this.categoryService.create(body);
+    await this.categoryService.repository.create(body);
   }
 
   @Put(':id')
@@ -138,7 +140,7 @@ export class CategoryController {
       throw new ForbiddenException('Bạn không có quyền hạn');
     }
 
-    await this.categoryService.update(id, body);
+    await this.categoryService.repository.update(id, body);
   }
 
   @Delete(':id')
@@ -150,6 +152,6 @@ export class CategoryController {
       throw new ForbiddenException('Bạn không có quyền hạn');
     }
 
-    return await this.categoryService.delete(id);
+    return await this.categoryService.repository.delete(id);
   }
 }

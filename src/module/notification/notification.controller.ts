@@ -38,12 +38,12 @@ export class NotificationController {
     const _take = checkIsNumber(take) ? Number(take) : undefined;
     const _skip = checkIsNumber(skip) ? Number(skip) : undefined;
 
-    const notifies = await this.notificationService.findAll({
+    const notifies = await this.notificationService.repository.find({
       take: _take,
       skip: _skip,
     });
 
-    const unSeen = await this.notificationService.count({
+    const unSeen = await this.notificationService.repository.count({
       where: { seen: false },
     });
 
@@ -62,18 +62,18 @@ export class NotificationController {
     const _take = checkIsNumber(last) ? Number(last) : undefined;
     const _skip = checkIsNumber(skip) ? Number(skip) : undefined;
 
-    const notifies = await this.notificationService.findAll({
+    const notifies = await this.notificationService.repository.find({
       where: { to: jwtPayload._id },
       take: _take,
       skip: _skip,
     });
 
     const notifiesWithMemberInfo = notifies.map(async (notify) => {
-      const receiver = await this.memberService.findOne({
+      const receiver = await this.memberService.repository.findOne({
         where: { _id: notify.to },
       });
 
-      const sender = await this.memberService.findOne({
+      const sender = await this.memberService.repository.findOne({
         where: { _id: notify.from },
       });
 
@@ -84,7 +84,7 @@ export class NotificationController {
       };
     });
 
-    const unSeen = await this.notificationService.count({
+    const unSeen = await this.notificationService.repository.count({
       where: { to: jwtPayload._id, seen: false },
     });
 
@@ -96,12 +96,12 @@ export class NotificationController {
   async makeSeenAllNotifies(@Req() req) {
     const jwtPayload: IAccessJwtPayload = req.user;
 
-    const notifies = await this.notificationService.findAll({
+    const notifies = await this.notificationService.repository.find({
       select: { _id: true },
       where: { to: jwtPayload._id },
     });
 
-    return this.notificationService.update(
+    return this.notificationService.repository.update(
       notifies.map((v) => v._id),
       { seen: true },
     );
