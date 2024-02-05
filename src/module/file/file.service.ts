@@ -91,4 +91,10 @@ export class FileService {
 
     return Promise.all(filesCreate);
   }
+
+  async uploadToMinio() {}
+
+  async buckets() {}
+
+  async getFromMinio() {}
 }

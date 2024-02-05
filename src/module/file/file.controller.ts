@@ -2,6 +2,7 @@ import { MemberService } from './../member/member.service';
 import {
   Body,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   Param,
@@ -18,7 +19,7 @@ import { ApiBody, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { FileService } from './file.service';
 import { AuthGuard } from '@nestjs/passport';
-import { IAccessJwtPayload } from '@/shared/types';
+import { BufferedFile, IAccessJwtPayload } from '@/shared/types';
 import { MaybeType } from '@/shared/utils/types/maybe.type';
 import { checkIsNumber } from '@/shared/utils/global-func';
 import { ILike } from 'typeorm';
@@ -147,6 +148,43 @@ export class FileController {
     return this.fileService.saveFile(files, member, isResize);
   }
 
+  @Post('v2/upload')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(
+    FilesInterceptor('files', 20, {
+      storage: diskStorage({
+        destination: (req, file, next) => {
+          next(null, 'uploads');
+        },
+        filename: (req, file, next) => {
+          next(
+            null,
+            new Date().toISOString().replace(/:/g, '-') +
+              '-' +
+              file.originalname,
+          );
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        cb(null, true);
+      },
+    }),
+  )
+  async uploadFileV2(@UploadedFile('files') files: BufferedFile[]) {
+    return files;
+  }
+
   @Get(':path')
   @ApiParam({
     name: 'path',
@@ -155,4 +193,13 @@ export class FileController {
   download(@Param('path') path, @Response() response) {
     return response.sendFile(path, { root: './files' });
   }
+
+  @Get('cluster')
+  async clusters() {}
+
+  @Delete('cluster')
+  async removeCluster() {}
+
+  @Delete()
+  async remove() {}
 }

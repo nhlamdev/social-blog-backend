@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
@@ -36,8 +35,6 @@ import { DataSource } from 'typeorm';
       },
       inject: [ConfigService],
     }),
-
-    MongooseModule.forRoot(process.env.MONGODB_URI),
   ],
 })
 export class DatabaseModule {}
