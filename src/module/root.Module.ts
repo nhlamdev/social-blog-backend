@@ -6,7 +6,7 @@ import { CategoryModule } from './category/category.module';
 import { SeriesModule } from './series/series.module';
 import { CommentModule } from './comment/comment.module';
 import { NotificationModule } from './notification/notification.module';
-import { FileModule } from './file/file.module';
+import { StorageModule } from './storage/storage.module';
 import { SessionModule } from './session/session.module';
 import { QuestionModule } from './question/question.module';
 import { AnswerModule } from './answer/answer.module';
@@ -22,7 +22,7 @@ const modules = [
   NotificationModule,
   QuestionModule,
   AnswerModule,
-  FileModule,
+  StorageModule,
 ];
 
 @Module({ imports: modules, exports: modules })

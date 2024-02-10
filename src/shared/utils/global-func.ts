@@ -1,5 +1,6 @@
 import { BadRequestException, ParseUUIDPipe } from '@nestjs/common';
 import * as fs from 'fs';
+import { basename, extname } from 'path';
 
 export const getDirPathUpload = (TableName: string) => {
   const dirPath = 'uploads/' + TableName + getDatePath();
@@ -10,6 +11,30 @@ export const getDirPathUpload = (TableName: string) => {
     console.log(error.message);
   }
 };
+
+export function deleteFolderRecursive(path: string) {
+  if (fs.existsSync(path)) {
+    fs.readdirSync(path).forEach(function (file) {
+      const curPath = path + '/' + file;
+      if (fs.lstatSync(curPath).isDirectory()) {
+        // recurse
+        deleteFolderRecursive(curPath);
+      } else {
+        // delete file
+        fs.unlinkSync(curPath);
+      }
+    });
+    fs.rmdirSync(path);
+  }
+}
+
+export function changeFileExtension(
+  filename: string,
+  newExtension: string,
+): string {
+  const baseName = basename(filename, extname(filename));
+  return `${baseName}.${newExtension}`;
+}
 
 export function removeAscent(str: any) {
   if (str === null || str === undefined) return str;

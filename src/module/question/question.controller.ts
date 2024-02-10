@@ -16,17 +16,17 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { FileService } from '../file/file.service';
+import { ApiTags } from '@nestjs/swagger';
+import { StorageService } from '../storage/storage.service';
 import { CreateQuestionDto, UpdateQuestionClosedDto } from './question.dto';
 import { QuestionService } from './question.service';
-import { ApiTags } from '@nestjs/swagger';
 
 @Controller('question')
 @ApiTags('question')
 export class QuestionController {
   constructor(
     private readonly questionService: QuestionService,
-    private readonly fileService: FileService,
+    private readonly storageService: StorageService,
   ) {}
 
   @Get()
